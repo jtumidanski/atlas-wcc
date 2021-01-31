@@ -1,6 +1,7 @@
 package rest
 
 import (
+   "atlas-wcc/rest/resources"
    "github.com/gorilla/mux"
    "log"
    "net/http"
@@ -14,8 +15,12 @@ type Server struct {
 }
 
 func NewServer(l *log.Logger) *Server {
-   router := mux.NewRouter().StrictSlash(true).PathPrefix("/ms/wcc").Subrouter()
+   router := mux.NewRouter().StrictSlash(true).PathPrefix("/ms/csrv").Subrouter()
    router.Use(commonHeader)
+
+   i := resources.NewInstructionResource(l)
+   iRouter := router.PathPrefix("/worlds/{worldId}/channels/{channelId}/characters/{characterId}/instructions").Subrouter()
+   iRouter.HandleFunc("", i.CreateInstruction).Methods(http.MethodPost)
 
    hs := http.Server{
       Addr:         ":8080",
