@@ -325,3 +325,17 @@ const (
    ZeroTime    int64 = 94354848000000000
    Permanent   int64 = 150841440000000000
 )
+
+func WriteWarpToMap(channelId byte, mapId uint32, portalId uint32, hp uint16) []byte {
+   w := response.NewWriter()
+   w.WriteShort(OpCodeSetField)
+   w.WriteInt(uint32(channelId) - 1)
+   w.WriteInt(0)
+   w.WriteByte(0)
+   w.WriteInt(mapId)
+   w.WriteByte(byte(portalId))
+   w.WriteShort(hp)
+   w.WriteBool(false)
+   w.WriteLong(uint64(getTime(timeNow())))
+   return w.Bytes()
+}

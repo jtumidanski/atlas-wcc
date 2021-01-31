@@ -21,8 +21,8 @@ func WriteSpawnNPCController(npc domain.NPC, miniMap bool) []byte {
       w.WriteByte(1)
    }
    w.WriteShort(npc.Fh())
-   w.WriteShort(npc.RX0())
-   w.WriteShort(npc.RX1())
+   w.WriteInt16(npc.RX0())
+   w.WriteInt16(npc.RX1())
    w.WriteBool(miniMap)
    return w.Bytes()
 }

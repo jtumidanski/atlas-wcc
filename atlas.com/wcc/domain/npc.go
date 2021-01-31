@@ -7,11 +7,11 @@ type NPC struct {
    cy       int16
    f        uint32
    fh       uint16
-   rx0      uint16
-   rx1      uint16
+   rx0      int16
+   rx1      int16
 }
 
-func NewNPC(objectId uint32, id uint32, x int16, cy int16, f uint32, fh uint16, rx0 uint16, rx1 uint16) NPC {
+func NewNPC(objectId uint32, id uint32, x int16, cy int16, f uint32, fh uint16, rx0 int16, rx1 int16) NPC {
    return NPC{
       objectId: objectId,
       id:       id,
@@ -48,10 +48,10 @@ func (n NPC) Fh() uint16 {
    return n.fh
 }
 
-func (n NPC) RX0() uint16 {
+func (n NPC) RX0() int16 {
    return n.rx0
 }
 
-func (n NPC) RX1() uint16 {
+func (n NPC) RX1() int16 {
    return n.rx1
 }

@@ -43,6 +43,7 @@ func main() {
    }
 
    go consumers.NewMapCharacter(l, context.Background()).Init(byte(wid), byte(cid))
+   go consumers.NewMapChanged(l, context.Background()).Init(byte(wid), byte(cid))
 
    lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
    ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
@@ -79,6 +80,7 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
    hr(handler.OpCharacterLoggedIn, &handler.CharacterLoggedInHandler{})
    hr(handler.OpChangeMapSpecial, &handler.ChangeMapSpecialHandler{})
    hr(handler.OpMoveCharacter, &handler.MoveCharacterHandler{})
+   hr(handler.OpChangeMap, &handler.ChangeMapHandler{})
 }
 
 func handlerRegister(ss *socket.Server, l *log.Logger) func(uint16, request.MapleHandler) {
