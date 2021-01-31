@@ -58,6 +58,18 @@ func GetCharacterById(characterId uint32) (*domain.Character, error) {
    return c, nil
 }
 
+func GetCharacterAttributesById(characterId uint32) (*domain.CharacterAttributes, error) {
+   cs, err := requests.GetCharacterAttributesById(characterId)
+   if err != nil {
+      return nil, err
+   }
+   ca := makeCharacterAttributes(cs.Data())
+   if ca == nil {
+      return nil, errors.New("unable to make character attributes")
+   }
+   return ca, nil
+}
+
 func getCharacterForAttributes(data *attributes.CharacterAttributesData) (*domain.Character, error) {
    ca := makeCharacterAttributes(data)
    if ca == nil {

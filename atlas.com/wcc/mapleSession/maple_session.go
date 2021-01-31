@@ -18,6 +18,7 @@ type MapleSession interface {
    SetWorldId(id byte)
    ChannelId() byte
    SetChannelId(id byte)
+   CharacterId() uint32
    SetCharacterId(id uint32)
    SetGm(gm bool)
 }
@@ -113,6 +114,10 @@ func (s *mapleSession) LastRequest() time.Time {
 
 func (s *mapleSession) Disconnect() {
    _ = s.con.Close()
+}
+
+func (s *mapleSession) CharacterId() uint32 {
+   return s.characterId
 }
 
 func (s *mapleSession) SetCharacterId(id uint32) {

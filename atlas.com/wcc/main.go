@@ -74,6 +74,8 @@ func registerHandlers(ss *socket.Server, l *log.Logger) {
    hr := handlerRegister(ss, l)
    hr(handler.OpCodePong, &handler.PongHandler{})
    hr(handler.OpCharacterLoggedIn, &handler.CharacterLoggedInHandler{})
+   hr(handler.OpChangeMapSpecial, &handler.ChangeMapSpecialHandler{})
+   hr(handler.OpMoveCharacter, &handler.MoveCharacterHandler{})
 }
 
 func handlerRegister(ss *socket.Server, l *log.Logger) func(uint16, request.MapleHandler) {
