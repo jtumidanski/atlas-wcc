@@ -1,6 +1,7 @@
 package mapleSession
 
 import (
+   "atlas-wcc/rest/requests"
    "atlas-wcc/socket/response/writer"
    "github.com/jtumidanski/atlas-socket/crypto"
    "github.com/jtumidanski/atlas-socket/session"
@@ -114,6 +115,7 @@ func (s *mapleSession) LastRequest() time.Time {
 
 func (s *mapleSession) Disconnect() {
    _ = s.con.Close()
+   requests.CreateLogout(s.accountId)
 }
 
 func (s *mapleSession) CharacterId() uint32 {
