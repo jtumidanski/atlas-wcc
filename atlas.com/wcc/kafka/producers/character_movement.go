@@ -4,9 +4,11 @@ import (
    "atlas-wcc/rest/requests"
    "context"
    "encoding/json"
+   "fmt"
    "github.com/segmentio/kafka-go"
    "log"
    "os"
+   "strings"
    "time"
 )
 
@@ -63,5 +65,18 @@ type CharacterMovementEvent struct {
    X           int16  `json:"x"`
    Y           int16  `json:"y"`
    Stance      byte   `json:"stance"`
-   RawMovement []byte `json:"rawMovement"`
+   RawMovement RawMovement `json:"rawMovement"`
 }
+
+type RawMovement []byte
+
+func (m RawMovement) MarshalJSON() ([]byte, error) {
+   var result string
+   if m == nil {
+      result = "[]"
+   } else {
+      result = strings.Join(strings.Fields(fmt.Sprintf("%d", m)), ",")
+   }
+   return []byte(result), nil
+}
+

@@ -60,9 +60,7 @@ func updatePosition(reader *request.RequestReader, offset int16) []interface{} {
    for i := byte(0); i < commands; i++ {
       command := reader.ReadByte()
       switch command {
-      case 0:
-      case 5:
-      case 17:
+      case byte(0), byte(5), byte(17):
          x := reader.ReadInt16()
          y := reader.ReadInt16()
          reader.Skip(6)
@@ -75,47 +73,33 @@ func updatePosition(reader *request.RequestReader, offset int16) []interface{} {
          }
          mdl = append(mdl, md)
          break
-      case 1:
-      case 2:
-      case 6:
-      case 12:
-      case 13:
-      case 16:
-      case 18:
-      case 19:
-      case 20:
-      case 22:
+      case byte(1), byte(2), byte(6), byte(12), byte(13), byte(16), byte(18), byte(19), byte(20), byte(22):
          reader.Skip(4)
          ns := reader.ReadByte()
          reader.ReadUint16()
          md := &RelativeMovement{State: ns}
          mdl = append(mdl, md)
          break
-      case 3:
-      case 4:
-      case 7:
-      case 8:
-      case 9:
-      case 11:
+      case byte(3), byte(4), byte(7), byte(8), byte(9), byte(11):
          reader.Skip(8)
          ns := reader.ReadByte()
          md := &RelativeMovement{State: ns}
          mdl = append(mdl, md)
          break
-      case 14:
+      case byte(14):
          reader.Skip(9)
          break
-      case 10:
+      case byte(10):
          reader.ReadByte()
          break
-      case 15:
+      case byte(15):
          reader.Skip(12)
          ns := reader.ReadByte()
          reader.ReadUint16()
          md := &RelativeMovement{State: ns}
          mdl = append(mdl, md)
          break
-      case 21:
+      case byte(21):
          reader.Skip(3)
          break
       }
@@ -154,11 +138,11 @@ func processMovementList(movementList []interface{}) MovementSummary {
 
 func appendMovement(ms *MovementSummary, m interface{}) *MovementSummary {
    switch m.(type) {
-   case AbsoluteMovement:
-      am := m.(AbsoluteMovement)
+   case *AbsoluteMovement:
+      am := m.(*AbsoluteMovement)
       return &MovementSummary{am.X, am.Y, am.State}
-   case RelativeMovement:
-      rm := m.(RelativeMovement)
+   case *RelativeMovement:
+      rm := m.(*RelativeMovement)
       return ms.SetState(rm.State)
    }
    return ms
