@@ -38,8 +38,8 @@ type CharacterAttributesAttributes struct {
    MapId              uint32 `json:"mapId"`
    SpawnPoint         byte   `json:"spawnPoint"`
    Gm                 int    `json:"gm"`
-   X                  int    `json:"x"`
-   Y                  int    `json:"y"`
+   X                  int16 `json:"x"`
+   Y                  int16 `json:"y"`
    Stance             byte   `json:"stance"`
 }
 

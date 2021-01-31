@@ -1,6 +1,7 @@
 package main
 
 import (
+   "atlas-wcc/kafka/consumers"
    "atlas-wcc/kafka/producers"
    "atlas-wcc/registries"
    "atlas-wcc/rest"
@@ -40,6 +41,8 @@ func main() {
       l.Fatal("[ERROR] Unable to read port from environment.")
       return
    }
+
+   go consumers.NewMapCharacter(l, context.Background()).Init(byte(wid), byte(cid))
 
    lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
    ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))

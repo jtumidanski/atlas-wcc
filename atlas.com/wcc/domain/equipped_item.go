@@ -52,7 +52,7 @@ func (i EquippedItem) IsRegularEquipment() bool {
 }
 
 func (i EquippedItem) Expiration() int64 {
-   return 0
+   return -1
 }
 
 func (i EquippedItem) Slots() byte {

@@ -41,6 +41,9 @@ func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *domain.Cha
       SetMapId(att.MapId).
       SetSpawnPoint(att.SpawnPoint).
       SetMeso(att.Meso).
+      SetX(att.X).
+      SetY(att.Y).
+      SetStance(att.Stance).
       Build()
    return &r
 }

@@ -38,6 +38,9 @@ type CharacterAttributes struct {
    jobRank            int
    jobRankMove        int
    meso               uint32
+   x                  int16
+   y                  int16
+   stance             byte
 }
 
 func (a CharacterAttributes) Gm() bool {
@@ -217,6 +220,18 @@ func (a CharacterAttributes) Meso() uint32 {
    return a.meso
 }
 
+func (a CharacterAttributes) X() int16 {
+   return a.x
+}
+
+func (a CharacterAttributes) Y() int16 {
+   return a.y
+}
+
+func (a CharacterAttributes) Stance() byte {
+   return a.stance
+}
+
 type characterAttributeBuilder struct {
    id                 uint32
    accountId          uint32
@@ -250,6 +265,9 @@ type characterAttributeBuilder struct {
    jobRank            int
    jobRankMove        int
    meso               uint32
+   x                  int16
+   y                  int16
+   stance             byte
 }
 
 func NewCharacterAttributeBuilder() *characterAttributeBuilder {
@@ -416,6 +434,21 @@ func (c *characterAttributeBuilder) SetMeso(meso uint32) *characterAttributeBuil
    return c
 }
 
+func (c *characterAttributeBuilder) SetX(x int16) *characterAttributeBuilder {
+   c.x = x
+   return c
+}
+
+func (c *characterAttributeBuilder) SetY(y int16) *characterAttributeBuilder {
+   c.y = y
+   return c
+}
+
+func (c *characterAttributeBuilder) SetStance(stance byte) *characterAttributeBuilder {
+   c.stance = stance
+   return c
+}
+
 func (c *characterAttributeBuilder) Build() CharacterAttributes {
    return CharacterAttributes{
       id:                 c.id,
@@ -450,5 +483,8 @@ func (c *characterAttributeBuilder) Build() CharacterAttributes {
       jobRank:            c.jobRank,
       jobRankMove:        c.jobRankMove,
       meso:               c.meso,
+      x:                  c.x,
+      y:                  c.y,
+      stance:             c.stance,
    }
 }
