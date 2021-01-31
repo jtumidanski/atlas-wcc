@@ -41,7 +41,7 @@ func main() {
       return
    }
 
-   lss := services.NewMapleSessionService(byte(wid), byte(cid))
+   lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
    ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
    if err != nil {
       return

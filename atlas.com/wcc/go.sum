@@ -12,6 +12,8 @@ github.com/jtumidanski/atlas-socket v0.0.0-20210131010811-c4ff59535f74 h1:uHOwaZ
 github.com/jtumidanski/atlas-socket v0.0.0-20210131010811-c4ff59535f74/go.mod h1:XsY3hul7LwJ8hTFLa/5RhplmS5s5ApKTnamwAFtu4pc=
 github.com/jtumidanski/atlas-socket v0.0.0-20210131012413-cb250c877368 h1:xvDi70EFsnzuSXSQTxnOm/G4pihkxqKLykEw/NEfji0=
 github.com/jtumidanski/atlas-socket v0.0.0-20210131012413-cb250c877368/go.mod h1:XsY3hul7LwJ8hTFLa/5RhplmS5s5ApKTnamwAFtu4pc=
+github.com/jtumidanski/atlas-socket v0.0.0-20210131155837-5dd7f61a9cf1 h1:/s2lsQypjLqtmTddhKUhY4gFbYKIc4iuuMjd+WwmUAk=
+github.com/jtumidanski/atlas-socket v0.0.0-20210131155837-5dd7f61a9cf1/go.mod h1:XsY3hul7LwJ8hTFLa/5RhplmS5s5ApKTnamwAFtu4pc=
 github.com/klauspost/compress v1.9.8 h1:VMAMUUOh+gaxKTMk+zqbjsSjsIcUcL/LF4o63i82QyA=
 github.com/klauspost/compress v1.9.8/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=
 github.com/pierrec/lz4 v2.0.5+incompatible h1:2xWsjqPFWcplujydGg4WmhC/6fZqK42wMM8aXeqhl0I=
