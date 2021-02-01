@@ -15,11 +15,15 @@ type Server struct {
 }
 
 func NewServer(l *log.Logger) *Server {
-   router := mux.NewRouter().StrictSlash(true).PathPrefix("/ms/csrv").Subrouter()
+   router := mux.NewRouter().StrictSlash(true).PathPrefix("/ms/csrv/worlds/{worldId}/channels/{channelId}").Subrouter()
    router.Use(commonHeader)
 
+   s := resources.NewSessionResource(l)
+   sRouter := router.PathPrefix("/sessions").Subrouter()
+   sRouter.HandleFunc("", s.GetSessions)
+
    i := resources.NewInstructionResource(l)
-   iRouter := router.PathPrefix("/worlds/{worldId}/channels/{channelId}/characters/{characterId}/instructions").Subrouter()
+   iRouter := router.PathPrefix("/characters/{characterId}/instructions").Subrouter()
    iRouter.HandleFunc("", i.CreateInstruction).Methods(http.MethodPost)
 
    hs := http.Server{

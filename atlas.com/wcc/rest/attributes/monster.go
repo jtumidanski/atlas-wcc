@@ -25,7 +25,7 @@ type MonsterAttributes struct {
    Y                  int16         `json:"y"`
    FH                 int16        `json:"fh"`
    Stance             byte          `json:"stance"`
-   Team               byte          `json:"team"`
+   Team               int8          `json:"team"`
    HP                 uint32        `json:"hp"`
    DamageEntries      []DamageEntry `json:"damageEntries"`
 }

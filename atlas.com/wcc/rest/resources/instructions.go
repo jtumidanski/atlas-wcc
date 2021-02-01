@@ -54,8 +54,8 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 
    s := getSessionForCharacterId(characterId)
    if s == nil {
+      i.l.Println("[ERROR] cannot locate session for instruction", err)
       rw.WriteHeader(http.StatusBadRequest)
-      attributes.ToJSON(&GenericError{Message: err.Error()}, rw)
       return
    }
 

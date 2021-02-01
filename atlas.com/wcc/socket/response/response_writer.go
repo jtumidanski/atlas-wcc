@@ -86,7 +86,7 @@ func (w *Writer) Bytes() []byte {
 }
 
 func (w *Writer) Skip(amount int) {
-   ba := make([]byte, amount)
+   ba := make([]byte, 0)
    for i := 0; i < amount; i++ {
       ba = append(ba, 0)
    }

@@ -16,9 +16,9 @@ func WriteSpawnMonsterWithEffect(m domain.Monster, newSpawn bool, effect byte) [
    w.WriteShort(OpCodeSpawnMonster)
    w.WriteInt(m.UniqueId())
    if m.Controlled() {
-      w.WriteByte(5)
-   } else {
       w.WriteByte(1)
+   } else {
+      w.WriteByte(5)
    }
    w.WriteInt(m.MonsterId())
    w.Skip(15)
@@ -50,7 +50,7 @@ func WriteSpawnMonsterWithEffect(m domain.Monster, newSpawn bool, effect byte) [
    encodeParentlessMobSpawnEffect(w, newSpawn, effect)
    //      }
 
-   w.WriteByte(m.Team())
+   w.WriteInt8(m.Team())
    w.WriteInt(0) // getItemEffect
    return w.Bytes()
 }

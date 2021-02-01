@@ -8,10 +8,10 @@ type Monster struct {
    y                  int16
    stance             byte
    fh                 int16
-   team               byte
+   team               int8
 }
 
-func NewMonster(uniqueId uint32, controlCharacterId uint32, monsterId uint32, x int16, y int16, stance byte, fh int16, team byte) Monster {
+func NewMonster(uniqueId uint32, controlCharacterId uint32, monsterId uint32, x int16, y int16, stance byte, fh int16, team int8) Monster {
    return Monster{
       uniqueId:           uniqueId,
       controlCharacterId: controlCharacterId,
@@ -52,6 +52,6 @@ func (m Monster) FH() int16 {
    return m.fh
 }
 
-func (m Monster) Team() byte {
+func (m Monster) Team() int8 {
    return m.team
 }
