@@ -11,22 +11,6 @@ import (
    "strconv"
 )
 
-type InstructionInputDataContainer struct {
-   Data InstructionData `json:"data"`
-}
-
-type InstructionData struct {
-   Id         string                `json:"id"`
-   Type       string                `json:"type"`
-   Attributes InstructionAttributes `json:"attributes"`
-}
-
-type InstructionAttributes struct {
-   Message string `json:"message"`
-   Width   int16 `json:"width"`
-   Height  int16 `json:"height"`
-}
-
 type InstructionResource struct {
    l *log.Logger
 }
@@ -43,7 +27,7 @@ func NewInstructionResource(l *log.Logger) *InstructionResource {
 func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.Request) {
    characterId := getCharacterId(r)
 
-   cs := &InstructionInputDataContainer{}
+   cs := &attributes.InstructionInputDataContainer{}
    err := attributes.FromJSON(cs, r.Body)
    if err != nil {
       i.l.Println("[ERROR] deserializing instruction", err)
@@ -72,26 +56,6 @@ func getSessionForCharacterId(cid uint32) *mapleSession.MapleSession {
       }
    }
    return nil
-}
-
-func getWorldId(r *http.Request) byte {
-   vars := mux.Vars(r)
-   value, err := strconv.Atoi(vars["worldId"])
-   if err != nil {
-      log.Println("Error parsing worldId as byte")
-      return 0
-   }
-   return byte(value)
-}
-
-func getChannelId(r *http.Request) byte {
-   vars := mux.Vars(r)
-   value, err := strconv.Atoi(vars["channelId"])
-   if err != nil {
-      log.Println("Error parsing channelId as byte")
-      return 0
-   }
-   return byte(value)
 }
 
 func getCharacterId(r *http.Request) uint32 {

@@ -9,17 +9,23 @@ import (
 	"net/http"
 )
 
-type Topic struct {
+const (
+	topicsServicePrefix string = "/ms/tds/"
+	topicsService              = baseRequest + topicsServicePrefix
+	topicById                  = topicsService + "topics/%s"
+)
+
+var Topic = func(l *log.Logger) *topic {
+	return &topic{l: l}
+}
+
+type topic struct {
 	l *log.Logger
 }
 
-func NewTopic(l *log.Logger) *Topic {
-	return &Topic{l}
-}
-
-func (t *Topic) GetTopic(topic string) (*attributes.TopicData, error) {
+func (t *topic) GetTopic(topic string) (*attributes.TopicData, error) {
 	get := func(attempt int) (bool, interface{}, error) {
-		r, err := http.Get(fmt.Sprintf("http://atlas-nginx:80/ms/tds/topics/%s", topic))
+		r, err := http.Get(fmt.Sprintf(topicById, topic))
 		if err != nil {
 			t.l.Printf("[WARN] unable to retrieve topic data for %s, will retry.", topic)
 			return true, r, err
@@ -38,7 +44,7 @@ func (t *Topic) GetTopic(topic string) (*attributes.TopicData, error) {
 	return nil, errors.New("unexpected output from retry function")
 }
 
-func (t *Topic) decodeResponse(topic string, err error, val *http.Response) (*attributes.TopicData, error) {
+func (t *topic) decodeResponse(topic string, err error, val *http.Response) (*attributes.TopicData, error) {
 	td := &attributes.TopicDataContainer{}
 	err = attributes.FromJSON(td, val.Body)
 	if err != nil {

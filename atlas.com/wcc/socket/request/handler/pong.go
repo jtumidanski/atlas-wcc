@@ -2,18 +2,14 @@ package handler
 
 import (
 	"atlas-wcc/mapleSession"
+	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"log"
 )
 
 const OpCodePong uint16 = 0x18
 
-type PongHandler struct {
-}
-
-func (h *PongHandler) IsValid(_ *log.Logger, _ *mapleSession.MapleSession) bool {
-	return true
-}
-
-func (h *PongHandler) HandleRequest(_ *log.Logger, _ *mapleSession.MapleSession, _ *request.RequestReader) {
+func PongHandler() request2.SessionRequestHandler {
+	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	}
 }

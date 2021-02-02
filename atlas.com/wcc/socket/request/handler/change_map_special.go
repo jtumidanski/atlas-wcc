@@ -1,52 +1,46 @@
 package handler
 
 import (
-   "atlas-wcc/kafka/producers"
-   "atlas-wcc/mapleSession"
-   "atlas-wcc/processors"
-   "context"
-   "github.com/jtumidanski/atlas-socket/request"
-   "log"
+	"atlas-wcc/kafka/producers"
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
+	request2 "atlas-wcc/socket/request"
+	"context"
+	"github.com/jtumidanski/atlas-socket/request"
+	"log"
 )
 
 const OpChangeMapSpecial uint16 = 0x64
 
-type ChangeMapSpecialRequest struct {
-   startWarp string
+type changeMapSpecialRequest struct {
+	startWarp string
 }
 
-func (c *ChangeMapSpecialRequest) StartWarp() string {
-   return c.startWarp
+func (c *changeMapSpecialRequest) StartWarp() string {
+	return c.startWarp
 }
 
-func ReadChangeMapSpecialRequest(reader *request.RequestReader) ChangeMapSpecialRequest {
-   reader.ReadByte()
-   sw := reader.ReadAsciiString()
-   reader.ReadUint16()
-   return ChangeMapSpecialRequest{sw}
+func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecialRequest {
+	reader.ReadByte()
+	sw := reader.ReadAsciiString()
+	reader.ReadUint16()
+	return changeMapSpecialRequest{sw}
 }
 
-type ChangeMapSpecialHandler struct {
-}
+func ChangeMapSpecialHandler() request2.SessionRequestHandler {
+	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+		p := readChangeMapSpecialRequest(r)
+		c, err := processors.GetCharacterAttributesById((*s).CharacterId())
+		if err != nil {
+			l.Printf("[ERROR] cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+			return
+		}
 
-func (h *ChangeMapSpecialHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
-   v := processors.IsLoggedIn((*ms).AccountId())
-   if !v {
-      l.Printf("[ERROR] attempting to process a [ChangeMapSpecialRequest] when the account %d is not logged in.", (*ms).SessionId())
-   }
-   return v
-}
-
-func (h *ChangeMapSpecialHandler) HandleRequest(l *log.Logger, ms *mapleSession.MapleSession, r *request.RequestReader) {
-   p := ReadChangeMapSpecialRequest(r)
-   c, err := processors.GetCharacterAttributesById((*ms).CharacterId())
-   if err != nil {
-      return
-   }
-
-   portal, err := processors.GetPortalByName(c.MapId(), p.StartWarp())
-   if err != nil {
-      return
-   }
-   producers.NewPortalEnter(l, context.Background()).EmitEnter((*ms).WorldId(), (*ms).ChannelId(), c.MapId(), portal.Id(), (*ms).CharacterId())
+		portal, err := processors.GetPortalByName(c.MapId(), p.StartWarp())
+		if err != nil {
+			l.Printf("[ERROR] cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), (*s).CharacterId())
+			return
+		}
+		producers.PortalEnter(l, context.Background()).Enter((*s).WorldId(), (*s).ChannelId(), c.MapId(), portal.Id(), (*s).CharacterId())
+	}
 }

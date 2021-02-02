@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-type MonsterControlEvent struct {
+type monsterControlEvent struct {
 	WorldId     byte   `json:"worldId"`
 	ChannelId   byte   `json:"channelId"`
 	CharacterId uint32 `json:"characterId"`
@@ -17,28 +17,31 @@ type MonsterControlEvent struct {
 
 func MonsterControlEventCreator() EmptyEventCreator {
 	return func() interface{} {
-		return MonsterControlEvent{}
+		return &monsterControlEvent{}
 	}
 }
 
 func HandleMonsterControlEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, event interface{}) {
-		e := *event.(*MonsterControlEvent)
-		as := getSessionForCharacterId(e.CharacterId)
-		if as == nil {
-			l.Printf("[ERROR] cannot location session for character %d for monster control event processing.", e.CharacterId)
-			return
-		}
+	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*monsterControlEvent); ok {
+			as := getSessionForCharacterId(event.CharacterId)
+			if as == nil {
+				l.Printf("[ERROR] cannot location session for character %d for monster control event processing.", event.CharacterId)
+				return
+			}
 
-		if e.Type == "START" {
-			startControl(l, *as, e)
-		} else if e.Type == "STOP" {
-			stopControl(l, *as, e)
+			if event.Type == "START" {
+				startControl(l, *as, *event)
+			} else if event.Type == "STOP" {
+				stopControl(l, *as, *event)
+			}
+		} else {
+			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
 	}
 }
 
-func startControl(l *log.Logger, s mapleSession.MapleSession, event MonsterControlEvent) {
+func startControl(l *log.Logger, s mapleSession.MapleSession, event monsterControlEvent) {
 	m, err := processors.GetMonster(event.UniqueId)
 	if err != nil {
 		l.Printf("[ERROR] cannot locate monster %d for monster control event processing.", event.UniqueId)
@@ -48,7 +51,7 @@ func startControl(l *log.Logger, s mapleSession.MapleSession, event MonsterContr
 	s.Announce(writer.WriteControlMonster(m, false, false))
 }
 
-func stopControl(l *log.Logger, s mapleSession.MapleSession, event MonsterControlEvent) {
+func stopControl(l *log.Logger, s mapleSession.MapleSession, event monsterControlEvent) {
 	m, err := processors.GetMonster(event.UniqueId)
 	if err != nil {
 		l.Printf("[ERROR] cannot locate monster %d for monster control event processing.", event.UniqueId)

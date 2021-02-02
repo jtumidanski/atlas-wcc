@@ -6,14 +6,21 @@ import (
 )
 
 const (
-   DropRegistryServicePrefix string = "/ms/drg/"
-   DropRegistryService              = BaseRequest + DropRegistryServicePrefix
-   DropResource                     = DropRegistryService + "worlds/%d/channels/%d/maps/%d/drops"
+   dropRegistryServicePrefix string = "/ms/drg/"
+   dropRegistryService = baseRequest + dropRegistryServicePrefix
+   dropResource        = dropRegistryService + "worlds/%d/channels/%d/maps/%d/drops"
 )
 
-func GetDropsInMap(worldId byte, channelId byte, mapId uint32) (*attributes.DropDataContainer, error) {
+var DropRegistry = func() *dropRegistry {
+   return &dropRegistry{}
+}
+
+type dropRegistry struct {
+}
+
+func (d *dropRegistry) GetDropsInMap(worldId byte, channelId byte, mapId uint32) (*attributes.DropDataContainer, error) {
    ar := &attributes.DropDataContainer{}
-   err := Get(fmt.Sprintf(DropResource, worldId, channelId, mapId), ar)
+   err := get(fmt.Sprintf(dropResource, worldId, channelId, mapId), ar)
    if err != nil {
       return nil, err
    }

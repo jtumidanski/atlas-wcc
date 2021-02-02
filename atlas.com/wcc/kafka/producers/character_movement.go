@@ -7,17 +7,30 @@ import (
 	"strings"
 )
 
-type CharacterMovement struct {
+type characterMovementEvent struct {
+	WorldId     byte        `json:"worldId"`
+	ChannelId   byte        `json:"channelId"`
+	CharacterId uint32      `json:"characterId"`
+	X           int16       `json:"x"`
+	Y           int16       `json:"y"`
+	Stance      byte        `json:"stance"`
+	RawMovement rawMovement `json:"rawMovement"`
+}
+
+var CharacterMovement = func(l *log.Logger, ctx context.Context) *characterMovement {
+	return &characterMovement{
+		l:   l,
+		ctx: ctx,
+	}
+}
+
+type characterMovement struct {
 	l   *log.Logger
 	ctx context.Context
 }
 
-func NewCharacterMovement(l *log.Logger, ctx context.Context) *CharacterMovement {
-	return &CharacterMovement{l, ctx}
-}
-
-func (m *CharacterMovement) EmitMovement(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
-	e := &CharacterMovementEvent{
+func (m *characterMovement) Move(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
+	e := &characterMovementEvent{
 		WorldId:     worldId,
 		ChannelId:   channelId,
 		CharacterId: characterId,
@@ -26,22 +39,12 @@ func (m *CharacterMovement) EmitMovement(worldId byte, channelId byte, character
 		Stance:      stance,
 		RawMovement: rawMovement,
 	}
-	ProduceEvent(m.l, "TOPIC_CHARACTER_MOVEMENT", createKey(int(characterId)), e)
+	produceEvent(m.l, "TOPIC_CHARACTER_MOVEMENT", createKey(int(characterId)), e)
 }
 
-type CharacterMovementEvent struct {
-	WorldId     byte        `json:"worldId"`
-	ChannelId   byte        `json:"channelId"`
-	CharacterId uint32      `json:"characterId"`
-	X           int16       `json:"x"`
-	Y           int16       `json:"y"`
-	Stance      byte        `json:"stance"`
-	RawMovement RawMovement `json:"rawMovement"`
-}
+type rawMovement []byte
 
-type RawMovement []byte
-
-func (m RawMovement) MarshalJSON() ([]byte, error) {
+func (m rawMovement) MarshalJSON() ([]byte, error) {
 	var result string
 	if m == nil {
 		result = "[]"

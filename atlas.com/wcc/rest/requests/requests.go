@@ -8,20 +8,20 @@ import (
 )
 
 const (
-	BaseRequest string = "http://atlas-nginx:80"
+	baseRequest string = "http://atlas-nginx:80"
 )
 
-func Get(url string, resp interface{}) error {
+func get(url string, resp interface{}) error {
 	r, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 
-	err = ProcessResponse(r, resp)
+	err = processResponse(r, resp)
 	return err
 }
 
-func Post(url string, input interface{}) (*http.Response, error) {
+func post(url string, input interface{}) (*http.Response, error) {
 	jsonReq, err := json.Marshal(input)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func Post(url string, input interface{}) (*http.Response, error) {
 	return r, nil
 }
 
-func Delete(url string) (*http.Response, error) {
+func delete(url string) (*http.Response, error) {
 	client := &http.Client{}
 	r, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
@@ -45,7 +45,7 @@ func Delete(url string) (*http.Response, error) {
 	return client.Do(r)
 }
 
-func ProcessResponse(r *http.Response, rb interface{}) error {
+func processResponse(r *http.Response, rb interface{}) error {
 	err := attributes.FromJSON(rb, r.Body)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func ProcessResponse(r *http.Response, rb interface{}) error {
 	return nil
 }
 
-func ProcessErrorResponse(r *http.Response, eb interface{}) error {
+func processErrorResponse(r *http.Response, eb interface{}) error {
 	if r.ContentLength > 0 {
 		err := attributes.FromJSON(eb, r.Body)
 		if err != nil {

@@ -49,7 +49,7 @@ func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *domain.Cha
 }
 
 func GetCharacterById(characterId uint32) (*domain.Character, error) {
-   cs, err := requests.GetCharacterAttributesById(characterId)
+   cs, err := requests.Character().GetCharacterAttributesById(characterId)
    if err != nil {
       return nil, err
    }
@@ -62,7 +62,7 @@ func GetCharacterById(characterId uint32) (*domain.Character, error) {
 }
 
 func GetCharacterAttributesById(characterId uint32) (*domain.CharacterAttributes, error) {
-   cs, err := requests.GetCharacterAttributesById(characterId)
+   cs, err := requests.Character().GetCharacterAttributesById(characterId)
    if err != nil {
       return nil, err
    }
@@ -99,7 +99,7 @@ func getCharacterForAttributes(data *attributes.CharacterAttributesData) (*domai
 }
 
 func getSkillsForCharacter(characterId uint32) ([]domain.Skill, error) {
-   r, err := requests.GetForCharacter(characterId)
+   r, err := requests.Skill().GetForCharacter(characterId)
    if err != nil {
       return nil, err
    }
@@ -121,7 +121,7 @@ func getPetsForCharacter() ([]domain.Pet, error) {
 }
 
 func getEquippedItemsForCharacter(characterId uint32) ([]domain.EquippedItem, error) {
-   r, err := requests.GetEquippedItemsForCharacter(characterId)
+   r, err := requests.Character().GetEquippedItemsForCharacter(characterId)
    if err != nil {
       return nil, err
    }

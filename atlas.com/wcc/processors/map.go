@@ -8,7 +8,7 @@ import (
 )
 
 func GetCharacterIdsInMap(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-	resp, err := requests.GetCharactersInMap(worldId, channelId, mapId)
+	resp, err := requests.MapRegistry().GetCharactersInMap(worldId, channelId, mapId)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func GetCharacterIdsInMap(worldId byte, channelId byte, mapId uint32) ([]uint32,
 }
 
 func GetNPCsInMap(mapId uint32) ([]domain.NPC, error) {
-	resp, err := requests.GetNPCsInMap(mapId)
+	resp, err := requests.MapInformation().GetNPCsInMap(mapId)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func makeNPC(id uint32, att attributes.NpcAttributes) domain.NPC {
 }
 
 func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) ([]domain.Monster, error) {
-	resp, err := requests.GetMonstersInMap(worldId, channelId, mapId)
+	resp, err := requests.MonsterRegistry().GetInMap(worldId, channelId, mapId)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) ([]domain.Mons
 }
 
 func GetMonster(id uint32) (*domain.Monster, error) {
-	resp, err := requests.GetMonster(id)
+	resp, err := requests.MonsterRegistry().GetById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func makeMonster(id uint32, att attributes.MonsterAttributes) domain.Monster {
 }
 
 func GetDropsInMap(worldId byte, channelId byte, mapId uint32) ([]domain.Drop, error) {
-	resp, err := requests.GetDropsInMap(worldId, channelId, mapId)
+	resp, err := requests.DropRegistry().GetDropsInMap(worldId, channelId, mapId)
 	if err != nil {
 		return nil, err
 	}

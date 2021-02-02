@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-type MonsterEvent struct {
+type monsterEvent struct {
 	WorldId   byte   `json:"worldId"`
 	ChannelId byte   `json:"channelId"`
 	MapId     uint32 `json:"mapId"`
@@ -18,26 +18,29 @@ type MonsterEvent struct {
 
 func MonsterEventCreator() EmptyEventCreator {
 	return func() interface{} {
-		return &MonsterEvent{}
+		return &monsterEvent{}
 	}
 }
 
 func HandleMonsterEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, event interface{}) {
-		e := *event.(*MonsterEvent)
-		if wid != e.WorldId || cid != e.ChannelId {
-			return
-		}
+	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*monsterEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
 
-		if e.Type == "CREATED" {
-			createMonster(l, e)
-		} else if e.Type == "DESTROYED" {
-			destroyMonster(l, e)
+			if event.Type == "CREATED" {
+				createMonster(l, *event)
+			} else if event.Type == "DESTROYED" {
+				destroyMonster(l, *event)
+			}
+		} else {
+			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterEvent]")
 		}
 	}
 }
 
-func createMonster(l *log.Logger, event MonsterEvent) {
+func createMonster(l *log.Logger, event monsterEvent) {
 	m, err := processors.GetMonster(event.UniqueId)
 	if err != nil {
 		l.Printf("[ERROR] unable to monster %d to create.", event.UniqueId)
@@ -55,7 +58,7 @@ func createMonster(l *log.Logger, event MonsterEvent) {
 	}
 }
 
-func destroyMonster(l *log.Logger, event MonsterEvent) {
+func destroyMonster(l *log.Logger, event monsterEvent) {
 	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
 	if err != nil {
 		l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", event.WorldId, event.ChannelId, event.MapId)

@@ -18,9 +18,8 @@ func createKey(key int) []byte {
 	return b
 }
 
-func ProduceEvent(l *log.Logger, topicToken string, key []byte, event interface{}) {
-	t := requests.NewTopic(l)
-	td, err := t.GetTopic(topicToken)
+func produceEvent(l *log.Logger, topicToken string, key []byte, event interface{}) {
+	td, err := requests.Topic(l).GetTopic(topicToken)
 	if err != nil {
 		l.Fatal("[ERROR] unable to retrieve topic %s for producer.", topicToken)
 	}

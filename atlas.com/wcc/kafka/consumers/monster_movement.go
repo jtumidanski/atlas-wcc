@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-type MonsterMovementEvent struct {
+type monsterMovementEvent struct {
 	UniqueId      uint32      `json:"uniqueId"`
 	ObserverId    uint32      `json:"observerId"`
 	SkillPossible bool        `json:"skillPossible"`
@@ -26,30 +26,32 @@ type RawMovement []byte
 
 func MonsterMovementEventCreator() EmptyEventCreator {
 	return func() interface{} {
-		return &MonsterMovementEvent{}
+		return &monsterMovementEvent{}
 	}
 }
 
 func HandleMonsterMovementEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, event interface{}) {
-		e := *event.(*MonsterMovementEvent)
-
-		m, err := requests.GetMonster(e.UniqueId)
-		if err != nil {
-			l.Printf("[ERROR] unable to retrieve monster %d for MonsterMovementEvent", e.UniqueId)
-			return
-		}
-
-		mapId := m.Data().Attributes.MapId
-		sl, err := getSessionsForThoseInMap(wid, cid, mapId)
-		if err != nil {
-			l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", wid, cid, mapId)
-			return
-		}
-		for _, s := range sl {
-			if s.CharacterId() != e.ObserverId {
-				s.Announce(writer.WriteMoveMonster(e.UniqueId, e.SkillPossible, e.Skill, e.SkillId, e.SkillLevel, e.Option, e.StartX, e.StartY, e.RawMovement))
+	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*monsterMovementEvent); ok {
+			m, err := requests.MonsterRegistry().GetById(event.UniqueId)
+			if err != nil {
+				l.Printf("[ERROR] unable to retrieve monster %d for MonsterMovementEvent", event.UniqueId)
+				return
 			}
+
+			mapId := m.Data().Attributes.MapId
+			sl, err := getSessionsForThoseInMap(wid, cid, mapId)
+			if err != nil {
+				l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", wid, cid, mapId)
+				return
+			}
+			for _, s := range sl {
+				if s.CharacterId() != event.ObserverId {
+					s.Announce(writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId, event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))
+				}
+			}
+		} else {
+			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterMovementEvent]")
 		}
 	}
 }

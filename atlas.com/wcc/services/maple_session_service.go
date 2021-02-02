@@ -54,5 +54,5 @@ func (s *mapleSessionService) Destroy(sessionId int) {
 
    ses.Disconnect()
 
-   producers.NewCharacterStatus(s.l, context.Background()).EmitLogout(ses.WorldId(), ses.ChannelId(), ses.AccountId(), ses.CharacterId())
+   producers.CharacterStatus(s.l, context.Background()).Logout(ses.WorldId(), ses.ChannelId(), ses.AccountId(), ses.CharacterId())
 }

@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-type MapCharacterEvent struct {
+type mapCharacterEvent struct {
 	WorldId     byte   `json:"worldId"`
 	ChannelId   byte   `json:"channelId"`
 	MapId       uint32 `json:"mapId"`
@@ -19,7 +19,7 @@ type MapCharacterEvent struct {
 
 func MapCharacterEventCreator() EmptyEventCreator {
 	return func() interface{} {
-		return &MapChangedEvent{}
+		return &mapCharacterEvent{}
 	}
 }
 
@@ -31,24 +31,28 @@ func (h MapCharacterHandler) topicToken() string {
 }
 
 func HandleMapCharacterEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, event interface{}) {
-		e := *event.(*MapCharacterEvent)
-		as := getSessionForCharacterId(e.CharacterId)
-		if as == nil {
-			l.Printf("[ERROR] unable to locate session for character %d.", e.CharacterId)
-			return
-		}
+	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*mapCharacterEvent); ok {
+			as := getSessionForCharacterId(event.CharacterId)
+			if as == nil {
+				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
+				return
+			}
 
-		l.Printf("[INFO] processing MapCharacterEvent of type %s", e.Type)
-		if e.Type == "ENTER" {
-			enterMap(l, *as, e)
-		} else if e.Type == "EXIT" {
-			exitMap(l, *as, e)
+			l.Printf("[INFO] processing MapCharacterEvent of type %s", event.Type)
+			if event.Type == "ENTER" {
+				enterMap(l, *as, *event)
+			} else if event.Type == "EXIT" {
+				exitMap(l, *as, *event)
+			}
+
+		} else {
+			l.Printf("[ERROR] unable to cast event provided to handler [HandleMapCharacterEvent]")
 		}
 	}
 }
 
-func enterMap(l *log.Logger, as mapleSession.MapleSession, event MapCharacterEvent) {
+func enterMap(l *log.Logger, as mapleSession.MapleSession, event mapCharacterEvent) {
 	cIds, err := processors.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
 	if err != nil {
 		return
@@ -137,7 +141,7 @@ func getSessionsForThoseInMap(worldId byte, channelId byte, mapId uint32) ([]map
 	return sl, nil
 }
 
-func exitMap(_ *log.Logger, as mapleSession.MapleSession, event MapCharacterEvent) {
+func exitMap(_ *log.Logger, as mapleSession.MapleSession, event mapCharacterEvent) {
 	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
 	if err != nil {
 		return

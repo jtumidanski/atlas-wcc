@@ -249,7 +249,7 @@ func (e *equippedItemBuilder) SetAccuracy(accuracy uint16) *equippedItemBuilder 
 }
 
 func (e *equippedItemBuilder) SetAvoidability(avoidability uint16) *equippedItemBuilder {
-   e.avoidability = e.avoidability
+   e.avoidability = avoidability
    return e
 }
 

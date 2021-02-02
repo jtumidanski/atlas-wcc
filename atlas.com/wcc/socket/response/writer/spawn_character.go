@@ -41,7 +41,7 @@ func WriteSpawnCharacter(target domain.Character, character domain.Character, en
    //writer.writeInt(ItemConstants.getInventoryType(chr.getChair()) == MapleInventoryType.SETUP ? chr.getChair() : 0);
    w.WriteInt(0)
 
-   if (enteringField) {
+   if enteringField {
       w.WriteInt16(character.Attributes().X())
       w.WriteInt16(character.Attributes().Y() - int16(42))
       w.WriteByte(6)
@@ -107,7 +107,7 @@ func WriteSpawnCharacter(target domain.Character, character domain.Character, en
    return w.Bytes()
 }
 
-func noOpWrite(w *response.Writer) {
+func noOpWrite(_ *response.Writer) {
 }
 
 func addPetInfoButDoNotShow(w *response.Writer, p domain.Pet) {

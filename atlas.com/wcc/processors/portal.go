@@ -8,7 +8,7 @@ import (
 )
 
 func GetPortalByName(mapId uint32, portalName string) (*domain.Portal, error) {
-   resp, err := requests.GetPortalByName(mapId, portalName)
+   resp, err := requests.MapInformation().GetPortalByName(mapId, portalName)
    if err != nil {
       return nil, err
    }

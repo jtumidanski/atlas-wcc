@@ -6,25 +6,32 @@ import (
 )
 
 const (
-	MonsterRegistryServicePrefix string = "/ms/morg/"
-	MonsterRegistryService              = BaseRequest + MonsterRegistryServicePrefix
-	MapMonstersResource                 = MonsterRegistryService + "worlds/%d/channels/%d/maps/%d/monsters"
-	MonstersResource                    = MonsterRegistryService + "monsters"
-	MonsterResource                     = MonstersResource + "/%d"
+	monsterRegistryServicePrefix string = "/ms/morg/"
+	monsterRegistryService              = baseRequest + monsterRegistryServicePrefix
+	mapMonstersResource                 = monsterRegistryService + "worlds/%d/channels/%d/maps/%d/monsters"
+	monstersResource                    = monsterRegistryService + "monsters"
+	monsterResource                     = monstersResource + "/%d"
 )
 
-func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) (*attributes.MonsterDataContainer, error) {
+var MonsterRegistry = func() *monsterRegistry {
+	return &monsterRegistry{}
+}
+
+type monsterRegistry struct {
+}
+
+func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (*attributes.MonsterDataContainer, error) {
 	ar := &attributes.MonsterDataContainer{}
-	err := Get(fmt.Sprintf(MapMonstersResource, worldId, channelId, mapId), ar)
+	err := get(fmt.Sprintf(mapMonstersResource, worldId, channelId, mapId), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
 }
 
-func GetMonster(id uint32) (*attributes.MonsterDataContainer, error) {
+func (m *monsterRegistry) GetById(id uint32) (*attributes.MonsterDataContainer, error) {
 	ar := &attributes.MonsterDataContainer{}
-	err := Get(fmt.Sprintf(MonsterResource, id), ar)
+	err := get(fmt.Sprintf(monsterResource, id), ar)
 	if err != nil {
 		return nil, err
 	}

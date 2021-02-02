@@ -56,8 +56,7 @@ func SetEmptyEventCreator(f EmptyEventCreator) func(c *Consumer) {
 }
 
 func (c Consumer) Init() {
-	t := requests.NewTopic(c.l)
-	td, err := t.GetTopic(c.topicToken)
+	td, err := requests.Topic(c.l).GetTopic(c.topicToken)
 	if err != nil {
 		c.l.Fatal("[ERROR] Unable to retrieve topic for consumer.")
 	}

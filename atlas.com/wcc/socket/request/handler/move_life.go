@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
+	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -12,7 +13,7 @@ import (
 
 const OpMoveLife uint16 = 0xBC
 
-type MoveLifeRequest struct {
+type moveLifeRequest struct {
 	objectId         uint32
 	moveId           uint16
 	pNibbles         byte
@@ -27,51 +28,51 @@ type MoveLifeRequest struct {
 	movementList     []byte
 }
 
-func (r MoveLifeRequest) ObjectId() uint32 {
+func (r moveLifeRequest) ObjectId() uint32 {
 	return r.objectId
 }
 
-func (r MoveLifeRequest) RawActivity() int8 {
+func (r moveLifeRequest) RawActivity() int8 {
 	return r.rawActivity
 }
 
-func (r MoveLifeRequest) PNibbles() byte {
+func (r moveLifeRequest) PNibbles() byte {
 	return r.pNibbles
 }
 
-func (r MoveLifeRequest) SkillId() uint32 {
+func (r moveLifeRequest) SkillId() uint32 {
 	return r.skillId
 }
 
-func (r MoveLifeRequest) SkillLevel() uint32 {
+func (r moveLifeRequest) SkillLevel() uint32 {
 	return r.skillLevel
 }
 
-func (r MoveLifeRequest) POption() uint16 {
+func (r moveLifeRequest) POption() uint16 {
 	return r.pOption
 }
 
-func (r MoveLifeRequest) StartX() int16 {
+func (r moveLifeRequest) StartX() int16 {
 	return r.startX
 }
 
-func (r MoveLifeRequest) StartY() int16 {
+func (r moveLifeRequest) StartY() int16 {
 	return r.startY
 }
 
-func (r MoveLifeRequest) MovementData() []interface{} {
+func (r moveLifeRequest) MovementData() []interface{} {
 	return r.movementDataList
 }
 
-func (r MoveLifeRequest) MoveId() uint16 {
+func (r moveLifeRequest) MoveId() uint16 {
 	return r.moveId
 }
 
-func (r MoveLifeRequest) MovementList() []byte {
+func (r moveLifeRequest) MovementList() []byte {
 	return r.movementList
 }
 
-func ReadMoveLifeRequest(reader *request.RequestReader) *MoveLifeRequest {
+func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	objectId := reader.ReadUint32()
 	moveId := reader.ReadUint16()
 	pNibbles := reader.ReadByte()
@@ -102,66 +103,57 @@ func ReadMoveLifeRequest(reader *request.RequestReader) *MoveLifeRequest {
 		}
 	}
 
-	return &MoveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
+	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-type MoveLifeHandler struct {
-}
+func MoveLifeHandler() request2.SessionRequestHandler {
+	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+		p := readMoveLifeRequest(r)
+		if p == nil {
+			return
+		}
 
-func (h *MoveLifeHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*ms).AccountId())
-	if !v {
-		l.Printf("[ERROR] attempting to process a [MoveLifeRequest] when the account %d is not logged in.", (*ms).SessionId())
-	}
-	return v
-}
+		_, err := processors.GetMonster(p.ObjectId())
+		if err != nil {
+			l.Printf("[ERROR] received move life request for unknown monster %d", p.ObjectId())
+			return
+		}
 
-func (h *MoveLifeHandler) HandleRequest(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
-	p := ReadMoveLifeRequest(r)
-	if p == nil {
-		return
-	}
+		ra := p.RawActivity()
+		pOption := p.POption()
+		if ra >= 0 {
+			ra = int8(int16(ra) & 0xFF >> 1)
+		}
 
-	_, err := processors.GetMonster(p.ObjectId())
-	if err != nil {
-		l.Printf("[ERROR] received move life request for unknown monster %d", p.ObjectId())
-		return
-	}
+		is := inRangeInclusive(ra, 42, 59)
 
-	ra := p.RawActivity()
-	pOption := p.POption()
-	if ra >= 0 {
-		ra = int8(int16(ra) & 0xFF >> 1)
-	}
+		usi := uint32(0)
+		usl := uint32(0)
 
-	is := h.inRangeInclusive(ra, 42, 59)
+		nextMovementCouldBeSkill := !(is || (p.PNibbles() != 0))
+		if is {
+			usi = p.SkillId()
+			usl = p.SkillLevel()
+		} else {
+			as := int32(0)
+			if as < 1 {
+				ra = -1
+				pOption = 0
+			}
+		}
 
-	usi := uint32(0)
-	usl := uint32(0)
+		startX := p.StartX()
+		startY := p.StartY() - 2
 
-	nextMovementCouldBeSkill := !(is || (p.PNibbles() != 0))
-	if is {
-		usi = p.SkillId()
-		usl = p.SkillLevel()
-	} else {
-		as := int32(0)
-		if as < 1 {
-			ra = -1
-			pOption = 0
+		summary := processMovementList(p.MovementData())
+		(*s).Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+
+		if p.hasMovement {
+			producers.MonsterMovement(l, context.Background()).Move(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
 		}
 	}
-
-	startX := p.StartX()
-	startY := p.StartY() - 2
-
-	summary := processMovementList(p.MovementData())
-	(*s).Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
-
-	if p.hasMovement {
-		producers.NewMonsterMovement(l, context.Background()).EmitMovement(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
-	}
 }
 
-func (h *MoveLifeHandler) inRangeInclusive(ra int8, i int8, i2 int8) bool {
+func inRangeInclusive(ra int8, i int8, i2 int8) bool {
 	return !(ra < i) || (ra > i2)
 }

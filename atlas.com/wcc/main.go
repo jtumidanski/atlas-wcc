@@ -18,47 +18,40 @@ import (
 	"syscall"
 )
 
+const (
+	consumerGroupFormat = "World Channel Coordinator %d %d"
+)
+
 func main() {
 	l := log.New(os.Stdout, "wcc ", log.LstdFlags|log.Lmicroseconds)
 
 	_, err := registries.GetConfiguration()
 	if err != nil {
-		l.Fatal("[ERROR] Unable to successfully load configuration.")
+		l.Fatal("[ERROR] unable to successfully load configuration.")
 	}
 
 	wid, err := strconv.ParseUint(os.Getenv("WORLD_ID"), 10, 8)
 	if err != nil {
-		l.Fatal("[ERROR] Unable to read world identifier from environment.")
+		l.Fatal("[ERROR] unable to read world identifier from environment.")
 		return
 	}
 	cid, err := strconv.ParseUint(os.Getenv("CHANNEL_ID"), 10, 8)
 	if err != nil {
-		l.Fatal("[ERROR] Unable to read channel identifier from environment.")
+		l.Fatal("[ERROR] unable to read channel identifier from environment.")
 		return
 	}
 	ha := os.Getenv("HOST_ADDRESS")
 	port, err := strconv.ParseUint(os.Getenv("CHANNEL_PORT"), 10, 32)
 	if err != nil {
-		l.Fatal("[ERROR] Unable to read port from environment.")
+		l.Fatal("[ERROR] unable to read port from environment.")
 		return
 	}
 
 	createEventConsumers(l, byte(wid), byte(cid))
+	createSocketService(l, wid, cid, err, port)
+	createRestService(l)
 
-	lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
-	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
-	if err != nil {
-		l.Print(err.Error())
-		return
-	}
-
-	registerHandlers(ss, l)
-	go ss.Run()
-
-	rs := rest.NewServer(l)
-	go rs.Run()
-
-	producers.NewChannelServer(l, context.Background()).EmitStart(byte(wid), byte(cid), ha, uint32(port))
+	producers.ChannelServer(l, context.Background()).Start(byte(wid), byte(cid), ha, uint32(port))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -66,13 +59,29 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-c
-	l.Println("[INFO] Shutting down via signal:", sig)
-	producers.NewChannelServer(l, context.Background()).EmitShutdown(byte(wid), byte(cid), ha, uint32(port))
+	l.Println("[INFO] shutting down via signal:", sig)
+	producers.ChannelServer(l, context.Background()).Shutdown(byte(wid), byte(cid), ha, uint32(port))
 
 	sessions := registries.GetSessionRegistry().GetAll()
 	for _, s := range sessions {
 		s.Disconnect()
 	}
+}
+
+func createRestService(l *log.Logger) {
+	rs := rest.NewServer(l)
+	go rs.Run()
+}
+
+func createSocketService(l *log.Logger, wid uint64, cid uint64, err error, port uint64) {
+	lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
+	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
+	if err != nil {
+		l.Fatal(err.Error())
+	}
+
+	registerSocketRequestHandlers(ss, l)
+	go ss.Run()
 }
 
 func createEventConsumers(l *log.Logger, wid byte, cid byte) {
@@ -82,10 +91,12 @@ func createEventConsumers(l *log.Logger, wid byte, cid byte) {
 	createEventConsumer(l, wid, cid, "TOPIC_CONTROL_MONSTER_EVENT", consumers.MonsterControlEventCreator(), consumers.HandleMonsterControlEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_EVENT", consumers.MonsterEventCreator(), consumers.HandleMonsterEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_MOVEMENT", consumers.MonsterMovementEventCreator(), consumers.HandleMonsterMovementEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MOVEMENT", consumers.CharacterMovementEventCreator(), consumers.HandleCharacterMovementEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT", consumers.CharacterMapMessageEventCreator(), consumers.HandleCharacterMapMessageEvent())
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
-	groupId := fmt.Sprintf("World Channel Coordinator %d %d", wid, cid)
+	groupId := fmt.Sprintf(consumerGroupFormat, wid, cid)
 
 	h := func(logger *log.Logger, event interface{}) {
 		processor(logger, wid, cid, event)
@@ -98,18 +109,19 @@ func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, e
 	go c.Init()
 }
 
-func registerHandlers(ss *socket.Server, l *log.Logger) {
-	hr := handlerRegister(ss, l)
-	hr(handler.OpCodePong, &handler.PongHandler{})
-	hr(handler.OpCharacterLoggedIn, &handler.CharacterLoggedInHandler{})
-	hr(handler.OpChangeMapSpecial, &handler.ChangeMapSpecialHandler{})
-	hr(handler.OpMoveCharacter, &handler.MoveCharacterHandler{})
-	hr(handler.OpChangeMap, &handler.ChangeMapHandler{})
-	hr(handler.OpMoveLife, &handler.MoveLifeHandler{})
+func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
+	hr := socketRequestHandlerRegistration(ss, l)
+	hr(handler.OpCodePong, request.NoOpValidator(), handler.PongHandler())
+	hr(handler.OpCharacterLoggedIn, request.NoOpValidator(), handler.CharacterLoggedInHandler())
+	hr(handler.OpChangeMapSpecial, request.LoggedInValidator(), handler.ChangeMapSpecialHandler())
+	hr(handler.OpMoveCharacter, request.LoggedInValidator(), handler.MoveCharacterHandler())
+	hr(handler.OpChangeMap, request.LoggedInValidator(), handler.ChangeMapHandler())
+	hr(handler.OpMoveLife, request.LoggedInValidator(), handler.MoveLifeHandler())
+	hr(handler.OpGeneralChat, request.LoggedInValidator(), handler.GeneralChatHandler())
 }
 
-func handlerRegister(ss *socket.Server, l *log.Logger) func(uint16, request.MapleHandler) {
-	return func(op uint16, handler request.MapleHandler) {
-		ss.RegisterHandler(op, request.AdaptHandler(l, handler))
+func socketRequestHandlerRegistration(ss *socket.Server, l *log.Logger) func(uint16, request.SessionStateValidator, request.SessionRequestHandler) {
+	return func(op uint16, validator request.SessionStateValidator, handler request.SessionRequestHandler) {
+		ss.RegisterHandler(op, request.AdaptHandler(l, validator, handler))
 	}
 }

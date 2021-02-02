@@ -1,74 +1,68 @@
 package handler
 
 import (
-   "atlas-wcc/kafka/producers"
-   "atlas-wcc/mapleSession"
-   "atlas-wcc/processors"
-   "context"
-   "github.com/jtumidanski/atlas-socket/request"
-   "log"
+	"atlas-wcc/kafka/producers"
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
+	request2 "atlas-wcc/socket/request"
+	"context"
+	"github.com/jtumidanski/atlas-socket/request"
+	"log"
 )
 
 const OpChangeMap uint16 = 0x26
 
-type ChangeMapRequest struct {
-   cashShop  bool
-   fromDying int8
-   targetId  int32
-   startWarp string
-   wheel     bool
+type changeMapRequest struct {
+	cashShop  bool
+	fromDying int8
+	targetId  int32
+	startWarp string
+	wheel     bool
 }
 
-func (r ChangeMapRequest) CashShop() bool {
-   return r.cashShop
+func (r changeMapRequest) CashShop() bool {
+	return r.cashShop
 }
 
-func (r ChangeMapRequest) StartWarp() string {
-   return r.startWarp
+func (r changeMapRequest) StartWarp() string {
+	return r.startWarp
 }
 
-func ReadChangeMapRequest(reader *request.RequestReader) ChangeMapRequest {
-   cs := len(reader.String()) == 0
-   fromDying := int8(-1)
-   targetId := int32(-1)
-   startWarp := ""
-   wheel := false
+func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
+	cs := len(reader.String()) == 0
+	fromDying := int8(-1)
+	targetId := int32(-1)
+	startWarp := ""
+	wheel := false
 
-   if !cs {
-      fromDying = reader.ReadInt8()
-      targetId = reader.ReadInt32()
-      startWarp = reader.ReadAsciiString()
-      reader.ReadByte()
-      wheel = reader.ReadInt16() > 0
-   }
-   return ChangeMapRequest{cs, fromDying, targetId, startWarp, wheel}
+	if !cs {
+		fromDying = reader.ReadInt8()
+		targetId = reader.ReadInt32()
+		startWarp = reader.ReadAsciiString()
+		reader.ReadByte()
+		wheel = reader.ReadInt16() > 0
+	}
+	return changeMapRequest{cs, fromDying, targetId, startWarp, wheel}
 }
 
-type ChangeMapHandler struct {
-}
+func ChangeMapHandler() request2.SessionRequestHandler {
+	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+		p := readChangeMapRequest(r)
+		if p.CashShop() {
 
-func (h *ChangeMapHandler) IsValid(l *log.Logger, ms *mapleSession.MapleSession) bool {
-   v := processors.IsLoggedIn((*ms).AccountId())
-   if !v {
-      l.Printf("[ERROR] attempting to process a [ChangeMapRequest] when the account %d is not logged in.", (*ms).SessionId())
-   }
-   return v
-}
+		} else {
+			ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
+			if err != nil {
+				l.Printf("[ERROR] cannot handle [ChangeMapRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+				return
+			}
 
-func (h *ChangeMapHandler) HandleRequest(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
-   p := ReadChangeMapRequest(r)
-   if p.CashShop() {
-
-   } else {
-      ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
-      if err != nil {
-         return
-      }
-
-      portal, err := processors.GetPortalByName(ca.MapId(), p.StartWarp())
-      if err != nil {
-         return
-      }
-      producers.NewPortalEnter(l, context.Background()).EmitEnter((*s).WorldId(), (*s).ChannelId(), ca.MapId(), portal.Id(), (*s).CharacterId())
-   }
+			portal, err := processors.GetPortalByName(ca.MapId(), p.StartWarp())
+			if err != nil {
+				l.Printf("[ERROR] cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), (*s).CharacterId())
+				return
+			}
+			producers.PortalEnter(l, context.Background()).Enter((*s).WorldId(), (*s).ChannelId(), ca.MapId(), portal.Id(), (*s).CharacterId())
+		}
+	}
 }
