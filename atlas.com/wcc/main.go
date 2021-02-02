@@ -118,6 +118,7 @@ func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpChangeMap, request.LoggedInValidator(), handler.ChangeMapHandler())
 	hr(handler.OpMoveLife, request.LoggedInValidator(), handler.MoveLifeHandler())
 	hr(handler.OpGeneralChat, request.LoggedInValidator(), handler.GeneralChatHandler())
+	hr(handler.OpChangeChannel, request.LoggedInValidator(), handler.ChangeChannelHandler())
 }
 
 func socketRequestHandlerRegistration(ss *socket.Server, l *log.Logger) func(uint16, request.SessionStateValidator, request.SessionRequestHandler) {
