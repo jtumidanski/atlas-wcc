@@ -22,7 +22,7 @@ func LoggedInValidator() SessionStateValidator {
 	return func(l *log.Logger, s *mapleSession.MapleSession) bool {
 		v := processors.IsLoggedIn((*s).AccountId())
 		if !v {
-			l.Printf("[ERROR] attempting to process a [ChangeMapSpecialRequest] when the account %d is not logged in.", (*s).SessionId())
+			l.Printf("[ERROR] attempting to process a request when the account %d is not logged in.", (*s).SessionId())
 		}
 		return v
 	}

@@ -22,13 +22,7 @@ func CharacterMapMessageEventCreator() EmptyEventCreator {
 func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMapMessageEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-
-			sl, err := getSessionsForThoseInMap((*as).WorldId(), (*as).ChannelId(), event.MapId)
+			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
 			if err != nil {
 				return
 			}

@@ -20,13 +20,7 @@ func CharacterExpressionChangedEventCreator() EmptyEventCreator {
 func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExpressionChangedEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-
-			sl, err := getSessionsForThoseInMap((*as).WorldId(), (*as).ChannelId(), event.MapId)
+			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
 			if err != nil {
 				return
 			}

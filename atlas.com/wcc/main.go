@@ -94,6 +94,11 @@ func createEventConsumers(l *log.Logger, wid byte, cid byte) {
 	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MOVEMENT", consumers.CharacterMovementEventCreator(), consumers.HandleCharacterMovementEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT", consumers.CharacterMapMessageEventCreator(), consumers.HandleCharacterMapMessageEvent())
 	createEventConsumer(l, wid, cid, "EXPRESSION_CHANGED", consumers.CharacterExpressionChangedEventCreator(), consumers.HandleCharacterExpressionChangedEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_CREATED_EVENT", consumers.CharacterCreatedEventCreator(), consumers.HandleCharacterCreatedEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_EXPERIENCE_EVENT", consumers.CharacterExperienceEventCreator(), consumers.HandleCharacterExperienceEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_INVENTORY_MODIFICATION", consumers.CharacterInventoryModificationEventCreator(), consumers.HandleCharacterInventoryModificationEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_LEVEL_EVENT", consumers.CharacterLevelEventCreator(), consumers.HandleCharacterLevelEvent())
+	
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
@@ -121,6 +126,15 @@ func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpGeneralChat, request.LoggedInValidator(), handler.GeneralChatHandler())
 	hr(handler.OpChangeChannel, request.LoggedInValidator(), handler.ChangeChannelHandler())
 	hr(handler.OpCharacterExpression, request.LoggedInValidator(), handler.CharacterExpressionHandler())
+	hr(handler.OpCharacterCloseRangeAttack, request.LoggedInValidator(), handler.CharacterCloseRangeAttackHandler())
+	hr(handler.OpCharacterDistributeAp, request.LoggedInValidator(), handler.DistributeApHandler())
+	hr(handler.OpCharacterDistributeSp, request.LoggedInValidator(), handler.DistributeSpHandler())
+	hr(handler.OpCharacterHealOverTime, request.LoggedInValidator(), handler.HealOverTimeHandler())
+	hr(handler.OpCharacterItemPickUp, request.LoggedInValidator(), handler.ItemPickUpHandler())
+	hr(handler.OpNpcAction, request.LoggedInValidator(), handler.HandleNPCAction())
+	hr(handler.OpNpcTalkMore, request.LoggedInValidator(), handler.HandleNPCTalkMoreRequest())
+	hr(handler.OpNpcTalk, handler.CharacterAliveValidator(), handler.HandleNPCTalkRequest())
+	hr(handler.OpCharacterDamage, request.LoggedInValidator(), handler.HandleCharacterDamageRequest())
 }
 
 func socketRequestHandlerRegistration(ss *socket.Server, l *log.Logger) func(uint16, request.SessionStateValidator, request.SessionRequestHandler) {

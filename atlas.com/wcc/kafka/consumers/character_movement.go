@@ -25,12 +25,6 @@ func CharacterMovementEventCreator() EmptyEventCreator {
 func HandleCharacterMovementEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMovementEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-
 			catt, err := requests.Character().GetCharacterAttributesById(event.CharacterId)
 			if err != nil {
 				l.Printf("[ERROR] unable to retrieve character attributes for character %d.", event.CharacterId)

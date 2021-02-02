@@ -23,6 +23,7 @@ type MapleSession interface {
 	SetCharacterId(id uint32)
 	SetGm(gm bool)
 	Disconnect()
+	GM() bool
 }
 
 type mapleSession struct {
@@ -131,4 +132,8 @@ func (s *mapleSession) SetCharacterId(id uint32) {
 
 func (s *mapleSession) SetGm(gm bool) {
 	s.gm = gm
+}
+
+func (s *mapleSession) GM() bool {
+	return s.gm
 }
