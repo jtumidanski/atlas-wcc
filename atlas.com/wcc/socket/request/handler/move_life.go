@@ -155,7 +155,7 @@ func (h *MoveLifeHandler) HandleRequest(l *log.Logger, s *mapleSession.MapleSess
 	startY := p.StartY() - 2
 
 	summary := processMovementList(p.MovementData())
-	(*s).Announce(writer.WriteMoveMonster(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+	(*s).Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
 
 	if p.hasMovement {
 		producers.NewMonsterMovement(l, context.Background()).EmitMovement(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
