@@ -14,34 +14,29 @@ type MapChangedEvent struct {
    CharacterId uint32 `json:"characterId"`
 }
 
-type MapChangedHandler struct {
-}
-
-func (h MapChangedHandler) topicToken() string {
-   return "TOPIC_CHANGE_MAP_EVENT"
-}
-
-func (h MapChangedHandler) emptyEventCreator() interface{} {
-   return &MapChangedEvent{}
-}
-
-func (h MapChangedHandler) eventProcessor(l *log.Logger, event interface{}) {
-   h.processEvent(l, *event.(*MapChangedEvent))
-}
-
-func (h MapChangedHandler) processEvent(l *log.Logger, event MapChangedEvent) {
-   l.Printf("[INFO] processing MapChangedEvent for character %d.", event.CharacterId)
-   as := getSessionForCharacterId(event.CharacterId)
-   if as == nil {
-      l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-      return
+func ChangeMapEventCreator() EmptyEventCreator {
+   return func() interface{} {
+      return &MapChangedEvent{}
    }
+}
 
-   catt, err := requests.GetCharacterAttributesById(event.CharacterId)
-   if err != nil {
-      l.Printf("[ERROR] unable to retrieve character attributes for character %d.", event.CharacterId)
-      return
+func HandleChangeMapEvent() ChannelEventProcessor {
+   return func(l *log.Logger, wid byte, cid byte, event interface{}) {
+      e := *event.(*MapChangedEvent)
+
+      l.Printf("[INFO] processing MapChangedEvent for character %d.", e.CharacterId)
+      as := getSessionForCharacterId(e.CharacterId)
+      if as == nil {
+         l.Printf("[ERROR] unable to locate session for character %d.", e.CharacterId)
+         return
+      }
+
+      catt, err := requests.GetCharacterAttributesById(e.CharacterId)
+      if err != nil {
+         l.Printf("[ERROR] unable to retrieve character attributes for character %d.", e.CharacterId)
+         return
+      }
+
+      (*as).Announce(writer.WriteWarpToMap(e.ChannelId, e.MapId, e.PortalId, catt.Data().Attributes.Hp))
    }
-
-   (*as).Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
 }

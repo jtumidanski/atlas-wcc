@@ -1,62 +1,97 @@
 package consumers
 
 import (
-   "atlas-wcc/rest/requests"
-   "context"
-   "encoding/json"
-   "fmt"
-   "github.com/segmentio/kafka-go"
-   "log"
-   "os"
-   "time"
+	"atlas-wcc/rest/requests"
+	"atlas-wcc/retry"
+	"context"
+	"encoding/json"
+	"github.com/segmentio/kafka-go"
+	"log"
+	"os"
+	"time"
 )
 
 type Consumer struct {
-   l         *log.Logger
-   ctx       context.Context
-   worldId   byte
-   channelId byte
-   h         EventHandler
+	l                 *log.Logger
+	ctx               context.Context
+	groupId           string
+	topicToken        string
+	emptyEventCreator EmptyEventCreator
+	h                 EventProcessor
 }
 
-func NewConsumer(l *log.Logger, ctx context.Context, worldId byte, channelId byte, h EventHandler) Consumer {
-   return Consumer{l, ctx, worldId, channelId, h}
+func NewConsumer(l *log.Logger, ctx context.Context, h EventProcessor, options ...ConsumerOption) Consumer {
+	c := &Consumer{}
+	c.l = l
+	c.ctx = ctx
+	c.h = h
+	for _, option := range options {
+		option(c)
+	}
+	return *c
 }
 
-type EventHandler interface {
-   topicToken() string
+type EmptyEventCreator func() interface{}
 
-   emptyEventCreator() interface{}
+type EventProcessor func(*log.Logger, interface{})
 
-   eventProcessor(*log.Logger, interface{})
+type ConsumerOption func(c *Consumer)
+
+func SetGroupId(groupId string) func(c *Consumer) {
+	return func(c *Consumer) {
+		c.groupId = groupId
+	}
+}
+
+func SetTopicToken(topicToken string) func(c *Consumer) {
+	return func(c *Consumer) {
+		c.topicToken = topicToken
+	}
+}
+
+func SetEmptyEventCreator(f EmptyEventCreator) func(c *Consumer) {
+	return func(c *Consumer) {
+		c.emptyEventCreator = f
+	}
 }
 
 func (c Consumer) Init() {
-   t := requests.NewTopic(c.l)
-   td, err := t.GetTopic(c.h.topicToken())
-   if err != nil {
-      c.l.Fatal("[ERROR] Unable to retrieve topic for consumer.")
-   }
+	t := requests.NewTopic(c.l)
+	td, err := t.GetTopic(c.topicToken)
+	if err != nil {
+		c.l.Fatal("[ERROR] Unable to retrieve topic for consumer.")
+	}
 
-   c.l.Printf("[INFO] creating topic consumer for %s", td.Attributes.Name)
-   r := kafka.NewReader(kafka.ReaderConfig{
-      Brokers: []string{os.Getenv("BOOTSTRAP_SERVERS")},
-      Topic:   td.Attributes.Name,
-      GroupID: fmt.Sprintf("World Channel Coordinator %d %d", c.worldId, c.channelId),
-      MaxWait: 50 * time.Millisecond,
-   })
-   for {
-      msg, err := r.ReadMessage(c.ctx)
-      if err != nil {
-         panic("Could not successfully read message " + err.Error())
-      }
+	c.l.Printf("[INFO] creating topic consumer for %s", td.Attributes.Name)
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{os.Getenv("BOOTSTRAP_SERVERS")},
+		Topic:   td.Attributes.Name,
+		GroupID: c.groupId,
+		MaxWait: 50 * time.Millisecond,
+	})
 
-      event := c.h.emptyEventCreator()
-      err = json.Unmarshal(msg.Value, &event)
-      if err != nil {
-         c.l.Println("Could not unmarshal event into event class ", msg.Value)
-      } else {
-         c.h.eventProcessor(c.l, event)
-      }
-   }
+	readMessage := func(attempt int) (bool, interface{}, error) {
+		msg, err := r.ReadMessage(c.ctx)
+		if err != nil {
+			c.l.Printf("[WARN] could not successfully read message on topic %s, will retry", td.Attributes.Name)
+			return true, nil, err
+		}
+		return false, &msg, err
+	}
+
+	for {
+		msg, err := retry.RetryResponse(readMessage, 10)
+		if err != nil {
+			c.l.Fatalf("[ERROR] could not successfully read message " + err.Error())
+		}
+		if val, ok := msg.(*kafka.Message); ok {
+			event := c.emptyEventCreator()
+			err = json.Unmarshal(val.Value, &event)
+			if err != nil {
+				c.l.Println("[ERROR] could not unmarshal event into event class ", val.Value)
+			} else {
+				c.h(c.l, event)
+			}
+		}
+	}
 }

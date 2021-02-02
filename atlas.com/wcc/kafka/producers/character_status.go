@@ -1,13 +1,8 @@
 package producers
 
 import (
-	"atlas-wcc/rest/requests"
 	"context"
-	"encoding/json"
-	"github.com/segmentio/kafka-go"
 	"log"
-	"os"
-	"time"
 )
 
 type CharacterStatus struct {
@@ -28,19 +23,6 @@ func (m *CharacterStatus) EmitLogout(worldId byte, channelId byte, accountId uin
 }
 
 func (m *CharacterStatus) emit(worldId byte, channelId byte, accountId uint32, characterId uint32, theType string) {
-	t := requests.NewTopic(m.l)
-	td, err := t.GetTopic("TOPIC_CHARACTER_STATUS")
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to retrieve topic for consumer.")
-	}
-
-	w := &kafka.Writer{
-		Addr:         kafka.TCP(os.Getenv("BOOTSTRAP_SERVERS")),
-		Topic:        td.Attributes.Name,
-		Balancer:     &kafka.LeastBytes{},
-		BatchTimeout: 50 * time.Millisecond,
-	}
-
 	e := &CharacterStatusEvent{
 		WorldId:     worldId,
 		ChannelId:   channelId,
@@ -48,21 +30,7 @@ func (m *CharacterStatus) emit(worldId byte, channelId byte, accountId uint32, c
 		CharacterId: characterId,
 		Type:        theType,
 	}
-
-	m.l.Printf("[INFO] producing CharacterStatusEvent for %d of type %s", characterId, theType)
-
-	r, err := json.Marshal(e)
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to marshall event.")
-	}
-
-	err = w.WriteMessages(context.Background(), kafka.Message{
-		Key:   createKey(int(characterId)),
-		Value: r,
-	})
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to produce event.")
-	}
+	ProduceEvent(m.l, "TOPIC_CHARACTER_STATUS", createKey(int(characterId)), e)
 }
 
 type CharacterStatusEvent struct {

@@ -1,13 +1,8 @@
 package producers
 
 import (
-	"atlas-wcc/rest/requests"
 	"context"
-	"encoding/json"
-	"github.com/segmentio/kafka-go"
 	"log"
-	"os"
-	"time"
 )
 
 type MonsterMovement struct {
@@ -20,19 +15,6 @@ func NewMonsterMovement(l *log.Logger, ctx context.Context) *MonsterMovement {
 }
 
 func (m *MonsterMovement) EmitMovement(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
-	t := requests.NewTopic(m.l)
-	td, err := t.GetTopic("TOPIC_MONSTER_MOVEMENT")
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to retrieve topic for consumer.")
-	}
-
-	w := &kafka.Writer{
-		Addr:         kafka.TCP(os.Getenv("BOOTSTRAP_SERVERS")),
-		Topic:        td.Attributes.Name,
-		Balancer:     &kafka.LeastBytes{},
-		BatchTimeout: 50 * time.Millisecond,
-	}
-
 	e := &MonsterMovementEvent{
 		UniqueId:      uniqueId,
 		ObserverId:    observerId,
@@ -48,18 +30,7 @@ func (m *MonsterMovement) EmitMovement(uniqueId uint32, observerId uint32, skill
 		Stance:        stance,
 		RawMovement:   rawMovement,
 	}
-	r, err := json.Marshal(e)
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to marshall event.")
-	}
-
-	err = w.WriteMessages(context.Background(), kafka.Message{
-		Key:   createKey(int(uniqueId)),
-		Value: r,
-	})
-	if err != nil {
-		m.l.Fatal("[ERROR] Unable to produce event.")
-	}
+	ProduceEvent(m.l, "TOPIC_MONSTER_MOVEMENT", createKey(int(uniqueId)), e)
 }
 
 type MonsterMovementEvent struct {

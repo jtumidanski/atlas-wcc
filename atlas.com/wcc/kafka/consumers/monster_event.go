@@ -1,10 +1,9 @@
 package consumers
 
 import (
-   "atlas-wcc/domain"
-   "atlas-wcc/processors"
-   "atlas-wcc/socket/response/writer"
-   "log"
+	"atlas-wcc/processors"
+	"atlas-wcc/socket/response/writer"
+	"log"
 )
 
 type MonsterEvent struct {
@@ -17,75 +16,55 @@ type MonsterEvent struct {
 	Type      string `json:"type"`
 }
 
-type MonsterHandler struct {
-   worldId byte
-   channelId byte
+func MonsterEventCreator() EmptyEventCreator {
+	return func() interface{} {
+		return &MonsterEvent{}
+	}
 }
 
-func NewMonsterHandler(worldId byte, channelId byte) MonsterHandler {
-   return MonsterHandler{worldId, channelId}
+func HandleMonsterEvent() ChannelEventProcessor {
+	return func(l *log.Logger, wid byte, cid byte, event interface{}) {
+		e := *event.(*MonsterEvent)
+		if wid != e.WorldId || cid != e.ChannelId {
+			return
+		}
+
+		if e.Type == "CREATED" {
+			createMonster(l, e)
+		} else if e.Type == "DESTROYED" {
+			destroyMonster(l, e)
+		}
+	}
 }
 
-func (h MonsterHandler) topicToken() string {
-   return "TOPIC_MONSTER_EVENT"
+func createMonster(l *log.Logger, event MonsterEvent) {
+	m, err := processors.GetMonster(event.UniqueId)
+	if err != nil {
+		l.Printf("[ERROR] unable to monster %d to create.", event.UniqueId)
+		return
+	}
+
+	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
+	if err != nil {
+		l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", event.WorldId, event.ChannelId, event.MapId)
+		return
+	}
+	for _, s := range sl {
+		l.Printf("[INFO] spawning monster %d type %d for character %d", m.UniqueId(), m.MonsterId(), s.CharacterId())
+		s.Announce(writer.WriteSpawnMonster(*m, false))
+	}
 }
 
-func (h MonsterHandler) emptyEventCreator() interface{} {
-   return &MonsterEvent{}
-}
-
-func (h MonsterHandler) eventProcessor(l *log.Logger, event interface{}) {
-   h.processEvent(l, *event.(*MonsterEvent))
-}
-
-func (h MonsterHandler) processEvent(l *log.Logger, event MonsterEvent) {
-   if h.WorldId() != event.WorldId || h.ChannelId() != event.ChannelId {
-      return
-   }
-
-   if event.Type == "CREATED" {
-      h.created(l, event)
-   } else if event.Type == "DESTROYED" {
-      h.destroyed(l, event)
-   }
-}
-
-func (h MonsterHandler) created(l *log.Logger, event MonsterEvent) {
-   m, err := processors.GetMonster(event.UniqueId)
-   if err != nil {
-      return
-   }
-   h.create(l, *m, event)
-}
-
-func (h MonsterHandler) create(l *log.Logger, m domain.Monster, event MonsterEvent) {
-   sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
-   if err != nil {
-      return
-   }
-   for _, s := range sl {
-      l.Printf("[INFO] spawning monster %d type %d for character %d", m.UniqueId(), m.MonsterId(), s.CharacterId())
-      s.Announce(writer.WriteSpawnMonster(m, false))
-   }
-}
-
-func (h MonsterHandler) destroyed(_ *log.Logger, event MonsterEvent) {
-   sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
-   if err != nil {
-      return
-   }
-   for _, s := range sl {
-      s.Announce(writer.WriteKillMonster(event.UniqueId, false))
-   }
-   for _, s := range sl {
-      s.Announce(writer.WriteKillMonster(event.UniqueId, true))
-   }
-}
-
-func (h MonsterHandler) WorldId() byte {
-   return h.worldId
-}
-
-func (h MonsterHandler) ChannelId() byte {
-   return h.channelId
+func destroyMonster(l *log.Logger, event MonsterEvent) {
+	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
+	if err != nil {
+		l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", event.WorldId, event.ChannelId, event.MapId)
+		return
+	}
+	for _, s := range sl {
+		s.Announce(writer.WriteKillMonster(event.UniqueId, false))
+	}
+	for _, s := range sl {
+		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
+	}
 }
