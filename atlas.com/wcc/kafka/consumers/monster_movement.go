@@ -58,7 +58,7 @@ func (h MonsterMovementHandler) processEvent(l *log.Logger, event MonsterMovemen
    }
    for _, s := range sl {
       if s.CharacterId() != event.ObserverId {
-         s.Announce(writer.WriteMoveMonster(event.ObserverId, event.SkillPossible, event.Skill, event.SkillId, event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))
+         s.Announce(writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId, event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))
       }
    }
 }
