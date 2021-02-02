@@ -93,6 +93,7 @@ func createEventConsumers(l *log.Logger, wid byte, cid byte) {
 	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_MOVEMENT", consumers.MonsterMovementEventCreator(), consumers.HandleMonsterMovementEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MOVEMENT", consumers.CharacterMovementEventCreator(), consumers.HandleCharacterMovementEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT", consumers.CharacterMapMessageEventCreator(), consumers.HandleCharacterMapMessageEvent())
+	createEventConsumer(l, wid, cid, "EXPRESSION_CHANGED", consumers.CharacterExpressionChangedEventCreator(), consumers.HandleCharacterExpressionChangedEvent())
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
@@ -119,6 +120,7 @@ func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpMoveLife, request.LoggedInValidator(), handler.MoveLifeHandler())
 	hr(handler.OpGeneralChat, request.LoggedInValidator(), handler.GeneralChatHandler())
 	hr(handler.OpChangeChannel, request.LoggedInValidator(), handler.ChangeChannelHandler())
+	hr(handler.OpCharacterExpression, request.LoggedInValidator(), handler.CharacterExpressionHandler())
 }
 
 func socketRequestHandlerRegistration(ss *socket.Server, l *log.Logger) func(uint16, request.SessionStateValidator, request.SessionRequestHandler) {
