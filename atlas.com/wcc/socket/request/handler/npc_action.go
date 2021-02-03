@@ -42,10 +42,10 @@ func readNPCAction(reader *request2.RequestReader) interface{} {
 		first := reader.ReadUint32()
 		second := reader.ReadByte()
 		third := reader.ReadByte()
-		return npcAnimationRequest{first, second, third}
+		return &npcAnimationRequest{first, second, third}
 	} else if length > 6 {
 		bytes := reader.ReadBytes(length - 9)
-		return npcMoveRequest{bytes}
+		return &npcMoveRequest{bytes}
 	}
 	return nil
 }
