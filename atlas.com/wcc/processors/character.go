@@ -240,3 +240,20 @@ func GetCharacterWeaponDamage(characterId uint32) uint32 {
 	}
 	return r.Data().Attributes.Maximum
 }
+
+func GetCharacterIdsInMap(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
+	resp, err := requests.MapRegistry().GetCharactersInMap(worldId, channelId, mapId)
+	if err != nil {
+		return nil, err
+	}
+
+	cIds := make([]uint32, 0)
+	for _, d := range resp.DataList() {
+		cId, err := strconv.ParseUint(d.Id, 10, 32)
+		if err != nil {
+			break
+		}
+		cIds = append(cIds, uint32(cId))
+	}
+	return cIds, nil
+}
