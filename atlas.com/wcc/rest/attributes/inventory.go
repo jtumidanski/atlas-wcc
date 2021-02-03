@@ -3,11 +3,13 @@ package attributes
 import "strconv"
 
 const (
+	ItemAttributesType      string = "com.atlas.cos.rest.attribute.ItemAttributes"
 	EquipmentAttributesType string = "com.atlas.cos.rest.attribute.EquipmentAttributes"
 	EquipmentStatisticsType string = "com.atlas.cos.rest.attribute.EquipmentStatisticsAttributes"
 )
 
 var equipmentIncludes = []conditionalMapperProvider{
+	transformItemAttributes,
 	transformEquipmentAttributes,
 	transformEquipmentStatistics,
 }
@@ -25,7 +27,7 @@ type InventoryData struct {
 
 type InventoryAttributes struct {
 	Type     string `json:"type"`
-	Capacity int    `json:"capacity"`
+	Capacity byte   `json:"capacity"`
 }
 
 func (c *InventoryDataContainer) UnmarshalJSON(data []byte) error {
@@ -64,6 +66,16 @@ func (c *InventoryDataContainer) GetIncludedEquippedItems() []EquipmentData {
 	return e
 }
 
+func (c *InventoryDataContainer) GetIncludedEquips() []EquipmentData {
+	var e = make([]EquipmentData, 0)
+	for _, x := range c.included {
+		if val, ok := x.(*EquipmentData); ok && val.Attributes.Slot >= 0 {
+			e = append(e, *val)
+		}
+	}
+	return e
+}
+
 func (c *InventoryDataContainer) GetEquipmentStatistics(id int) *EquipmentStatisticsAttributes {
 	for _, x := range c.included {
 		if val, ok := x.(*EquipmentStatisticsData); ok {
@@ -74,6 +86,36 @@ func (c *InventoryDataContainer) GetEquipmentStatistics(id int) *EquipmentStatis
 		}
 	}
 	return nil
+}
+
+func (c *InventoryDataContainer) GetIncludedItems() []ItemData {
+	var e = make([]ItemData, 0)
+	for _, x := range c.included {
+		if val, ok := x.(*ItemData); ok && val.Attributes.Slot >= 0 {
+			e = append(e, *val)
+		}
+	}
+	return e
+}
+
+func EmptyItemData() interface{} {
+	return &ItemData{}
+}
+
+type ItemData struct {
+	Id         string         `json:"id"`
+	Type       string         `json:"type"`
+	Attributes ItemAttributes `json:"attributes"`
+}
+
+type ItemAttributes struct {
+	ItemId   uint32 `json:"itemId"`
+	Quantity uint16 `json:"quantity"`
+	Slot     int8   `json:"slot"`
+}
+
+func transformItemAttributes() (string, objectMapper) {
+	return unmarshalData(ItemAttributesType, EmptyItemData)
 }
 
 func transformEquipmentAttributes() (string, objectMapper) {

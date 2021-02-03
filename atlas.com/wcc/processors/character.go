@@ -95,6 +95,29 @@ func getCharacterForAttributes(data *attributes.CharacterAttributesData) (*domai
 	}
 
 	c := domain.NewCharacter(*ca, eq, ss, ps)
+
+	ei, err := getEquipInventoryForCharacter(ca.Id())
+	if err != nil {
+		return nil, err
+	}
+	ui, err := getItemInventoryForCharacter(ca.Id(), "use")
+	if err != nil {
+		return nil, err
+	}
+	si, err := getItemInventoryForCharacter(ca.Id(), "setup")
+	if err != nil {
+		return nil, err
+	}
+	etc, err := getItemInventoryForCharacter(ca.Id(), "etc")
+	if err != nil {
+		return nil, err
+	}
+	ci, err := getItemInventoryForCharacter(ca.Id(), "cash")
+	if err != nil {
+		return nil, err
+	}
+	i := c.Inventory().SetEquipInventory(*ei).SetUseInventory(*ui).SetSetupInventory(*si).SetEtcInventory(*etc).SetCashInventory(*ci)
+	c = c.SetInventory(i)
 	return &c, nil
 }
 
@@ -118,6 +141,59 @@ func getSkillsForCharacter(characterId uint32) ([]domain.Skill, error) {
 
 func getPetsForCharacter() ([]domain.Pet, error) {
 	return make([]domain.Pet, 0), nil
+}
+
+func getItemInventoryForCharacter(characterId uint32, inventoryType string) (*domain.ItemInventory, error) {
+	r, err := requests.Character().GetItemsForCharacter(characterId, inventoryType)
+	if err != nil {
+		return nil, err
+	}
+
+	is := make([]domain.Item, 0)
+	for _, i := range r.GetIncludedItems() {
+		item := domain.NewItem(i.Attributes.ItemId, i.Attributes.Slot, i.Attributes.Quantity)
+		is = append(is, item)
+	}
+	i := domain.NewItemInventory(r.Data().Attributes.Capacity, is)
+	return &i, nil
+}
+
+func getEquipInventoryForCharacter(characterId uint32) (*domain.EquipInventory, error) {
+	r, err := requests.Character().GetItemsForCharacter(characterId, "equip")
+	if err != nil {
+		return nil, err
+	}
+
+	eis := make([]domain.EquippedItem, 0)
+	for _, e := range r.GetIncludedEquips() {
+		ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
+		if ea != nil {
+			ei := domain.NewEquippedItemBuilder().
+				SetItemId(ea.ItemId).
+				SetSlot(e.Attributes.Slot).
+				SetStrength(ea.Strength).
+				SetDexterity(ea.Dexterity).
+				SetIntelligence(ea.Intelligence).
+				SetLuck(ea.Luck).
+				SetHp(ea.Hp).
+				SetMp(ea.Mp).
+				SetWeaponAttack(ea.WeaponAttack).
+				SetMagicAttack(ea.MagicAttack).
+				SetWeaponDefense(ea.WeaponDefense).
+				SetMagicDefense(ea.MagicDefense).
+				SetAccuracy(ea.Accuracy).
+				SetAvoidability(ea.Avoidability).
+				SetHands(ea.Hands).
+				SetSpeed(ea.Speed).
+				SetJump(ea.Jump).
+				SetSlots(ea.Slots).
+				Build()
+			eis = append(eis, ei)
+		}
+	}
+
+	ei := domain.NewEquipInventory(r.Data().Attributes.Capacity, eis)
+	return &ei, nil
 }
 
 func getEquippedItemsForCharacter(characterId uint32) ([]domain.EquippedItem, error) {

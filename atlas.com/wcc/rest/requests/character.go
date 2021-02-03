@@ -11,8 +11,8 @@ const (
 	charactersResource                 = charactersService + "characters/"
 	charactersById                     = charactersResource + "%d"
 	charactersInventoryResource        = charactersResource + "%d/inventories/"
-	characterEquippedItems             = charactersInventoryResource + "?type=equip&include=inventoryItems,equipmentStatistics"
-	characterWeaponDamage			   = charactersResource + "%d/damage/weapon"
+	characterItems                     = charactersInventoryResource + "?type=%s&include=inventoryItems,equipmentStatistics"
+	characterWeaponDamage              = charactersResource + "%d/damage/weapon"
 )
 
 var Character = func() *character {
@@ -31,13 +31,17 @@ func (c *character) GetCharacterAttributesById(characterId uint32) (*attributes.
 	return ar, nil
 }
 
-func (c *character) GetEquippedItemsForCharacter(characterId uint32) (*attributes.InventoryDataContainer, error) {
+func (c *character) GetItemsForCharacter(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 	ar := &attributes.InventoryDataContainer{}
-	err := get(fmt.Sprintf(characterEquippedItems, characterId), ar)
+	err := get(fmt.Sprintf(characterItems, characterId, inventoryType), ar)
 	if err != nil {
 		return nil, err
 	}
 	return ar, nil
+}
+
+func (c *character) GetEquippedItemsForCharacter(characterId uint32) (*attributes.InventoryDataContainer, error) {
+	return c.GetItemsForCharacter(characterId, "equip")
 }
 
 func (c *character) GetCharacterWeaponDamage(characterId uint32) (*attributes.DamageDataContainer, error) {

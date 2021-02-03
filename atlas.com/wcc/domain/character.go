@@ -1,33 +1,37 @@
 package domain
 
 type Character struct {
-   attributes CharacterAttributes
-   equipment  []EquippedItem
-   inventory  Inventory
-   skills     []Skill
-   pets       []Pet
+	attributes CharacterAttributes
+	equipment  []EquippedItem
+	inventory  Inventory
+	skills     []Skill
+	pets       []Pet
 }
 
 func (c Character) Attributes() CharacterAttributes {
-   return c.attributes
+	return c.attributes
 }
 
 func (c Character) Pets() []Pet {
-   return c.pets
+	return c.pets
 }
 
 func (c Character) Equipment() []EquippedItem {
-   return c.equipment
+	return c.equipment
 }
 
 func (c Character) Inventory() Inventory {
-   return c.inventory
+	return c.inventory
 }
 
 func (c Character) Skills() []Skill {
-   return c.skills
+	return c.skills
+}
+
+func (c Character) SetInventory(i Inventory) Character {
+	return Character{c.attributes, c.equipment, i, c.skills, c.pets}
 }
 
 func NewCharacter(attributes CharacterAttributes, equipment []EquippedItem, skills []Skill, pets []Pet) Character {
-   return Character{attributes, equipment, EmptyInventory(), skills, pets}
+	return Character{attributes, equipment, EmptyInventory(), skills, pets}
 }
