@@ -24,6 +24,10 @@ func CharacterSkillUpdateEventCreator() EmptyEventCreator {
 func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterSkillUpdateEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			processors.ForSessionByCharacterId(event.CharacterId, updateSkill(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterSkillUpdateEvent]")

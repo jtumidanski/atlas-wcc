@@ -31,6 +31,10 @@ func CharacterInventoryModificationEventCreator() EmptyEventCreator {
 func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterInventoryModificationEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			processors.ForSessionByCharacterId(event.CharacterId, writeInventoryModification(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterInventoryModificationEvent]")

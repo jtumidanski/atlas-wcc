@@ -24,6 +24,10 @@ func CharacterExperienceEventCreator() EmptyEventCreator {
 func HandleCharacterExperienceEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExperienceEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			if event.PersonalGain == 0 && event.PartyGain == 0 {
 				return
 			}

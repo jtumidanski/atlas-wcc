@@ -152,16 +152,16 @@ func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
 			return
 		}
 
-		processors.ForEachSessionInMap((*s).WorldId(), (*s).ChannelId(), catt.MapId(), writeCloseRangeAttack(p))
+		processors.ForEachSessionInMap((*s).WorldId(), (*s).ChannelId(), catt.MapId(), writeCloseRangeAttack((*s).CharacterId(), p))
 
 		attackCount := uint32(1)
 		applyAttack(l, p, (*s).WorldId(), (*s).ChannelId(), catt.MapId(), (*s).CharacterId(), attackCount)
 	}
 }
 
-func writeCloseRangeAttack(p attackPacket) processors.SessionOperator {
+func writeCloseRangeAttack(attacker uint32, p attackPacket) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteCloseRangeAttack(session.CharacterId(), p.Skill(), p.SkillLevel(), p.Stance(), p.NumberAttackedAndDamaged(), p.AllDamage(), p.Speed(), p.Direction(), p.Display()))
+		session.Announce(writer.WriteCloseRangeAttack(attacker, p.Skill(), p.SkillLevel(), p.Stance(), p.NumberAttackedAndDamaged(), p.AllDamage(), p.Speed(), p.Direction(), p.Display()))
 	}
 }
 

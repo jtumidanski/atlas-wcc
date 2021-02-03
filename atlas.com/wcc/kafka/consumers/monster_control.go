@@ -24,6 +24,10 @@ func MonsterControlEventCreator() EmptyEventCreator {
 func HandleMonsterControlEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterControlEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
+
 			var handler processors.SessionOperator
 			if event.Type == "START" {
 				handler = startControl(l, event)

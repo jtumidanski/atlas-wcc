@@ -23,6 +23,10 @@ func DropExpireEventCreator() EmptyEventCreator {
 func HandleDropExpireEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropExpireEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
+
 			processors.ForEachSessionInMap(wid, cid, event.MapId, expireItem(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropExpireEvent]")

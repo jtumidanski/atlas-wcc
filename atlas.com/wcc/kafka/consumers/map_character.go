@@ -25,6 +25,10 @@ func MapCharacterEventCreator() EmptyEventCreator {
 func HandleMapCharacterEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapCharacterEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
+
 			var handler processors.SessionOperator
 			if event.Type == "ENTER" {
 				handler = enterMap(l, *event)

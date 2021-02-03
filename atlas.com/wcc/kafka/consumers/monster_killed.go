@@ -33,6 +33,10 @@ func MonsterKilledEventCreator() EmptyEventCreator {
 func HandleMonsterKilledEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*MonsterKilledEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
+
 			processors.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterKilledEvent]")

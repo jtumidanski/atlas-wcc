@@ -37,6 +37,10 @@ func DropEventCreator() EmptyEventCreator {
 func HandleDropEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropEvent); ok {
+			if wid != event.WorldId || cid != event.WorldId {
+				return
+			}
+
 			processors.ForEachSessionInMap(wid, cid, event.MapId, dropItem(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropEvent]")

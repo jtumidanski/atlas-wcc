@@ -20,6 +20,10 @@ func CharacterLevelEventCreator() EmptyEventCreator {
 func HandleCharacterLevelEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterLevelEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			processors.ForEachOtherSessionInMap(wid, cid, event.CharacterId, showForeignEffect(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterLevelEvent]")

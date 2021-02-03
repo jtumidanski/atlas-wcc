@@ -25,6 +25,10 @@ func ChangeMapEventCreator() EmptyEventCreator {
 func HandleChangeMapEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapChangedEvent); ok {
+			if wid != event.WorldId || cid != event.ChannelId {
+				return
+			}
+
 			processors.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleChangeMapEvent]")

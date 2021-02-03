@@ -26,6 +26,10 @@ func CharacterMovementEventCreator() EmptyEventCreator {
 func HandleCharacterMovementEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMovementEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			processors.ForEachOtherSessionInMap(wid, cid, event.CharacterId, moveCharacter(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")

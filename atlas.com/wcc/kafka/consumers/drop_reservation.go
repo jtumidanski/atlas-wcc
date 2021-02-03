@@ -22,6 +22,10 @@ func DropReservationEventCreator() EmptyEventCreator {
 func HandleDropReservationEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*dropReservationEvent); ok {
+			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+				return
+			}
+
 			if event.Type == "SUCCESS" {
 				return
 			}
