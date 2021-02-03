@@ -133,7 +133,6 @@ func forSessions(getter SessionGetter, f SessionsOperator) {
 	f(getter())
 }
 
-
 // retrieves all sessions which correspond to GMs
 func GetGMSessions() []mapleSession.MapleSession {
 	return getFilteredSessions(OnlyGMs())
@@ -144,6 +143,17 @@ func OnlyGMs() SessionFilter {
 	return func(session mapleSession.MapleSession) bool {
 		return session.GM()
 	}
+}
+
+func ForEachSession(f SessionOperator) {
+	ForAllSessions(ExecuteForEachSession(f))
+}
+
+func ForAllSessions(f SessionsOperator) {
+	getAll := func() []mapleSession.MapleSession {
+		return getFilteredSessions()
+	}
+	forSessions(getAll, f)
 }
 
 // retrieves all sessions which pass the provided SessionFilter slice.

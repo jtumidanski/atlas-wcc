@@ -3,6 +3,8 @@ package main
 import (
 	"atlas-wcc/kafka/consumers"
 	"atlas-wcc/kafka/producers"
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/registries"
 	"atlas-wcc/rest"
 	"atlas-wcc/services"
@@ -62,9 +64,12 @@ func main() {
 	l.Println("[INFO] shutting down via signal:", sig)
 	producers.ChannelServer(l, context.Background()).Shutdown(byte(wid), byte(cid), ha, uint32(port))
 
-	sessions := registries.GetSessionRegistry().GetAll()
-	for _, s := range sessions {
-		s.Disconnect()
+	processors.ForEachSession(disconnect())
+}
+
+func disconnect() processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
+		session.Disconnect()
 	}
 }
 
