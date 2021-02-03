@@ -224,7 +224,7 @@ func (e *equippedItemBuilder) SetMp(mp uint16) *equippedItemBuilder {
 }
 
 func (e *equippedItemBuilder) SetWeaponAttack(weaponAttack uint16) *equippedItemBuilder {
-   e.weaponDefense = weaponAttack
+   e.weaponAttack = weaponAttack
    return e
 }
 
