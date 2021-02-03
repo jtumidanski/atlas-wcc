@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
 	"log"
@@ -31,15 +33,16 @@ func ServerNoticeEventCreator() EmptyEventCreator {
 func HandleServerNoticeEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*ServerNoticeEvent); ok {
-			as := getSessionForCharacterId(event.RecipientId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.RecipientId)
-				return
-			}
-			(*as).Announce(writer.WriteServerNotice((*as).ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
+			processors.ForSessionByCharacterId(l, event.RecipientId, showServerNotice(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleServerNoticeEvent]")
 		}
+	}
+}
+
+func showServerNotice(event *ServerNoticeEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteServerNotice(session.ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
 	}
 }
 

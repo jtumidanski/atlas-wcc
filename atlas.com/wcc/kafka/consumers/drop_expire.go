@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -21,15 +23,15 @@ func DropExpireEventCreator() EmptyEventCreator {
 func HandleDropExpireEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropExpireEvent); ok {
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, expireItem(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropExpireEvent]")
 		}
+	}
+}
+
+func expireItem(event *DropExpireEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
 	}
 }

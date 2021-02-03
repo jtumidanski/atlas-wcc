@@ -85,32 +85,35 @@ func createSocketService(l *log.Logger, wid uint64, cid uint64, err error, port 
 }
 
 func createEventConsumers(l *log.Logger, wid byte, cid byte) {
-	createEventConsumer(l, wid, cid, "TOPIC_ENABLE_ACTIONS", consumers.EnableActionsEventCreator(), consumers.HandleEnableActionsEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHANGE_MAP_EVENT", consumers.ChangeMapEventCreator(), consumers.HandleChangeMapEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_MAP_CHARACTER_EVENT", consumers.MapCharacterEventCreator(), consumers.HandleMapCharacterEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CONTROL_MONSTER_EVENT", consumers.MonsterControlEventCreator(), consumers.HandleMonsterControlEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_EVENT", consumers.MonsterEventCreator(), consumers.HandleMonsterEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_MOVEMENT", consumers.MonsterMovementEventCreator(), consumers.HandleMonsterMovementEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MOVEMENT", consumers.CharacterMovementEventCreator(), consumers.HandleCharacterMovementEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT", consumers.CharacterMapMessageEventCreator(), consumers.HandleCharacterMapMessageEvent())
-	createEventConsumer(l, wid, cid, "EXPRESSION_CHANGED", consumers.CharacterExpressionChangedEventCreator(), consumers.HandleCharacterExpressionChangedEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_CREATED_EVENT", consumers.CharacterCreatedEventCreator(), consumers.HandleCharacterCreatedEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_EXPERIENCE_EVENT", consumers.CharacterExperienceEventCreator(), consumers.HandleCharacterExperienceEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_INVENTORY_MODIFICATION", consumers.CharacterInventoryModificationEventCreator(), consumers.HandleCharacterInventoryModificationEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_LEVEL_EVENT", consumers.CharacterLevelEventCreator(), consumers.HandleCharacterLevelEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_MESO_GAINED", consumers.CharacterMesoEventCreator(), consumers.HandleCharacterMesoEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_PICKED_UP_ITEM", consumers.ItemPickedUpEventCreator(), consumers.HandleItemPickedUpEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_PICKED_UP_NX", consumers.NXPickedUpEventCreator(), consumers.HandleNXPickedUpEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_DROP_RESERVATION_EVENT", consumers.DropReservationEventCreator(), consumers.HandleDropReservationEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_PICKUP_DROP_EVENT", consumers.DropPickedUpEventCreator(), consumers.HandleDropPickedUpEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_DROP_EVENT", consumers.DropEventCreator(), consumers.HandleDropEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_SKILL_UPDATE_EVENT", consumers.CharacterSkillUpdateEventCreator(), consumers.HandleCharacterSkillUpdateEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_CHARACTER_STAT_EVENT", consumers.CharacterStatUpdateEventCreator(), consumers.HandleCharacterStatUpdateEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_SERVER_NOTICE_COMMAND", consumers.ServerNoticeEventCreator(), consumers.HandleServerNoticeEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_KILLED_EVENT", consumers.MonsterKilledEventCreator(), consumers.HandleMonsterKilledEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_SHOW_DAMAGE_CHARACTER_COMMAND", consumers.CharacterDamagedEventCreator(), consumers.HandleCharacterDamagedEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_NPC_TALK_COMMAND", consumers.NPCTalkEventCreator(), consumers.HandleNPCTalkEvent())
-	createEventConsumer(l, wid, cid, "TOPIC_DROP_EXPIRE_EVENT", consumers.DropExpireEventCreator(), consumers.HandleDropExpireEvent())
+	cec := func(topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
+		createEventConsumer(l, wid, cid, topicToken, emptyEventCreator, processor)
+	}
+	cec("TOPIC_ENABLE_ACTIONS", consumers.EnableActionsEventCreator(), consumers.HandleEnableActionsEvent())
+	cec("TOPIC_CHANGE_MAP_EVENT", consumers.ChangeMapEventCreator(), consumers.HandleChangeMapEvent())
+	cec("TOPIC_MAP_CHARACTER_EVENT", consumers.MapCharacterEventCreator(), consumers.HandleMapCharacterEvent())
+	cec("TOPIC_CONTROL_MONSTER_EVENT", consumers.MonsterControlEventCreator(), consumers.HandleMonsterControlEvent())
+	cec("TOPIC_MONSTER_EVENT", consumers.MonsterEventCreator(), consumers.HandleMonsterEvent())
+	cec("TOPIC_MONSTER_MOVEMENT", consumers.MonsterMovementEventCreator(), consumers.HandleMonsterMovementEvent())
+	cec("TOPIC_CHARACTER_MOVEMENT", consumers.CharacterMovementEventCreator(), consumers.HandleCharacterMovementEvent())
+	cec("TOPIC_CHARACTER_MAP_MESSAGE_EVENT", consumers.CharacterMapMessageEventCreator(), consumers.HandleCharacterMapMessageEvent())
+	cec("EXPRESSION_CHANGED", consumers.CharacterExpressionChangedEventCreator(), consumers.HandleCharacterExpressionChangedEvent())
+	cec("TOPIC_CHARACTER_CREATED_EVENT", consumers.CharacterCreatedEventCreator(), consumers.HandleCharacterCreatedEvent())
+	cec("TOPIC_CHARACTER_EXPERIENCE_EVENT", consumers.CharacterExperienceEventCreator(), consumers.HandleCharacterExperienceEvent())
+	cec("TOPIC_INVENTORY_MODIFICATION", consumers.CharacterInventoryModificationEventCreator(), consumers.HandleCharacterInventoryModificationEvent())
+	cec("TOPIC_CHARACTER_LEVEL_EVENT", consumers.CharacterLevelEventCreator(), consumers.HandleCharacterLevelEvent())
+	cec("TOPIC_MESO_GAINED", consumers.CharacterMesoEventCreator(), consumers.HandleCharacterMesoEvent())
+	cec("TOPIC_PICKED_UP_ITEM", consumers.ItemPickedUpEventCreator(), consumers.HandleItemPickedUpEvent())
+	cec("TOPIC_PICKED_UP_NX", consumers.NXPickedUpEventCreator(), consumers.HandleNXPickedUpEvent())
+	cec("TOPIC_DROP_RESERVATION_EVENT", consumers.DropReservationEventCreator(), consumers.HandleDropReservationEvent())
+	cec("TOPIC_PICKUP_DROP_EVENT", consumers.DropPickedUpEventCreator(), consumers.HandleDropPickedUpEvent())
+	cec("TOPIC_DROP_EVENT", consumers.DropEventCreator(), consumers.HandleDropEvent())
+	cec("TOPIC_CHARACTER_SKILL_UPDATE_EVENT", consumers.CharacterSkillUpdateEventCreator(), consumers.HandleCharacterSkillUpdateEvent())
+	cec("TOPIC_CHARACTER_STAT_EVENT", consumers.CharacterStatUpdateEventCreator(), consumers.HandleCharacterStatUpdateEvent())
+	cec("TOPIC_SERVER_NOTICE_COMMAND", consumers.ServerNoticeEventCreator(), consumers.HandleServerNoticeEvent())
+	cec("TOPIC_MONSTER_KILLED_EVENT", consumers.MonsterKilledEventCreator(), consumers.HandleMonsterKilledEvent())
+	cec("TOPIC_SHOW_DAMAGE_CHARACTER_COMMAND", consumers.CharacterDamagedEventCreator(), consumers.HandleCharacterDamagedEvent())
+	cec("TOPIC_NPC_TALK_COMMAND", consumers.NPCTalkEventCreator(), consumers.HandleNPCTalkEvent())
+	cec("TOPIC_DROP_EXPIRE_EVENT", consumers.DropExpireEventCreator(), consumers.HandleDropExpireEvent())
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
@@ -128,7 +131,9 @@ func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, e
 }
 
 func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
-	hr := socketRequestHandlerRegistration(ss, l)
+	hr := func(op uint16, validator request.SessionStateValidator, handler request.SessionRequestHandler) {
+		ss.RegisterHandler(op, request.AdaptHandler(l, validator, handler))
+	}
 	hr(handler.OpCodePong, request.NoOpValidator(), handler.PongHandler())
 	hr(handler.OpCharacterLoggedIn, request.NoOpValidator(), handler.CharacterLoggedInHandler())
 	hr(handler.OpChangeMapSpecial, request.LoggedInValidator(), handler.ChangeMapSpecialHandler())
@@ -147,10 +152,4 @@ func registerSocketRequestHandlers(ss *socket.Server, l *log.Logger) {
 	hr(handler.OpNpcTalkMore, request.LoggedInValidator(), handler.HandleNPCTalkMoreRequest())
 	hr(handler.OpNpcTalk, handler.CharacterAliveValidator(), handler.HandleNPCTalkRequest())
 	hr(handler.OpCharacterDamage, request.LoggedInValidator(), handler.HandleCharacterDamageRequest())
-}
-
-func socketRequestHandlerRegistration(ss *socket.Server, l *log.Logger) func(uint16, request.SessionStateValidator, request.SessionRequestHandler) {
-	return func(op uint16, validator request.SessionStateValidator, handler request.SessionRequestHandler) {
-		ss.RegisterHandler(op, request.AdaptHandler(l, validator, handler))
-	}
 }

@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -30,20 +32,16 @@ func CharacterDamagedEventCreator() EmptyEventCreator {
 func HandleCharacterDamagedEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterDamagedEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, writeCharacterDamaged(*event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterDamagedEvent]")
 		}
+	}
+}
+
+func writeCharacterDamaged(event CharacterDamagedEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage,
+			event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y))
 	}
 }

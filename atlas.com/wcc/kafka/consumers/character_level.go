@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
@@ -19,29 +20,15 @@ func CharacterLevelEventCreator() EmptyEventCreator {
 func HandleCharacterLevelEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterLevelEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-
-			catt, err := processors.GetCharacterAttributesById(event.CharacterId)
-			if err != nil {
-				l.Printf("[ERROR] unable to retrieve character attributes for character %d.", event.CharacterId)
-				return
-			}
-
-			sl, err := getSessionsForThoseInMap(wid, cid, catt.MapId())
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				if s.CharacterId() != event.CharacterId {
-					s.Announce(writer.WriteShowForeignEffect(event.CharacterId, 0))
-				}
-			}
+			processors.ForEachOtherSessionInMap(l, wid, cid, event.CharacterId, showForeignEffect(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterLevelEvent]")
 		}
+	}
+}
+
+func showForeignEffect(event *characterLevelEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteShowForeignEffect(event.CharacterId, 0))
 	}
 }

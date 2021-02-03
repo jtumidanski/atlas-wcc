@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/domain"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
-	"atlas-wcc/registries"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -33,7 +32,7 @@ func (h MapCharacterHandler) topicToken() string {
 func HandleMapCharacterEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapCharacterEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
+			as := processors.GetSessionByCharacterId(event.CharacterId)
 			if as == nil {
 				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
 				return
@@ -71,7 +70,7 @@ func enterMap(l *log.Logger, as mapleSession.MapleSession, event mapCharacterEve
 	// Spawn new character for other character.
 	for k, v := range cm {
 		if k != event.CharacterId {
-			s := *getSessionForCharacterId(k)
+			s := *processors.GetSessionByCharacterId(k)
 			s.Announce(writer.WriteSpawnCharacter(*v, *cm[event.CharacterId], true))
 		}
 	}
@@ -131,18 +130,8 @@ func spawnNPCForSession(s mapleSession.MapleSession, n domain.NPC) {
 	s.Announce(writer.WriteSpawnNPCController(n, true))
 }
 
-func getSessionsForThoseInMap(worldId byte, channelId byte, mapId uint32) ([]mapleSession.MapleSession, error) {
-	cs, err := processors.GetCharacterIdsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return nil, err
-	}
-
-	sl := getSessionsForCharacterIds(cs)
-	return sl, nil
-}
-
 func exitMap(_ *log.Logger, as mapleSession.MapleSession, event mapCharacterEvent) {
-	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
+	sl, err := processors.GetSessionsInMap(event.WorldId, event.ChannelId, event.MapId)
 	if err != nil {
 		return
 	}
@@ -168,30 +157,5 @@ func removeCharacterForSession(s mapleSession.MapleSession, characterId uint32) 
 	s.Announce(writer.WriteRemoveCharacterFromMap(characterId))
 }
 
-func getSessionsForCharacterIds(cids []uint32) []mapleSession.MapleSession {
-	sl := make([]mapleSession.MapleSession, 0)
-	for _, s := range registries.GetSessionRegistry().GetAll() {
-		if contains(cids, s.CharacterId()) {
-			sl = append(sl, s)
-		}
-	}
-	return sl
-}
 
-func getSessionForCharacterId(cid uint32) *mapleSession.MapleSession {
-	for _, s := range registries.GetSessionRegistry().GetAll() {
-		if cid == s.CharacterId() {
-			return &s
-		}
-	}
-	return nil
-}
 
-func contains(set []uint32, id uint32) bool {
-	for _, s := range set {
-		if s == id {
-			return true
-		}
-	}
-	return false
-}

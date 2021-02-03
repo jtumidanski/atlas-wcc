@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -22,15 +24,15 @@ func CharacterMapMessageEventCreator() EmptyEventCreator {
 func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMapMessageEvent); ok {
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, showChatText(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
+	}
+}
+
+func showChatText(event *characterMapMessageEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show))
 	}
 }

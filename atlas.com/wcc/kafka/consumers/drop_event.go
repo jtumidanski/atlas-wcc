@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -35,21 +37,23 @@ func DropEventCreator() EmptyEventCreator {
 func HandleDropEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropEvent); ok {
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			a := uint32(0)
-			if event.ItemId != 0 {
-				a = 0
-			} else {
-				a = event.Meso
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a, event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0, event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, dropItem(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropEvent]")
 		}
+	}
+}
+
+func dropItem(event *DropEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		a := uint32(0)
+		if event.ItemId != 0 {
+			a = 0
+		} else {
+			a = event.Meso
+		}
+		session.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
+			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, session.CharacterId(), 0,
+			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
 	}
 }

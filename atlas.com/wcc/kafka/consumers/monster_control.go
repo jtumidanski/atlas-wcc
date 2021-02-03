@@ -24,39 +24,39 @@ func MonsterControlEventCreator() EmptyEventCreator {
 func HandleMonsterControlEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterControlEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] cannot location session for character %d for monster control event processing.", event.CharacterId)
+			var handler processors.SessionOperator
+			if event.Type == "START" {
+				handler = startControl(event)
+			} else if event.Type == "STOP" {
+				handler = stopControl(event)
+			} else {
+				l.Printf("[WARN] received unhandled monster control event type of %s", event.Type)
 				return
 			}
 
-			if event.Type == "START" {
-				startControl(l, *as, *event)
-			} else if event.Type == "STOP" {
-				stopControl(l, *as, *event)
-			}
+			processors.ForSessionByCharacterId(l, event.CharacterId, handler)
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
 	}
 }
 
-func startControl(l *log.Logger, s mapleSession.MapleSession, event monsterControlEvent) {
-	m, err := processors.GetMonster(event.UniqueId)
-	if err != nil {
-		l.Printf("[ERROR] cannot locate monster %d for monster control event processing.", event.UniqueId)
-		return
+func stopControl(event *monsterControlEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		m, err := processors.GetMonster(event.UniqueId)
+		if err != nil {
+			return
+		}
+		session.Announce(writer.WriteStopControlMonster(m))
 	}
-	l.Printf("[INFO] controlling monster %d type %d for character %d", m.UniqueId(), m.MonsterId(), s.CharacterId())
-	s.Announce(writer.WriteControlMonster(m, false, false))
 }
 
-func stopControl(l *log.Logger, s mapleSession.MapleSession, event monsterControlEvent) {
-	m, err := processors.GetMonster(event.UniqueId)
-	if err != nil {
-		l.Printf("[ERROR] cannot locate monster %d for monster control event processing.", event.UniqueId)
-		return
+func startControl(event *monsterControlEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		m, err := processors.GetMonster(event.UniqueId)
+		if err != nil {
+			return
+		}
+		session.Announce(writer.WriteControlMonster(m, false, false))
 	}
-	l.Printf("[INFO] removing control of monster %d type %d for character %d", m.UniqueId(), m.MonsterId(), s.CharacterId())
-	s.Announce(writer.WriteStopControlMonster(m))
 }

@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -20,20 +22,15 @@ func DropPickedUpEventCreator() EmptyEventCreator {
 func HandleDropPickedUpEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*dropPickedUpEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteRemoveItem(event.DropId, 2, event.CharacterId))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, removeItem(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropPickedUpEvent]")
 		}
+	}
+}
+
+func removeItem(event *dropPickedUpEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteRemoveItem(event.DropId, 2, event.CharacterId))
 	}
 }

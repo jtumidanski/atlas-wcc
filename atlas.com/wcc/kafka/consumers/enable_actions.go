@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -18,14 +20,15 @@ func EnableActionsEventCreator() EmptyEventCreator {
 func HandleEnableActionsEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*enableActionsEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-			(*as).Announce(writer.WriteEnableActions())
+			processors.ForSessionByCharacterId(l, event.CharacterId, enableActions(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
+	}
+}
+
+func enableActions(_ *enableActionsEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteEnableActions())
 	}
 }

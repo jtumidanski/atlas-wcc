@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -22,14 +24,15 @@ func CharacterSkillUpdateEventCreator() EmptyEventCreator {
 func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterSkillUpdateEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-			(*as).Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
+			processors.ForSessionByCharacterId(l, event.CharacterId, updateSkill(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterSkillUpdateEvent]")
 		}
+	}
+}
+
+func updateSkill(event *CharacterSkillUpdateEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
 	}
 }

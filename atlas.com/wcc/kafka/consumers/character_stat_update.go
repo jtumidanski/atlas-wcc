@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/domain"
+	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
@@ -21,26 +22,25 @@ func CharacterStatUpdateEventCreator() EmptyEventCreator {
 func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterStatUpdateEvent); ok {
-			as := getSessionForCharacterId(event.CharacterId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
-				return
-			}
-
-			ca, err := processors.GetCharacterAttributesById(event.CharacterId)
-			if err != nil {
-				l.Printf("[ERROR] unable to locate character %d.", event.CharacterId)
-				return
-			}
-
-			var statUpdates []writer.StatUpdate
-			for _, t := range event.Updates {
-				statUpdates = append(statUpdates, getStatUpdate(ca, t))
-			}
-			(*as).Announce(writer.WriteCharacterStatUpdate(statUpdates, true))
+			processors.ForSessionByCharacterId(l, event.CharacterId, updateStats(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterStatUpdateEvent]")
 		}
+	}
+}
+
+func updateStats(event *CharacterStatUpdateEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		ca, err := processors.GetCharacterAttributesById(event.CharacterId)
+		if err != nil {
+			return
+		}
+
+		var statUpdates []writer.StatUpdate
+		for _, t := range event.Updates {
+			statUpdates = append(statUpdates, getStatUpdate(ca, t))
+		}
+		session.Announce(writer.WriteCharacterStatUpdate(statUpdates, true))
 	}
 }
 

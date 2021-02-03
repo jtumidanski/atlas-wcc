@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
-	"atlas-wcc/registries"
 	"atlas-wcc/rest/requests"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
@@ -154,7 +153,7 @@ func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
 			return
 		}
 
-		sl, err := getSessionsForThoseInMap((*s).WorldId(), (*s).ChannelId(), catt.Data().Attributes.MapId)
+		sl, err := processors.GetSessionsInMap((*s).WorldId(), (*s).ChannelId(), catt.Data().Attributes.MapId)
 		if err != nil {
 			return
 		}
@@ -181,33 +180,4 @@ func applyAttack(l *log.Logger, p attackPacket, worldId byte, channelId byte, ma
 			producers.MonsterDamage(l, context.Background()).Emit(worldId, channelId, mapId, m.UniqueId(), characterId, totalDamage)
 		}
 	}
-}
-
-func getSessionsForThoseInMap(worldId byte, channelId byte, mapId uint32) ([]mapleSession.MapleSession, error) {
-	cs, err := processors.GetCharacterIdsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return nil, err
-	}
-
-	sl := getSessionsForCharacterIds(cs)
-	return sl, nil
-}
-
-func getSessionsForCharacterIds(cids []uint32) []mapleSession.MapleSession {
-	sl := make([]mapleSession.MapleSession, 0)
-	for _, s := range registries.GetSessionRegistry().GetAll() {
-		if contains(cids, s.CharacterId()) {
-			sl = append(sl, s)
-		}
-	}
-	return sl
-}
-
-func contains(set []uint32, id uint32) bool {
-	for _, s := range set {
-		if s == id {
-			return true
-		}
-	}
-	return false
 }

@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/domain"
+	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
@@ -29,45 +31,38 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			if event.Type == "CREATED" {
-				createMonster(l, *event)
-			} else if event.Type == "DESTROYED" {
-				destroyMonster(l, *event)
+			monster, err := processors.GetMonster(event.UniqueId)
+			if err != nil {
+				l.Printf("[ERROR] unable to monster %d to create.", event.UniqueId)
+				return
 			}
+
+			var handler processors.SessionOperator
+			if event.Type == "CREATED" {
+				handler = createMonster(event, *monster)
+			} else if event.Type == "DESTROYED" {
+				handler = destroyMonster(event)
+			} else {
+				l.Printf("[WARN] unable to handle %s event type for monster events.", event.Type)
+				return
+			}
+
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, handler)
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterEvent]")
 		}
 	}
 }
 
-func createMonster(l *log.Logger, event monsterEvent) {
-	m, err := processors.GetMonster(event.UniqueId)
-	if err != nil {
-		l.Printf("[ERROR] unable to monster %d to create.", event.UniqueId)
-		return
-	}
-
-	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
-	if err != nil {
-		l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", event.WorldId, event.ChannelId, event.MapId)
-		return
-	}
-	for _, s := range sl {
-		l.Printf("[INFO] spawning monster %d type %d for character %d", m.UniqueId(), m.MonsterId(), s.CharacterId())
-		s.Announce(writer.WriteSpawnMonster(*m, false))
+func destroyMonster(event *monsterEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteKillMonster(event.UniqueId, false))
+		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }
 
-func destroyMonster(l *log.Logger, event monsterEvent) {
-	sl, err := getSessionsForThoseInMap(event.WorldId, event.ChannelId, event.MapId)
-	if err != nil {
-		l.Printf("[ERROR] unable to locate sessions for map %d-%d-%d.", event.WorldId, event.ChannelId, event.MapId)
-		return
-	}
-	for _, s := range sl {
-		s.Announce(writer.WriteKillMonster(event.UniqueId, false))
-	}
-	for _, s := range sl {
-		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
+func createMonster(_ *monsterEvent, monster domain.Monster) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteSpawnMonster(monster, false))
 	}
 }

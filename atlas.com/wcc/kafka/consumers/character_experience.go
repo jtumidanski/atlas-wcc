@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -31,7 +32,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 				return
 			}
 
-			as := getSessionForCharacterId(event.CharacterId)
+			as := processors.GetSessionByCharacterId(event.CharacterId)
 			if as == nil {
 				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
 				return

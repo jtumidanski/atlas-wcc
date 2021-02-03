@@ -1,6 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"log"
 )
@@ -31,20 +33,15 @@ func MonsterKilledEventCreator() EmptyEventCreator {
 func HandleMonsterKilledEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*MonsterKilledEvent); ok {
-			as := getSessionForCharacterId(event.KillerId)
-			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.KillerId)
-				return
-			}
-			sl, err := getSessionsForThoseInMap(wid, cid, event.MapId)
-			if err != nil {
-				return
-			}
-			for _, s := range sl {
-				s.Announce(writer.WriteKillMonster(event.UniqueId, true))
-			}
+			processors.ForEachSessionInMap(l, wid, cid, event.MapId, killMonster(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterKilledEvent]")
 		}
+	}
+}
+
+func killMonster(event *MonsterKilledEvent) processors.SessionOperator {
+	return func(l *log.Logger, session mapleSession.MapleSession) {
+		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }

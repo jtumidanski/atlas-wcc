@@ -1,69 +1,59 @@
 package resources
 
 import (
-   "atlas-wcc/mapleSession"
-   "atlas-wcc/registries"
-   "atlas-wcc/rest/attributes"
-   "atlas-wcc/socket/response/writer"
-   "github.com/gorilla/mux"
-   "log"
-   "net/http"
-   "strconv"
+	"atlas-wcc/processors"
+	"atlas-wcc/rest/attributes"
+	"atlas-wcc/socket/response/writer"
+	"github.com/gorilla/mux"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 type InstructionResource struct {
-   l *log.Logger
+	l *log.Logger
 }
 
 // GenericError is a generic error message returned by a server
 type GenericError struct {
-   Message string `json:"message"`
+	Message string `json:"message"`
 }
 
 func NewInstructionResource(l *log.Logger) *InstructionResource {
-   return &InstructionResource{l}
+	return &InstructionResource{l}
 }
 
 func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.Request) {
-   characterId := getCharacterId(r)
+	characterId := getCharacterId(r)
 
-   cs := &attributes.InstructionInputDataContainer{}
-   err := attributes.FromJSON(cs, r.Body)
-   if err != nil {
-      i.l.Println("[ERROR] deserializing instruction", err)
-      rw.WriteHeader(http.StatusBadRequest)
-      attributes.ToJSON(&GenericError{Message: err.Error()}, rw)
-      return
-   }
+	cs := &attributes.InstructionInputDataContainer{}
+	err := attributes.FromJSON(cs, r.Body)
+	if err != nil {
+		i.l.Println("[ERROR] deserializing instruction", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		attributes.ToJSON(&GenericError{Message: err.Error()}, rw)
+		return
+	}
 
-   s := getSessionForCharacterId(characterId)
-   if s == nil {
-      i.l.Println("[ERROR] cannot locate session for instruction", err)
-      rw.WriteHeader(http.StatusBadRequest)
-      return
-   }
+	s := processors.GetSessionByCharacterId(characterId)
+	if s == nil {
+		i.l.Println("[ERROR] cannot locate session for instruction", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-   (*s).Announce(writer.WriteHint(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
-   (*s).Announce(writer.WriteEnableActions())
+	(*s).Announce(writer.WriteHint(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
+	(*s).Announce(writer.WriteEnableActions())
 
-   rw.WriteHeader(http.StatusNoContent)
-}
-
-func getSessionForCharacterId(cid uint32) *mapleSession.MapleSession {
-   for _, s := range registries.GetSessionRegistry().GetAll() {
-      if cid == s.CharacterId() {
-         return &s
-      }
-   }
-   return nil
+	rw.WriteHeader(http.StatusNoContent)
 }
 
 func getCharacterId(r *http.Request) uint32 {
-   vars := mux.Vars(r)
-   value, err := strconv.Atoi(vars["characterId"])
-   if err != nil {
-      log.Println("Error parsing characterId as uint32")
-      return 0
-   }
-   return uint32(value)
+	vars := mux.Vars(r)
+	value, err := strconv.Atoi(vars["characterId"])
+	if err != nil {
+		log.Println("Error parsing characterId as uint32")
+		return 0
+	}
+	return uint32(value)
 }
