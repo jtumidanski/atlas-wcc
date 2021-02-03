@@ -110,6 +110,7 @@ func createEventConsumers(l *log.Logger, wid byte, cid byte) {
 	createEventConsumer(l, wid, cid, "TOPIC_MONSTER_KILLED_EVENT", consumers.MonsterKilledEventCreator(), consumers.HandleMonsterKilledEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_SHOW_DAMAGE_CHARACTER_COMMAND", consumers.CharacterDamagedEventCreator(), consumers.HandleCharacterDamagedEvent())
 	createEventConsumer(l, wid, cid, "TOPIC_NPC_TALK_COMMAND", consumers.NPCTalkEventCreator(), consumers.HandleNPCTalkEvent())
+	createEventConsumer(l, wid, cid, "TOPIC_DROP_EXPIRE_EVENT", consumers.DropExpireEventCreator(), consumers.HandleDropExpireEvent())
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
