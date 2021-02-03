@@ -39,30 +39,30 @@ func HandleMonsterEvent() ChannelEventProcessor {
 
 			var handler processors.SessionOperator
 			if event.Type == "CREATED" {
-				handler = createMonster(event, *monster)
+				handler = createMonster(l, event, *monster)
 			} else if event.Type == "DESTROYED" {
-				handler = destroyMonster(event)
+				handler = destroyMonster(l, event)
 			} else {
 				l.Printf("[WARN] unable to handle %s event type for monster events.", event.Type)
 				return
 			}
 
-			processors.ForEachSessionInMap(l, wid, cid, event.MapId, handler)
+			processors.ForEachSessionInMap(wid, cid, event.MapId, handler)
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterEvent]")
 		}
 	}
 }
 
-func destroyMonster(event *monsterEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func destroyMonster(_ *log.Logger, event *monsterEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteKillMonster(event.UniqueId, false))
 		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }
 
-func createMonster(_ *monsterEvent, monster domain.Monster) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func createMonster(_ *log.Logger, _ *monsterEvent, monster domain.Monster) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteSpawnMonster(monster, false))
 	}
 }

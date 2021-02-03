@@ -22,15 +22,15 @@ func CharacterExpressionChangedEventCreator() EmptyEventCreator {
 func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExpressionChangedEvent); ok {
-			processors.ForEachSessionInMap(l, wid, cid, event.MapId, writeCharacterExpression(event))
+			processors.ForEachSessionInMap(wid, cid, event.MapId, writeCharacterExpression(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterExpressionChangedEvent]")
 		}
 	}
 }
 
-func writeCharacterExpression(event *characterExpressionChangedEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func writeCharacterExpression(_ *log.Logger, event *characterExpressionChangedEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteCharacterExpression(event.CharacterId, event.Expression))
 	}
 }

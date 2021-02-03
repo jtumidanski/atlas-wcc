@@ -24,15 +24,15 @@ func CharacterSkillUpdateEventCreator() EmptyEventCreator {
 func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterSkillUpdateEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, updateSkill(event))
+			processors.ForSessionByCharacterId(event.CharacterId, updateSkill(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterSkillUpdateEvent]")
 		}
 	}
 }
 
-func updateSkill(event *CharacterSkillUpdateEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func updateSkill(_ *log.Logger, event *CharacterSkillUpdateEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
 	}
 }

@@ -20,15 +20,15 @@ func CharacterLevelEventCreator() EmptyEventCreator {
 func HandleCharacterLevelEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterLevelEvent); ok {
-			processors.ForEachOtherSessionInMap(l, wid, cid, event.CharacterId, showForeignEffect(event))
+			processors.ForEachOtherSessionInMap(wid, cid, event.CharacterId, showForeignEffect(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterLevelEvent]")
 		}
 	}
 }
 
-func showForeignEffect(event *characterLevelEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func showForeignEffect(_ *log.Logger, event *characterLevelEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteShowForeignEffect(event.CharacterId, 0))
 	}
 }

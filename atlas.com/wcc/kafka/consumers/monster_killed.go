@@ -33,15 +33,15 @@ func MonsterKilledEventCreator() EmptyEventCreator {
 func HandleMonsterKilledEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*MonsterKilledEvent); ok {
-			processors.ForEachSessionInMap(l, wid, cid, event.MapId, killMonster(event))
+			processors.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterKilledEvent]")
 		}
 	}
 }
 
-func killMonster(event *MonsterKilledEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func killMonster(_ *log.Logger, event *MonsterKilledEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }

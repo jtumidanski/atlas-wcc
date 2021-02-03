@@ -21,15 +21,15 @@ func CharacterMesoEventCreator() EmptyEventCreator {
 func HandleCharacterMesoEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMesoEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, showMesoGain(event))
+			processors.ForSessionByCharacterId(event.CharacterId, showMesoGain(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterMesoEvent]")
 		}
 	}
 }
 
-func showMesoGain(event *characterMesoEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func showMesoGain(_ *log.Logger, event *characterMesoEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteShowMesoGain(event.Gain, false))
 		session.Announce(writer.WriteEnableActions())
 	}

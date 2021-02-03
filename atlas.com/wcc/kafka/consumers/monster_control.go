@@ -26,23 +26,23 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 		if event, ok := e.(*monsterControlEvent); ok {
 			var handler processors.SessionOperator
 			if event.Type == "START" {
-				handler = startControl(event)
+				handler = startControl(l, event)
 			} else if event.Type == "STOP" {
-				handler = stopControl(event)
+				handler = stopControl(l, event)
 			} else {
 				l.Printf("[WARN] received unhandled monster control event type of %s", event.Type)
 				return
 			}
 
-			processors.ForSessionByCharacterId(l, event.CharacterId, handler)
+			processors.ForSessionByCharacterId(event.CharacterId, handler)
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
 	}
 }
 
-func stopControl(event *monsterControlEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func stopControl(_ *log.Logger, event *monsterControlEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		m, err := processors.GetMonster(event.UniqueId)
 		if err != nil {
 			return
@@ -51,8 +51,8 @@ func stopControl(event *monsterControlEvent) processors.SessionOperator {
 	}
 }
 
-func startControl(event *monsterControlEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func startControl(_ *log.Logger, event *monsterControlEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		m, err := processors.GetMonster(event.UniqueId)
 		if err != nil {
 			return

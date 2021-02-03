@@ -34,15 +34,15 @@ func MonsterMovementEventCreator() EmptyEventCreator {
 func HandleMonsterMovementEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterMovementEvent); ok {
-			processors.ForEachOtherSessionInMap(l, wid, cid, event.ObserverId, moveMonster(event))
+			processors.ForEachOtherSessionInMap(wid, cid, event.ObserverId, moveMonster(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterMovementEvent]")
 		}
 	}
 }
 
-func moveMonster(event *monsterMovementEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func moveMonster(_ *log.Logger, event *monsterMovementEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
 			event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))
 	}

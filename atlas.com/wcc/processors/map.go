@@ -7,6 +7,42 @@ import (
 	"strconv"
 )
 
+type NPCOperator func(domain.NPC)
+
+type NPCsOperator func([]domain.NPC)
+
+func ExecuteForEachNPC(f NPCOperator) NPCsOperator {
+	return func(npcs []domain.NPC) {
+		for _, npc := range npcs {
+			f(npc)
+		}
+	}
+}
+
+type MonsterOperator func(domain.Monster)
+
+type MonstersOperator func([]domain.Monster)
+
+func ExecuteForEachMonster(f MonsterOperator) MonstersOperator {
+	return func(monsters []domain.Monster) {
+		for _, monster := range monsters {
+			f(monster)
+		}
+	}
+}
+
+type DropOperator func(domain.Drop)
+
+type DropsOperator func([]domain.Drop)
+
+func ExecuteForEachDrop(f DropOperator) DropsOperator {
+	return func(drops []domain.Drop) {
+		for _, drop := range drops {
+			f(drop)
+		}
+	}
+}
+
 func GetCharacterIdsInMap(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
 	resp, err := requests.MapRegistry().GetCharactersInMap(worldId, channelId, mapId)
 	if err != nil {
@@ -22,6 +58,18 @@ func GetCharacterIdsInMap(worldId byte, channelId byte, mapId uint32) ([]uint32,
 		cIds = append(cIds, uint32(cId))
 	}
 	return cIds, nil
+}
+
+func ForEachNPCInMap(mapId uint32, f NPCOperator) {
+	ForNPCsInMap(mapId, ExecuteForEachNPC(f))
+}
+
+func ForNPCsInMap(mapId uint32, f NPCsOperator) {
+	npcs, err := GetNPCsInMap(mapId)
+	if err != nil {
+		return
+	}
+	f(npcs)
 }
 
 func GetNPCsInMap(mapId uint32) ([]domain.NPC, error) {
@@ -64,6 +112,18 @@ func makeNPC(id uint32, att attributes.NpcAttributes) domain.NPC {
 	return domain.NewNPC(id, att.Id, att.X, att.CY, att.F, att.FH, att.RX0, att.RX1)
 }
 
+func ForEachMonsterInMap(worldId byte, channelId byte, mapId uint32, f MonsterOperator) {
+	ForMonstersInMap(worldId, channelId, mapId, ExecuteForEachMonster(f))
+}
+
+func ForMonstersInMap(worldId byte, channelId byte, mapId uint32, f MonstersOperator) {
+	monsters, err := GetMonstersInMap(worldId, channelId, mapId)
+	if err != nil {
+		return
+	}
+	f(monsters)
+}
+
 func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) ([]domain.Monster, error) {
 	resp, err := requests.MonsterRegistry().GetInMap(worldId, channelId, mapId)
 	if err != nil {
@@ -95,6 +155,18 @@ func GetMonster(id uint32) (*domain.Monster, error) {
 
 func makeMonster(id uint32, att attributes.MonsterAttributes) domain.Monster {
 	return domain.NewMonster(id, att.ControlCharacterId, att.MonsterId, att.X, att.Y, att.Stance, att.FH, att.Team)
+}
+
+func ForEachDropInMap(worldId byte, channelId byte, mapId uint32, f DropOperator) {
+	ForDropsInMap(worldId, channelId, mapId, ExecuteForEachDrop(f))
+}
+
+func ForDropsInMap(worldId byte, channelId byte, mapId uint32, f DropsOperator) {
+	drops, err := GetDropsInMap(worldId, channelId, mapId)
+	if err != nil {
+		return
+	}
+	f(drops)
 }
 
 func GetDropsInMap(worldId byte, channelId byte, mapId uint32) ([]domain.Drop, error) {

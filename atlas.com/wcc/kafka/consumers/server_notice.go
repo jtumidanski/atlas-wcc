@@ -33,15 +33,15 @@ func ServerNoticeEventCreator() EmptyEventCreator {
 func HandleServerNoticeEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*ServerNoticeEvent); ok {
-			processors.ForSessionByCharacterId(l, event.RecipientId, showServerNotice(event))
+			processors.ForSessionByCharacterId(event.RecipientId, showServerNotice(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleServerNoticeEvent]")
 		}
 	}
 }
 
-func showServerNotice(event *ServerNoticeEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func showServerNotice(_ *log.Logger, event *ServerNoticeEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteServerNotice(session.ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
-	"atlas-wcc/rest/requests"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"context"
@@ -147,23 +146,22 @@ func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
 	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readAttackPacket(r, (*s).CharacterId(), false, false)
 
-		catt, err := requests.Character().GetCharacterAttributesById((*s).CharacterId())
+		catt, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
 			l.Printf("[ERROR] unable to retrieve character attributes for character %d.", (*s).CharacterId())
 			return
 		}
 
-		sl, err := processors.GetSessionsInMap((*s).WorldId(), (*s).ChannelId(), catt.Data().Attributes.MapId)
-		if err != nil {
-			return
-		}
-
-		for _, s := range sl {
-			s.Announce(writer.WriteCloseRangeAttack(s.CharacterId(), p.Skill(), p.SkillLevel(), p.Stance(), p.NumberAttackedAndDamaged(), p.AllDamage(), p.Speed(), p.Direction(), p.Display()))
-		}
+		processors.ForEachSessionInMap((*s).WorldId(), (*s).ChannelId(), catt.MapId(), writeCloseRangeAttack(p))
 
 		attackCount := uint32(1)
-		applyAttack(l, p, (*s).WorldId(), (*s).ChannelId(), catt.Data().Attributes.MapId, (*s).CharacterId(), attackCount)
+		applyAttack(l, p, (*s).WorldId(), (*s).ChannelId(), catt.MapId(), (*s).CharacterId(), attackCount)
+	}
+}
+
+func writeCloseRangeAttack(p attackPacket) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
+		session.Announce(writer.WriteCloseRangeAttack(session.CharacterId(), p.Skill(), p.SkillLevel(), p.Stance(), p.NumberAttackedAndDamaged(), p.AllDamage(), p.Speed(), p.Direction(), p.Display()))
 	}
 }
 

@@ -1,7 +1,8 @@
 package consumers
 
 import (
-	"atlas-wcc/registries"
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
 	"log"
@@ -24,14 +25,15 @@ func CharacterCreatedEventCreator() EmptyEventCreator {
 func HandleCharacterCreatedEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterCreatedEvent); ok {
-			sessions := registries.GetSessionRegistry().GetAll()
-			for _, s := range sessions {
-				if s.GM() {
-					s.Announce(writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name)))
-				}
-			}
+			processors.ForEachGMSession(announceCharacterCreated(event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterCreatedEvent]")
 		}
+	}
+}
+
+func announceCharacterCreated(event *characterCreatedEvent) processors.SessionOperator {
+	return func(sessions mapleSession.MapleSession) {
+		sessions.Announce(writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name)))
 	}
 }

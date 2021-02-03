@@ -26,15 +26,15 @@ func HandleDropReservationEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForSessionByCharacterId(l, event.CharacterId, cancelDropReservation(event))
+			processors.ForSessionByCharacterId(event.CharacterId, cancelDropReservation(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropReservationEvent]")
 		}
 	}
 }
 
-func cancelDropReservation(_ *dropReservationEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func cancelDropReservation(_ *log.Logger, _ *dropReservationEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteEnableActions())
 	}
 }

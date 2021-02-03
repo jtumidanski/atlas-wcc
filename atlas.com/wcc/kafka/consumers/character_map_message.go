@@ -24,15 +24,15 @@ func CharacterMapMessageEventCreator() EmptyEventCreator {
 func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMapMessageEvent); ok {
-			processors.ForEachSessionInMap(l, wid, cid, event.MapId, showChatText(event))
+			processors.ForEachSessionInMap(wid, cid, event.MapId, showChatText(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleEnableActionsEvent]")
 		}
 	}
 }
 
-func showChatText(event *characterMapMessageEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func showChatText(_ *log.Logger, event *characterMapMessageEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show))
 	}
 }

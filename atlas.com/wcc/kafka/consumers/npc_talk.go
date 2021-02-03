@@ -25,15 +25,15 @@ func NPCTalkEventCreator() EmptyEventCreator {
 func HandleNPCTalkEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*npcTalkEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, writeNpcTalk(event))
+			processors.ForSessionByCharacterId(event.CharacterId, writeNpcTalk(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleNPCTalkEvent]")
 		}
 	}
 }
 
-func writeNpcTalk(event *npcTalkEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func writeNpcTalk(_ *log.Logger, event *npcTalkEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteNPCTalk(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker)))
 	}
 }

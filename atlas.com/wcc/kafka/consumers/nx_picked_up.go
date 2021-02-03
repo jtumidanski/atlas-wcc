@@ -24,15 +24,15 @@ func NXPickedUpEventCreator() EmptyEventCreator {
 func HandleNXPickedUpEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*nxPickedUpEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, showNXGain(event))
+			processors.ForSessionByCharacterId(event.CharacterId, showNXGain(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleNXPickedUpEvent]")
 		}
 	}
 }
 
-func showNXGain(event *nxPickedUpEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func showNXGain(_ *log.Logger, event *nxPickedUpEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10))
 		session.Announce(writer.WriteEnableActions())
 	}

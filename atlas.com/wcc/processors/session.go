@@ -3,103 +3,171 @@ package processors
 import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/registries"
-	"log"
 )
 
-type SessionOperator func(*log.Logger, mapleSession.MapleSession)
-type SessionsOperator func(*log.Logger, []mapleSession.MapleSession)
+// function which performs an operation on a single session
+type SessionOperator func(mapleSession.MapleSession)
 
+// function which performs a operation on a slice of sessions
+type SessionsOperator func([]mapleSession.MapleSession)
+
+// function which dictates whether a session should be considered or not
+type SessionFilter func(session mapleSession.MapleSession) bool
+
+// function which retrieves a slice of sessions
+type SessionGetter func() []mapleSession.MapleSession
+
+// executes a SessionOperator over a slice of sessions
 func ExecuteForEachSession(f SessionOperator) SessionsOperator {
-	return func(l *log.Logger, sessions []mapleSession.MapleSession) {
+	return func(sessions []mapleSession.MapleSession) {
 		for _, session := range sessions {
-			f(l, session)
+			f(session)
 		}
 	}
 }
 
+// gets a session (if one exists) for the given characterId
 func GetSessionByCharacterId(characterId uint32) *mapleSession.MapleSession {
-	for _, s := range registries.GetSessionRegistry().GetAll() {
-		if characterId == s.CharacterId() {
-			return &s
-		}
+	sessions := getFilteredSessions(CharacterIdFilter(characterId))
+	if len(sessions) >= 1 {
+		return &sessions[0]
 	}
 	return nil
 }
 
-func GetSessionsByCharacterIds(characterIds []uint32) []mapleSession.MapleSession {
-	sl := make([]mapleSession.MapleSession, 0)
-	for _, s := range registries.GetSessionRegistry().GetAll() {
-		if contains(characterIds, s.CharacterId()) {
-			sl = append(sl, s)
-		}
-	}
-	return sl
-}
-
-func GetOtherSessionsInMap(worldId byte, channelId byte, mapId uint32, characterId uint32) ([]mapleSession.MapleSession, error) {
-	all, err := GetCharacterIdsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return nil, err
-	}
-
-	var cs []uint32
-	for _, id := range all {
-		if id != characterId {
-			cs = append(cs, id)
-		}
-	}
-
-	sl := GetSessionsByCharacterIds(cs)
-	return sl, nil
-}
-
-func GetSessionsInMap(worldId byte, channelId byte, mapId uint32) ([]mapleSession.MapleSession, error) {
-	cs, err := GetCharacterIdsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return nil, err
-	}
-
-	sl := GetSessionsByCharacterIds(cs)
-	return sl, nil
-}
-
-func ForSessionByCharacterId(l *log.Logger, characterId uint32, f SessionOperator) {
+// executes a SessionOperator if a session exists for the characterId
+func ForSessionByCharacterId(characterId uint32, f SessionOperator) {
 	s := GetSessionByCharacterId(characterId)
 	if s == nil {
 		return
 	}
-	f(l, *s)
+	f(*s)
 	return
 }
 
-func ForEachOtherSessionInMap(l *log.Logger, worldId byte, channelId byte, characterId uint32, f SessionOperator) {
-	ForOtherSessionsInMap(l, worldId, channelId, characterId, ExecuteForEachSession(f))
+// a SessionGetter which will retrieve all sessions for characters in the given map, not identified by the supplied characterId
+func GetOtherSessionsInMap(worldId byte, channelId byte, mapId uint32, characterId uint32) SessionGetter {
+	return func() []mapleSession.MapleSession {
+		cs, err := GetCharacterIdsInMap(worldId, channelId, mapId)
+		if err != nil {
+			return nil
+		}
+		if len(cs) <= 0 {
+			return nil
+		}
+		return getFilteredSessions(CharacterIdInFilter(cs), CharacterIdNotFilter(characterId))
+	}
 }
 
-func ForOtherSessionsInMap(l *log.Logger, worldId byte, channelId byte, characterId uint32, f SessionsOperator) {
+// a filter which yields true when the characterId matches the one in the session
+func CharacterIdFilter(characterId uint32) SessionFilter {
+	return func(session mapleSession.MapleSession) bool {
+		return session.CharacterId() == characterId
+	}
+}
+
+// a filter which yields true when the characterId does not match the one in the session
+func CharacterIdNotFilter(characterId uint32) SessionFilter {
+	return func(session mapleSession.MapleSession) bool {
+		return session.CharacterId() != characterId
+	}
+}
+
+// a filter which yields true when the characterId of the session is in the slice of provided characterIds
+func CharacterIdInFilter(validIds []uint32) SessionFilter {
+	return func(session mapleSession.MapleSession) bool {
+		return contains(validIds, session.CharacterId())
+	}
+}
+
+// a SessionGetter which which retrieve all sessions which reside in the identified map
+func GetSessionsInMap(worldId byte, channelId byte, mapId uint32) SessionGetter {
+	return func() []mapleSession.MapleSession {
+		cs, err := GetCharacterIdsInMap(worldId, channelId, mapId)
+		if err != nil {
+			return nil
+		}
+		if len(cs) <= 0 {
+			return nil
+		}
+		return getFilteredSessions(CharacterIdInFilter(cs))
+	}
+}
+
+// executes a SessionOperator for all sessions in the identified map, aside from the session of the provided characterId
+func ForEachOtherSessionInMap(worldId byte, channelId byte, characterId uint32, f SessionOperator) {
+	ForOtherSessionsInMap(worldId, channelId, characterId, ExecuteForEachSession(f))
+}
+
+// executes a SessionsOperator for all sessions in the identified map, aside from the session of the provided characterId
+func ForOtherSessionsInMap(worldId byte, channelId byte, characterId uint32, f SessionsOperator) {
 	c, err := GetCharacterAttributesById(characterId)
 	if err != nil {
 		return
 	}
-	sessions, err := GetOtherSessionsInMap(worldId, channelId, c.MapId(), characterId)
-	if err != nil {
-		return
-	}
-	f(l, sessions)
-	return
+	forSessions(GetOtherSessionsInMap(worldId, channelId, c.MapId(), characterId), f)
 }
 
-func ForEachSessionInMap(l *log.Logger, worldId byte, channelId byte, mapId uint32, f SessionOperator) {
-	ForSessionsInMap(l, worldId, channelId, mapId, ExecuteForEachSession(f))
+// executes a SessionOperator for all sessions in the identified map
+func ForEachSessionInMap(worldId byte, channelId byte, mapId uint32, f SessionOperator) {
+	ForSessionsInMap(worldId, channelId, mapId, ExecuteForEachSession(f))
 }
 
-func ForSessionsInMap(l *log.Logger, worldId byte, channelId byte, mapId uint32, f SessionsOperator) {
-	sessions, err := GetSessionsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return
+// executes a SessionsOperator for all sessions in the identified map
+func ForSessionsInMap(worldId byte, channelId byte, mapId uint32, f SessionsOperator) {
+	forSessions(GetSessionsInMap(worldId, channelId, mapId), f)
+}
+
+// executes a SessionOperator for all sessions which correspond to GMs
+func ForEachGMSession(f SessionOperator) {
+	ForGMSessions(ExecuteForEachSession(f))
+}
+
+// executes a SessionsOperator for all sessions which correspond to GMs
+func ForGMSessions(f SessionsOperator) {
+	forSessions(GetGMSessions, f)
+}
+
+// executes a SessionOperator for all sessions retrieved by a SessionGetter
+func forSessions(getter SessionGetter, f SessionsOperator) {
+	f(getter())
+}
+
+
+// retrieves all sessions which correspond to GMs
+func GetGMSessions() []mapleSession.MapleSession {
+	return getFilteredSessions(OnlyGMs())
+}
+
+// a SessionFilter which yields true when the session is a GM
+func OnlyGMs() SessionFilter {
+	return func(session mapleSession.MapleSession) bool {
+		return session.GM()
 	}
-	f(l, sessions)
-	return
+}
+
+// retrieves all sessions which pass the provided SessionFilter slice.
+func getFilteredSessions(filters ...SessionFilter) []mapleSession.MapleSession {
+	sessions := registries.GetSessionRegistry().GetAll()
+
+	var results []mapleSession.MapleSession
+	for _, session := range sessions {
+		if len(filters) == 0 {
+			results = append(results, session)
+		} else {
+			good := true
+			for _, filter := range filters {
+				if !filter(session) {
+					good = false
+					break
+				}
+			}
+			if good {
+				results = append(results, session)
+			}
+		}
+	}
+	return results
 }
 
 func contains(set []uint32, id uint32) bool {

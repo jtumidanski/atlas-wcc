@@ -22,15 +22,15 @@ func CharacterStatUpdateEventCreator() EmptyEventCreator {
 func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterStatUpdateEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, updateStats(event))
+			processors.ForSessionByCharacterId(event.CharacterId, updateStats(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterStatUpdateEvent]")
 		}
 	}
 }
 
-func updateStats(event *CharacterStatUpdateEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func updateStats(_ *log.Logger, event *CharacterStatUpdateEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		ca, err := processors.GetCharacterAttributesById(event.CharacterId)
 		if err != nil {
 			return

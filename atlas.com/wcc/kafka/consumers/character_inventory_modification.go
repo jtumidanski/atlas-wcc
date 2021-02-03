@@ -31,15 +31,15 @@ func CharacterInventoryModificationEventCreator() EmptyEventCreator {
 func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterInventoryModificationEvent); ok {
-			processors.ForSessionByCharacterId(l, event.CharacterId, writeInventoryModification(event))
+			processors.ForSessionByCharacterId(event.CharacterId, writeInventoryModification(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterInventoryModificationEvent]")
 		}
 	}
 }
 
-func writeInventoryModification(event *characterInventoryModificationEvent) processors.SessionOperator {
-	return func(l *log.Logger, session mapleSession.MapleSession) {
+func writeInventoryModification(_ *log.Logger, event *characterInventoryModificationEvent) processors.SessionOperator {
+	return func(session mapleSession.MapleSession) {
 		result := writer.ModifyInventory{}
 		result.UpdateTick = event.UpdateTick
 		for _, m := range event.Modifications {
