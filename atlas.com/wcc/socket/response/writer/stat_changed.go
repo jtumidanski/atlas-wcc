@@ -2,6 +2,7 @@ package writer
 
 import (
 	"atlas-wcc/socket/response"
+	"sort"
 )
 
 const OpCodeStatChanged uint16 = 0x1F
@@ -62,8 +63,13 @@ func WriteCharacterStatUpdate(updates []StatUpdate, enableActions bool) []byte {
 	for _, u := range updates {
 		updateMask |= u.Stat
 	}
+	sortedUpdates := updates
+	sort.SliceStable(sortedUpdates, func(i, j int) bool {
+		return sortedUpdates[i].Stat < sortedUpdates[j].Stat
+	})
+
 	w.WriteInt(updateMask)
-	for _, u := range updates {
+	for _, u := range sortedUpdates {
 		if u.Stat >= 1 {
 			if u.Stat == 0x1 {
 				w.WriteByte(byte(u.Amount))
