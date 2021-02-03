@@ -101,6 +101,9 @@ func createEventConsumers(l *log.Logger, wid byte, cid byte) {
    createEventConsumer(l, wid, cid, "TOPIC_MESO_GAINED", consumers.CharacterMesoEventCreator(), consumers.HandleCharacterMesoEvent())
    createEventConsumer(l, wid, cid, "TOPIC_PICKED_UP_ITEM", consumers.ItemPickedUpEventCreator(), consumers.HandleItemPickedUpEvent())
    createEventConsumer(l, wid, cid, "TOPIC_PICKED_UP_NX", consumers.NXPickedUpEventCreator(), consumers.HandleNXPickedUpEvent())
+   createEventConsumer(l, wid, cid, "TOPIC_DROP_RESERVATION_EVENT", consumers.DropReservationEventCreator(), consumers.HandleDropReservationEvent())
+   createEventConsumer(l, wid, cid, "TOPIC_PICKUP_DROP_EVENT", consumers.DropPickedUpEventCreator(), consumers.HandleDropPickedUpEvent())
+
 }
 
 func createEventConsumer(l *log.Logger, wid byte, cid byte, topicToken string, emptyEventCreator consumers.EmptyEventCreator, processor consumers.ChannelEventProcessor) {
