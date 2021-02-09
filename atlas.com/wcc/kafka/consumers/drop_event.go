@@ -37,7 +37,7 @@ func DropEventCreator() EmptyEventCreator {
 func HandleDropEvent() ChannelEventProcessor {
 	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropEvent); ok {
-			if wid != event.WorldId || cid != event.WorldId {
+			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 

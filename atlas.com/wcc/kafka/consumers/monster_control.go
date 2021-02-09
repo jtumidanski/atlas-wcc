@@ -45,22 +45,24 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 	}
 }
 
-func stopControl(_ *log.Logger, event *monsterControlEvent) processors.SessionOperator {
+func stopControl(l *log.Logger, event *monsterControlEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		m, err := processors.GetMonster(event.UniqueId)
 		if err != nil {
 			return
 		}
+		l.Printf("[INFO] stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
 		session.Announce(writer.WriteStopControlMonster(m))
 	}
 }
 
-func startControl(_ *log.Logger, event *monsterControlEvent) processors.SessionOperator {
+func startControl(l *log.Logger, event *monsterControlEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		m, err := processors.GetMonster(event.UniqueId)
 		if err != nil {
 			return
 		}
+		l.Printf("[INFO] starting control of %d for character %d.", event.UniqueId, event.CharacterId)
 		session.Announce(writer.WriteControlMonster(m, false, false))
 	}
 }

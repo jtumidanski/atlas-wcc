@@ -37,6 +37,7 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 				return
 			}
 
+			l.Printf("[INFO] character %d killed %d.", event.UniqueId, event.KillerId)
 			processors.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterKilledEvent]")
