@@ -5,7 +5,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type monsterEvent struct {
@@ -25,7 +25,7 @@ func MonsterEventCreator() EmptyEventCreator {
 }
 
 func HandleMonsterEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
@@ -33,7 +33,7 @@ func HandleMonsterEvent() ChannelEventProcessor {
 
 			monster, err := processors.GetMonster(event.UniqueId)
 			if err != nil {
-				l.Printf("[ERROR] unable to monster %d to create.", event.UniqueId)
+				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
 			}
 
@@ -43,25 +43,25 @@ func HandleMonsterEvent() ChannelEventProcessor {
 			} else if event.Type == "DESTROYED" {
 				handler = destroyMonster(l, event)
 			} else {
-				l.Printf("[WARN] unable to handle %s event type for monster events.", event.Type)
+				l.Warnf("Unable to handle %s event type for monster events.", event.Type)
 				return
 			}
 
 			processors.ForEachSessionInMap(wid, cid, event.MapId, handler)
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func destroyMonster(_ *log.Logger, event *monsterEvent) processors.SessionOperator {
+func destroyMonster(_ logrus.FieldLogger, event *monsterEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteKillMonster(event.UniqueId, false))
 		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }
 
-func createMonster(_ *log.Logger, _ *monsterEvent, monster domain.Monster) processors.SessionOperator {
+func createMonster(_ logrus.FieldLogger, _ *monsterEvent, monster domain.Monster) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteSpawnMonster(monster, false))
 	}

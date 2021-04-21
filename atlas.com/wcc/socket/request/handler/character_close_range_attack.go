@@ -8,7 +8,7 @@ import (
 	"atlas-wcc/socket/response/writer"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 	"math"
 )
 
@@ -143,12 +143,12 @@ func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged 
 }
 
 func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readAttackPacket(r, (*s).CharacterId(), false, false)
 
 		catt, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
-			l.Printf("[ERROR] unable to retrieve character attributes for character %d.", (*s).CharacterId())
+			l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", (*s).CharacterId())
 			return
 		}
 
@@ -165,11 +165,11 @@ func writeCloseRangeAttack(attacker uint32, p attackPacket) processors.SessionOp
 	}
 }
 
-func applyAttack(l *log.Logger, p attackPacket, worldId byte, channelId byte, mapId uint32, characterId uint32, attackCount uint32) {
+func applyAttack(l logrus.FieldLogger, p attackPacket, worldId byte, channelId byte, mapId uint32, characterId uint32, attackCount uint32) {
 	for k, v := range p.allDamage {
 		m, err := processors.GetMonster(k)
 		if err != nil {
-			l.Printf("[ERROR] cannot locate monster %d which the attack from %d hit.", k, characterId)
+			l.WithError(err).Errorf("Cannot locate monster %d which the attack from %d hit.", k, characterId)
 		} else {
 			totalDamage := uint32(0)
 			for _, e := range v {

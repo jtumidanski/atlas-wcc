@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterExpressionChangedEvent struct {
@@ -20,7 +20,7 @@ func CharacterExpressionChangedEventCreator() EmptyEventCreator {
 }
 
 func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExpressionChangedEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
@@ -28,12 +28,12 @@ func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
 
 			processors.ForEachSessionInMap(wid, cid, event.MapId, writeCharacterExpression(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterExpressionChangedEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func writeCharacterExpression(_ *log.Logger, event *characterExpressionChangedEvent) processors.SessionOperator {
+func writeCharacterExpression(_ logrus.FieldLogger, event *characterExpressionChangedEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteCharacterExpression(event.CharacterId, event.Expression))
 	}

@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type monsterDamageEvent struct {
@@ -14,7 +14,7 @@ type monsterDamageEvent struct {
 	Damage      uint32 `json:"damage"`
 }
 
-var MonsterDamage = func(l *log.Logger, ctx context.Context) *monsterDamage {
+var MonsterDamage = func(l logrus.FieldLogger, ctx context.Context) *monsterDamage {
 	return &monsterDamage{
 		l:   l,
 		ctx: ctx,
@@ -22,7 +22,7 @@ var MonsterDamage = func(l *log.Logger, ctx context.Context) *monsterDamage {
 }
 
 type monsterDamage struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

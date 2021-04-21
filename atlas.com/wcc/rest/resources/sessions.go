@@ -4,16 +4,16 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/registries"
 	"atlas-wcc/rest/attributes"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
 
 type SessionResource struct {
-	l *log.Logger
+	l logrus.FieldLogger
 }
 
-func NewSessionResource(l *log.Logger) *SessionResource {
+func NewSessionResource(l logrus.FieldLogger) *SessionResource {
 	return &SessionResource{l}
 }
 
@@ -28,7 +28,7 @@ func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 
 	err := attributes.ToJSON(response, rw)
 	if err != nil {
-		s.l.Println("Error encoding GetSessions response")
+		s.l.WithError(err).Errorf("Encoding GetSessions response")
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"atlas-wcc/socket/response/writer"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterLoggedIn uint16 = 0x14
@@ -27,7 +27,7 @@ func readCharacterLoggedInRequest(reader *request.RequestReader) characterLogged
 }
 
 func CharacterLoggedInHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterLoggedInRequest(r)
 		c, err := processors.GetCharacterById(p.CharacterId())
 		if err != nil {

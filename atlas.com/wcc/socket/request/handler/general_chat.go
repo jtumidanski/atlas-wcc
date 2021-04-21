@@ -7,7 +7,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpGeneralChat uint16 = 0x31
@@ -32,11 +32,11 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 }
 
 func GeneralChatHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
 		ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
-			l.Printf("[ERROR] cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", (*s).CharacterId())
 			return
 		}
 

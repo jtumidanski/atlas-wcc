@@ -5,13 +5,14 @@ import (
 	"atlas-wcc/rest/attributes"
 	"atlas-wcc/socket/response/writer"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
 	"strconv"
 )
 
 type InstructionResource struct {
-	l *log.Logger
+	l logrus.FieldLogger
 }
 
 // GenericError is a generic error message returned by a server
@@ -19,7 +20,7 @@ type GenericError struct {
 	Message string `json:"message"`
 }
 
-func NewInstructionResource(l *log.Logger) *InstructionResource {
+func NewInstructionResource(l logrus.FieldLogger) *InstructionResource {
 	return &InstructionResource{l}
 }
 
@@ -29,7 +30,7 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 	cs := &attributes.InstructionInputDataContainer{}
 	err := attributes.FromJSON(cs, r.Body)
 	if err != nil {
-		i.l.Println("[ERROR] deserializing instruction", err)
+		i.l.WithError(err).Errorf("Deserializing instruction")
 		rw.WriteHeader(http.StatusBadRequest)
 		attributes.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
@@ -37,7 +38,7 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 
 	s := processors.GetSessionByCharacterId(characterId)
 	if s == nil {
-		i.l.Println("[ERROR] cannot locate session for instruction", err)
+		i.l.WithError(err).Errorf("Cannot locate session for instruction")
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}

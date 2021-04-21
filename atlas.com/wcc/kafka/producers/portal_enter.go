@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type portalEnterCommand struct {
@@ -13,7 +13,7 @@ type portalEnterCommand struct {
 	CharacterId uint32 `json:"characterId"`
 }
 
-var PortalEnter = func(l *log.Logger, ctx context.Context) *portalEnter {
+var PortalEnter = func(l logrus.FieldLogger, ctx context.Context) *portalEnter {
 	return &portalEnter{
 		l:   l,
 		ctx: ctx,
@@ -21,7 +21,7 @@ var PortalEnter = func(l *log.Logger, ctx context.Context) *portalEnter {
 }
 
 type portalEnter struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

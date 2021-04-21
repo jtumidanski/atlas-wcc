@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterItemPickUp uint16 = 0xCA
@@ -32,7 +32,7 @@ func readItemPickUpRequest(reader *request.RequestReader) itemPickUpRequest {
 }
 
 func ItemPickUpHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 
 		producers.CharacterReserveDrop(l, context.Background()).Emit((*s).CharacterId(), p.ObjectId())

@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterDistributeSp uint16 = 0x5A
@@ -26,7 +26,7 @@ func readDistributeSpRequest(reader *request.RequestReader) distributeSpRequest 
 }
 
 func DistributeSpHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readDistributeSpRequest(r)
 		producers.CharacterDistributeSp(l, context.Background()).Emit((*s).CharacterId(), p.SkillId())
 	}

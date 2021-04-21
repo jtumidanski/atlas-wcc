@@ -8,7 +8,7 @@ import (
 	"atlas-wcc/socket/response/writer"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpNpcTalk uint16 = 0x3A
@@ -26,17 +26,17 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 }
 
 func CharacterAliveValidator() request2.SessionStateValidator {
-	return func(l *log.Logger, s *mapleSession.MapleSession) bool {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
 		v := processors.IsLoggedIn((*s).AccountId())
 		if !v {
-			l.Printf("[ERROR] attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", (*s).SessionId())
+			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", (*s).SessionId())
 			(*s).Announce(writer.WriteEnableActions())
 			return false
 		}
 
 		ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
-			l.Printf("[ERROR] unable to locate character %s speaking to npc.", (*s).CharacterId())
+			l.WithError(err).Errorf("Unable to locate character %s speaking to npc.", (*s).CharacterId())
 			(*s).Announce(writer.WriteEnableActions())
 			return false
 		}
@@ -51,18 +51,18 @@ func CharacterAliveValidator() request2.SessionStateValidator {
 }
 
 func HandleNPCTalkRequest() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
 		ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
-			l.Printf("[ERROR] unable to locate character %s speaking to npc.", (*s).CharacterId())
+			l.WithError(err).Errorf("Unable to locate character %s speaking to npc.", (*s).CharacterId())
 			return
 		}
 
 		npcs, err := processors.GetNPCsInMapByObjectId(ca.MapId(), p.ObjectId())
 		if err != nil || len(npcs) != 1 {
-			l.Printf("[ERROR] unable to locate npc %d in map %d.", p.ObjectId(), ca.MapId())
+			l.WithError(err).Errorf("Unable to locate npc %d in map %d.", p.ObjectId(), ca.MapId())
 			return
 		}
 		npc := npcs[0]

@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterDamageEvent struct {
@@ -15,7 +15,7 @@ type characterDamageEvent struct {
 	Direction       int8   `json:"direction"`
 }
 
-var CharacterDamage = func(l *log.Logger, ctx context.Context) *characterDamage {
+var CharacterDamage = func(l logrus.FieldLogger, ctx context.Context) *characterDamage {
 	return &characterDamage{
 		l:   l,
 		ctx: ctx,
@@ -23,7 +23,7 @@ var CharacterDamage = func(l *log.Logger, ctx context.Context) *characterDamage 
 }
 
 type characterDamage struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

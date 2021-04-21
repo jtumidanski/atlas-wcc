@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterDistributeApEvent struct {
@@ -10,7 +10,7 @@ type characterDistributeApEvent struct {
 	Type        string `json:"type"`
 }
 
-var CharacterDistributeAp = func(l *log.Logger, ctx context.Context) *characterDistributeAp {
+var CharacterDistributeAp = func(l logrus.FieldLogger, ctx context.Context) *characterDistributeAp {
 	return &characterDistributeAp{
 		l:   l,
 		ctx: ctx,
@@ -18,7 +18,7 @@ var CharacterDistributeAp = func(l *log.Logger, ctx context.Context) *characterD
 }
 
 type characterDistributeAp struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

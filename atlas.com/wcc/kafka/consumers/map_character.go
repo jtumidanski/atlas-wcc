@@ -5,7 +5,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type mapCharacterEvent struct {
@@ -23,7 +23,7 @@ func MapCharacterEventCreator() EmptyEventCreator {
 }
 
 func HandleMapCharacterEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapCharacterEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
@@ -35,17 +35,17 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 			} else if event.Type == "EXIT" {
 				handler = exitMap(l, *event)
 			} else {
-				l.Printf("[WARN] received a unhandled map character event type of %s.", event.Type)
+				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
 			}
 			processors.ForSessionByCharacterId(event.CharacterId, handler)
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleMapCharacterEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func enterMap(l *log.Logger, event mapCharacterEvent) processors.SessionOperator {
+func enterMap(l logrus.FieldLogger, event mapCharacterEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		cIds, err := processors.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
 		if err != nil {
@@ -116,7 +116,7 @@ func spawnNPCForSession(session mapleSession.MapleSession) processors.NPCOperato
 	}
 }
 
-func exitMap(_ *log.Logger, event mapCharacterEvent) processors.SessionOperator {
+func exitMap(_ logrus.FieldLogger, event mapCharacterEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		processors.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(event.CharacterId))
 		processors.ForEachNPCInMap(event.MapId, removeNpcForSession(session))

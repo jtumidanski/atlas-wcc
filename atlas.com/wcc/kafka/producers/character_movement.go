@@ -3,7 +3,7 @@ package producers
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -17,7 +17,7 @@ type characterMovementEvent struct {
 	RawMovement rawMovement `json:"rawMovement"`
 }
 
-var CharacterMovement = func(l *log.Logger, ctx context.Context) *characterMovement {
+var CharacterMovement = func(l logrus.FieldLogger, ctx context.Context) *characterMovement {
 	return &characterMovement{
 		l:   l,
 		ctx: ctx,
@@ -25,7 +25,7 @@ var CharacterMovement = func(l *log.Logger, ctx context.Context) *characterMovem
 }
 
 type characterMovement struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

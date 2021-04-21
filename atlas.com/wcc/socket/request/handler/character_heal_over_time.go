@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterHealOverTime uint16 = 0x59
@@ -32,7 +32,7 @@ func readHealOverTimeRequest(reader *request.RequestReader) healOverTimeRequest 
 }
 
 func HealOverTimeHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readHealOverTimeRequest(r)
 
 		producers.CharacterAdjustHealth(l, context.Background()).Emit((*s).CharacterId(), p.HP())

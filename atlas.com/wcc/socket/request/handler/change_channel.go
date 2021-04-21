@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpChangeChannel uint16 = 0x27
@@ -26,10 +26,10 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 }
 
 func ChangeChannelHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == (*s).ChannelId() {
-			l.Printf("[ERROR] %s tring to change to the same channel.", (*s).CharacterId())
+			l.Errorf("Character %s trying to change to the same channel.", (*s).CharacterId())
 			(*s).Disconnect()
 		}
 
@@ -42,7 +42,7 @@ func ChangeChannelHandler() request2.SessionRequestHandler {
 
 		channel, err := processors.GetChannelForWorld((*s).WorldId(), p.ChannelId())
 		if err != nil {
-			l.Printf("[ERROR] cannot retrieve world %d channel %d information.", (*s).WorldId(), p.ChannelId())
+			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", (*s).WorldId(), p.ChannelId())
 			return
 		}
 

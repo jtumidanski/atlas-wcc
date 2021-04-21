@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpNpcTalkMore uint16 = 0x3C
@@ -55,7 +55,7 @@ func readNPCTalkMoreRequest(reader *request.RequestReader) npcTalkMoreRequest {
 }
 
 func HandleNPCTalkMoreRequest() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {
 			if p.Action() != 0 {

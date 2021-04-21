@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type CharacterDamagedEvent struct {
@@ -30,7 +30,7 @@ func CharacterDamagedEventCreator() EmptyEventCreator {
 }
 
 func HandleCharacterDamagedEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterDamagedEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
@@ -38,12 +38,12 @@ func HandleCharacterDamagedEvent() ChannelEventProcessor {
 
 			processors.ForEachSessionInMap(wid, cid, event.MapId, writeCharacterDamaged(l, *event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterDamagedEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func writeCharacterDamaged(_ *log.Logger, event CharacterDamagedEvent) processors.SessionOperator {
+func writeCharacterDamaged(_ logrus.FieldLogger, event CharacterDamagedEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage,
 			event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y))

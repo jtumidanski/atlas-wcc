@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpMoveCharacter uint16 = 0x29
@@ -108,7 +108,7 @@ func updatePosition(reader *request.RequestReader, offset int16) []interface{} {
 }
 
 func MoveCharacterHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readMoveCharacterRequest(r)
 		if p == nil {
 			return

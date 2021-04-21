@@ -5,7 +5,7 @@ import (
 	"atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	request2 "github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpNpcAction uint16 = 0xC5
@@ -51,14 +51,14 @@ func readNPCAction(reader *request2.RequestReader) interface{} {
 }
 
 func HandleNPCAction() request.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request2.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
 			(*s).Announce(writer.WriteNPCAnimation(val.First(), val.Second(), val.Third()))
 		} else if val, ok := p.(*npcMoveRequest); ok {
 			(*s).Announce(writer.WriteNPCMove(val.Movement()))
 		} else {
-			l.Printf("[WARN] received a unhandled [NPCActionRequest]")
+			l.Warnf("Received a unhandled [NPCActionRequest]")
 		}
 	}
 }

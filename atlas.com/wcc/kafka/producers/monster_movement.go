@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type monsterMovementEvent struct {
@@ -21,7 +21,7 @@ type monsterMovementEvent struct {
 	RawMovement   rawMovement `json:"rawMovement"`
 }
 
-var MonsterMovement = func(l *log.Logger, ctx context.Context) *monsterMovement {
+var MonsterMovement = func(l logrus.FieldLogger, ctx context.Context) *monsterMovement {
 	return &monsterMovement{
 		l:   l,
 		ctx: ctx,
@@ -29,7 +29,7 @@ var MonsterMovement = func(l *log.Logger, ctx context.Context) *monsterMovement 
 }
 
 type monsterMovement struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

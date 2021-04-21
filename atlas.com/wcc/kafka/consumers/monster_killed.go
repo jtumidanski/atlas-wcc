@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type DamageEntry struct {
@@ -31,21 +31,21 @@ func MonsterKilledEventCreator() EmptyEventCreator {
 }
 
 func HandleMonsterKilledEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*MonsterKilledEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			l.Printf("[INFO] character %d killed %d.", event.UniqueId, event.KillerId)
+			l.Infof("Character %d killed %d.", event.UniqueId, event.KillerId)
 			processors.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterKilledEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func killMonster(_ *log.Logger, event *MonsterKilledEvent) processors.SessionOperator {
+func killMonster(_ logrus.FieldLogger, event *MonsterKilledEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}

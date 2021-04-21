@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type DropExpireEvent struct {
@@ -21,7 +21,7 @@ func DropExpireEventCreator() EmptyEventCreator {
 }
 
 func HandleDropExpireEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*DropExpireEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
@@ -29,12 +29,12 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 
 			processors.ForEachSessionInMap(wid, cid, event.MapId, expireItem(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropExpireEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func expireItem(_ *log.Logger, event *DropExpireEvent) processors.SessionOperator {
+func expireItem(_ logrus.FieldLogger, event *DropExpireEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
 	}

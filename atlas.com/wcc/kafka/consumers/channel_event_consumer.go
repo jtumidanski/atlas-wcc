@@ -1,5 +1,7 @@
 package consumers
 
-import "log"
+import (
+	"github.com/sirupsen/logrus"
+)
 
-type ChannelEventProcessor func(*log.Logger, byte, byte, interface{})
+type ChannelEventProcessor func(logrus.FieldLogger, byte, byte, interface{})

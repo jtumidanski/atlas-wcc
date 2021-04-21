@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type monsterMovementEvent struct {
@@ -32,7 +32,7 @@ func MonsterMovementEventCreator() EmptyEventCreator {
 }
 
 func HandleMonsterMovementEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterMovementEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.ObserverId); actingSession == nil {
 				return
@@ -40,12 +40,12 @@ func HandleMonsterMovementEvent() ChannelEventProcessor {
 
 			processors.ForEachOtherSessionInMap(wid, cid, event.ObserverId, moveMonster(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleMonsterMovementEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func moveMonster(_ *log.Logger, event *monsterMovementEvent) processors.SessionOperator {
+func moveMonster(_ logrus.FieldLogger, event *monsterMovementEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
 			event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))

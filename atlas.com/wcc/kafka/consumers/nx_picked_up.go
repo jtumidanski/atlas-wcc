@@ -5,7 +5,7 @@ import (
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const nxGainFormat = "You have earned #e#b%d NX#k#n."
@@ -22,7 +22,7 @@ func NXPickedUpEventCreator() EmptyEventCreator {
 }
 
 func HandleNXPickedUpEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*nxPickedUpEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
@@ -30,12 +30,12 @@ func HandleNXPickedUpEvent() ChannelEventProcessor {
 
 			processors.ForSessionByCharacterId(event.CharacterId, showNXGain(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleNXPickedUpEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showNXGain(_ *log.Logger, event *nxPickedUpEvent) processors.SessionOperator {
+func showNXGain(_ logrus.FieldLogger, event *nxPickedUpEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10))
 		session.Announce(writer.WriteEnableActions())

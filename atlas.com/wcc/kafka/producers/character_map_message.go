@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterMapMessageEvent struct {
@@ -13,7 +13,7 @@ type characterMapMessageEvent struct {
 	Show        bool   `json:"show"`
 }
 
-var CharacterMapMessage = func(l *log.Logger, ctx context.Context) *characterMapMessage {
+var CharacterMapMessage = func(l logrus.FieldLogger, ctx context.Context) *characterMapMessage {
 	return &characterMapMessage{
 		l:   l,
 		ctx: ctx,
@@ -21,7 +21,7 @@ var CharacterMapMessage = func(l *log.Logger, ctx context.Context) *characterMap
 }
 
 type characterMapMessage struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

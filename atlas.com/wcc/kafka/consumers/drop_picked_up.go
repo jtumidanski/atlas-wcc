@@ -4,7 +4,7 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type dropPickedUpEvent struct {
@@ -20,7 +20,7 @@ func DropPickedUpEventCreator() EmptyEventCreator {
 }
 
 func HandleDropPickedUpEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*dropPickedUpEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
@@ -28,12 +28,12 @@ func HandleDropPickedUpEvent() ChannelEventProcessor {
 
 			processors.ForEachSessionInMap(wid, cid, event.MapId, removeItem(l, event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleDropPickedUpEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func removeItem(_ *log.Logger, event *dropPickedUpEvent) processors.SessionOperator {
+func removeItem(_ logrus.FieldLogger, event *dropPickedUpEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		session.Announce(writer.WriteRemoveItem(event.DropId, 2, event.CharacterId))
 	}

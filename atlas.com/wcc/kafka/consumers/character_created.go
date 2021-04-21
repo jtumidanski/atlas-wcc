@@ -5,7 +5,7 @@ import (
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const characterCreatedFormat = "Character %s has been created."
@@ -23,7 +23,7 @@ func CharacterCreatedEventCreator() EmptyEventCreator {
 }
 
 func HandleCharacterCreatedEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterCreatedEvent); ok {
 			if wid != event.WorldId {
 				return
@@ -31,7 +31,7 @@ func HandleCharacterCreatedEvent() ChannelEventProcessor {
 
 			processors.ForEachGMSession(announceCharacterCreated(event))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterCreatedEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }

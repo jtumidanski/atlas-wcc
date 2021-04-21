@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterDistributeAp uint16 = 0x57
@@ -26,7 +26,7 @@ func readDistributeApRequest(reader *request.RequestReader) distributeApRequest 
 }
 
 func DistributeApHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readDistributeApRequest(r)
 
 		attributeType := getType(p.Number())

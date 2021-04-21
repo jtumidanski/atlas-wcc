@@ -3,7 +3,7 @@ package consumers
 import (
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterExperienceEvent struct {
@@ -22,7 +22,7 @@ func CharacterExperienceEventCreator() EmptyEventCreator {
 }
 
 func HandleCharacterExperienceEvent() ChannelEventProcessor {
-	return func(l *log.Logger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExperienceEvent); ok {
 			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
@@ -38,7 +38,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 
 			as := processors.GetSessionByCharacterId(event.CharacterId)
 			if as == nil {
-				l.Printf("[ERROR] unable to locate session for character %d.", event.CharacterId)
+				l.Errorf("Unable to locate session for character %d.", event.CharacterId)
 				return
 			}
 			gain := event.PersonalGain
@@ -51,7 +51,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 			}
 			(*as).Announce(writer.WriteShowExperienceGain(gain, 0, party, event.Chat, white))
 		} else {
-			l.Printf("[ERROR] unable to cast event provided to handler [HandleCharacterExperienceEvent]")
+			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }

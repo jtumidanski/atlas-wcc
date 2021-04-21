@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterExpression uint16 = 0x33
@@ -25,7 +25,7 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 }
 
 func CharacterExpressionHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
 		producers.CharacterExpression(l, context.Background()).Emit((*s).CharacterId(), p.Emote())
 	}

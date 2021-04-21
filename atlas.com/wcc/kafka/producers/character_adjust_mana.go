@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterAdjustManaEvent struct {
@@ -10,7 +10,7 @@ type characterAdjustManaEvent struct {
 	Amount      uint16 `json:"amount"`
 }
 
-var CharacterAdjustMana = func(l *log.Logger, ctx context.Context) *characterAdjustMana {
+var CharacterAdjustMana = func(l logrus.FieldLogger, ctx context.Context) *characterAdjustMana {
 	return &characterAdjustMana{
 		l:   l,
 		ctx: ctx,
@@ -18,7 +18,7 @@ var CharacterAdjustMana = func(l *log.Logger, ctx context.Context) *characterAdj
 }
 
 type characterAdjustMana struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

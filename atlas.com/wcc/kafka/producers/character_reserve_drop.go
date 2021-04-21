@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type characterReserveDropEvent struct {
@@ -10,7 +10,7 @@ type characterReserveDropEvent struct {
 	DropId      uint32 `json:"dropId"`
 }
 
-var CharacterReserveDrop = func(l *log.Logger, ctx context.Context) *characterReserveDrop {
+var CharacterReserveDrop = func(l logrus.FieldLogger, ctx context.Context) *characterReserveDrop {
 	return &characterReserveDrop{
 		l:   l,
 		ctx: ctx,
@@ -18,7 +18,7 @@ var CharacterReserveDrop = func(l *log.Logger, ctx context.Context) *characterRe
 }
 
 type characterReserveDrop struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

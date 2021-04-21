@@ -3,7 +3,7 @@ package requests
 import (
 	"atlas-wcc/rest/attributes"
 	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -15,7 +15,7 @@ var Skill = func() *skill {
 }
 
 type skill struct {
-	l *log.Logger
+	l logrus.FieldLogger
 }
 
 func (s *skill) GetForCharacter(characterId uint32) (*attributes.SkillDataContainer, error) {

@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type setReturnTextCommand struct {
@@ -26,7 +26,7 @@ type startNPCConversationCommand struct {
 	NPCObjectId uint32 `json:"npcObjectId"`
 }
 
-var NPCConversation = func(l *log.Logger, ctx context.Context) *npcConversation {
+var NPCConversation = func(l logrus.FieldLogger, ctx context.Context) *npcConversation {
 	return &npcConversation{
 		l:   l,
 		ctx: ctx,
@@ -34,7 +34,7 @@ var NPCConversation = func(l *log.Logger, ctx context.Context) *npcConversation 
 }
 
 type npcConversation struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 

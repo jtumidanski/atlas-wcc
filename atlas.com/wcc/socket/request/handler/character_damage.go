@@ -6,7 +6,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCharacterDamage uint16 = 0x30
@@ -67,7 +67,7 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 }
 
 func HandleCharacterDamageRequest() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
 		producers.CharacterDamage(l, context.Background()).Emit((*s).CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
 	}

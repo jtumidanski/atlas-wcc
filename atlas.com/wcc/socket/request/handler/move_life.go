@@ -8,7 +8,7 @@ import (
 	"atlas-wcc/socket/response/writer"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpMoveLife uint16 = 0xBC
@@ -107,7 +107,7 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 }
 
 func MoveLifeHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {
 			return
@@ -115,7 +115,7 @@ func MoveLifeHandler() request2.SessionRequestHandler {
 
 		_, err := processors.GetMonster(p.ObjectId())
 		if err != nil {
-			l.Printf("[ERROR] received move life request for unknown monster %d", p.ObjectId())
+			l.WithError(err).Errorf("Received move life request for unknown monster %d", p.ObjectId())
 			return
 		}
 

@@ -7,7 +7,7 @@ import (
 	request2 "atlas-wcc/socket/request"
 	"context"
 	"github.com/jtumidanski/atlas-socket/request"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 const OpChangeMapSpecial uint16 = 0x64
@@ -28,17 +28,17 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 }
 
 func ChangeMapSpecialHandler() request2.SessionRequestHandler {
-	return func(l *log.Logger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
 		c, err := processors.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
-			l.Printf("[ERROR] cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", (*s).CharacterId())
 			return
 		}
 
 		portal, err := processors.GetPortalByName(c.MapId(), p.StartWarp())
 		if err != nil {
-			l.Printf("[ERROR] cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), (*s).CharacterId())
 			return
 		}
 		producers.PortalEnter(l, context.Background()).Enter((*s).WorldId(), (*s).ChannelId(), c.MapId(), portal.Id(), (*s).CharacterId())

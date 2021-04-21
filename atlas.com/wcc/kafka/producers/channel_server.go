@@ -2,7 +2,7 @@ package producers
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 )
 
 type channelServerEvent struct {
@@ -13,7 +13,7 @@ type channelServerEvent struct {
 	Status    string `json:"status"`
 }
 
-var ChannelServer = func(l *log.Logger, ctx context.Context) *channelServer {
+var ChannelServer = func(l logrus.FieldLogger, ctx context.Context) *channelServer {
 	return &channelServer{
 		l:   l,
 		ctx: ctx,
@@ -21,7 +21,7 @@ var ChannelServer = func(l *log.Logger, ctx context.Context) *channelServer {
 }
 
 type channelServer struct {
-	l   *log.Logger
+	l   logrus.FieldLogger
 	ctx context.Context
 }
 
