@@ -4,7 +4,7 @@ import "atlas-wcc/socket/response"
 
 const OpCodeCharacterUpdateSkills uint16 = 0x24
 
-func WriteCharacterSkillUpdate(skillId uint32, skillLevel uint32, masterLevel uint32, expiration uint64) []byte {
+func WriteCharacterSkillUpdate(skillId uint32, skillLevel uint32, masterLevel uint32, expiration int64) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeCharacterUpdateSkills)
 	w.WriteByte(1)
@@ -12,7 +12,7 @@ func WriteCharacterSkillUpdate(skillId uint32, skillLevel uint32, masterLevel ui
 	w.WriteInt(skillId)
 	w.WriteInt(skillLevel)
 	w.WriteInt(masterLevel)
-	w.WriteLong(expiration)
+	w.WriteInt64(expiration)
 	w.WriteByte(4)
 	return w.Bytes()
 }

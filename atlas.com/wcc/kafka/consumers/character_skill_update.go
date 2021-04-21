@@ -12,7 +12,7 @@ type CharacterSkillUpdateEvent struct {
 	SkillId     uint32 `json:"skillId"`
 	Level       uint32 `json:"level"`
 	MasterLevel uint32 `json:"masterLevel"`
-	Expiration  uint64 `json:"expiration"`
+	Expiration  int64  `json:"expiration"`
 }
 
 func CharacterSkillUpdateEventCreator() EmptyEventCreator {
