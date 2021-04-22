@@ -12,22 +12,22 @@ import (
 const OpCharacterHealOverTime uint16 = 0x59
 
 type healOverTimeRequest struct {
-	hp uint16
-	mp uint16
+	hp int16
+	mp int16
 }
 
-func (r healOverTimeRequest) HP() uint16 {
+func (r healOverTimeRequest) HP() int16 {
 	return r.hp
 }
 
-func (r healOverTimeRequest) MP() uint16 {
+func (r healOverTimeRequest) MP() int16 {
 	return r.mp
 }
 
 func readHealOverTimeRequest(reader *request.RequestReader) healOverTimeRequest {
 	reader.Skip(8)
-	hp := reader.ReadUint16()
-	mp := reader.ReadUint16()
+	hp := reader.ReadInt16()
+	mp := reader.ReadInt16()
 	return healOverTimeRequest{hp, mp}
 }
 

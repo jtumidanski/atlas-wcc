@@ -26,7 +26,7 @@ func WriteShowExperienceGain(gain uint32, equip uint32, party uint32, chat bool,
    return w.Bytes()
 }
 
-func WriteShowMesoGain(gain uint32, chat bool) []byte {
+func WriteShowMesoGain(gain int32, chat bool) []byte {
    w := response.NewWriter()
    w.WriteShort(OpCodeShowStatusInfo)
    if chat {
@@ -35,7 +35,7 @@ func WriteShowMesoGain(gain uint32, chat bool) []byte {
       w.WriteByte(0)
       w.WriteShort(1)
    }
-   w.WriteInt(gain)
+   w.WriteInt32(gain)
    w.WriteShort(0)
    return w.Bytes()
 }

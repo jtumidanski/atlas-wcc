@@ -13,7 +13,7 @@ type CharacterDamagedEvent struct {
 	MonsterId       uint32 `json:"monsterId"`
 	MonsterUniqueId uint32 `json:"monsterUniqueId"`
 	SkillId         int8   `json:"skillId"`
-	Damage          uint32 `json:"damage"`
+	Damage          int32 `json:"damage"`
 	Fake            uint32 `json:"fake"`
 	Direction       int8   `json:"direction"`
 	X               int16  `json:"x"`

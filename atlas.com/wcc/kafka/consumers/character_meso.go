@@ -9,7 +9,7 @@ import (
 
 type characterMesoEvent struct {
 	CharacterId uint32 `json:"characterId"`
-	Gain        uint32 `json:"gain"`
+	Gain        int32  `json:"gain"`
 }
 
 func CharacterMesoEventCreator() EmptyEventCreator {

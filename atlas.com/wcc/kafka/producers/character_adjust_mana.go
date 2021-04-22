@@ -7,7 +7,7 @@ import (
 
 type characterAdjustManaEvent struct {
 	CharacterId uint32 `json:"characterId"`
-	Amount      uint16 `json:"amount"`
+	Amount      int16  `json:"amount"`
 }
 
 var CharacterAdjustMana = func(l logrus.FieldLogger, ctx context.Context) *characterAdjustMana {
@@ -22,10 +22,10 @@ type characterAdjustMana struct {
 	ctx context.Context
 }
 
-func (m *characterAdjustMana) Emit(characterId uint32, amount uint16) {
+func (m *characterAdjustMana) Emit(characterId uint32, amount int16) {
 	e := &characterAdjustManaEvent{
 		CharacterId: characterId,
-		Amount: amount,
+		Amount:      amount,
 	}
 	produceEvent(m.l, "TOPIC_ADJUST_MANA", createKey(int(characterId)), e)
 }

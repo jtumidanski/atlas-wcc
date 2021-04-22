@@ -11,7 +11,7 @@ type characterDamageEvent struct {
 	MonsterUniqueId uint32 `json:"monsterUniqueId"`
 	DamageFrom      int8   `json:"damageFrom"`
 	Element         byte   `json:"element"`
-	Damage          uint32 `json:"damage"`
+	Damage          int32  `json:"damage"`
 	Direction       int8   `json:"direction"`
 }
 
@@ -27,7 +27,7 @@ type characterDamage struct {
 	ctx context.Context
 }
 
-func (m *characterDamage) Emit(characterId uint32, monsterIdFrom uint32, uniqueId uint32, damageFrom int8, element byte, damage uint32, direction int8) {
+func (m *characterDamage) Emit(characterId uint32, monsterIdFrom uint32, uniqueId uint32, damageFrom int8, element byte, damage int32, direction int8) {
 	e := &characterDamageEvent{
 		CharacterId:     characterId,
 		MonsterId:       monsterIdFrom,

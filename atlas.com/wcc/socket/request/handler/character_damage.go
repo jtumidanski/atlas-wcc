@@ -14,7 +14,7 @@ const OpCharacterDamage uint16 = 0x30
 type characterDamageRequest struct {
 	damageFrom    int8
 	element       byte
-	damage        uint32
+	damage        int32
 	monsterIdFrom uint32
 	objectId      uint32
 	direction     int8
@@ -36,7 +36,7 @@ func (r characterDamageRequest) Element() byte {
 	return r.element
 }
 
-func (r characterDamageRequest) Damage() uint32 {
+func (r characterDamageRequest) Damage() int32 {
 	return r.damage
 }
 
@@ -48,7 +48,7 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 	reader.ReadUint32()
 	damageFrom := reader.ReadInt8()
 	element := reader.ReadByte()
-	damage := reader.ReadUint32()
+	damage := reader.ReadInt32()
 	monsterIdFrom := uint32(0)
 	oid := uint32(0)
 	if damageFrom != -3 && damageFrom != -4 {
