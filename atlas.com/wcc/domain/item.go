@@ -2,11 +2,11 @@ package domain
 
 type Item struct {
    itemId   uint32
-   slot     int8
+   slot     int16
    quantity uint16
 }
 
-func NewItem(itemId uint32, slot int8, quantity uint16) Item {
+func NewItem(itemId uint32, slot int16, quantity uint16) Item {
    return Item{
       itemId:   itemId,
       slot:     slot,
@@ -14,7 +14,7 @@ func NewItem(itemId uint32, slot int8, quantity uint16) Item {
    }
 }
 
-func (i Item) Slot() int8 {
+func (i Item) Slot() int16 {
    return i.slot
 }
 

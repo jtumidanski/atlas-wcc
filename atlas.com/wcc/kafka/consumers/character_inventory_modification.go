@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/domain"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -42,17 +43,27 @@ func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 	}
 }
 
-func writeInventoryModification(_ logrus.FieldLogger, event *characterInventoryModificationEvent) processors.SessionOperator {
+func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryModificationEvent) processors.SessionOperator {
 	return func(session mapleSession.MapleSession) {
 		result := writer.ModifyInventory{}
 		result.UpdateTick = event.UpdateTick
 		for _, m := range event.Modifications {
+			var item writer.InventoryItem
+			if m.InventoryType == 1 {
+				e, err := processors.GetEquipItemForCharacter(event.CharacterId, m.Position)
+				if err != nil {
+					l.WithError(err).Errorf("Retrieving equipment in position %d for character %d.", m.Position, event.CharacterId)
+					continue
+				}
+				item = e
+			} else {
+				item = domain.NewItem(m.ItemId, m.Position, m.Quantity)
+			}
+
 			mi := writer.Modification{
 				Mode:          m.Mode,
-				ItemId:        m.ItemId,
 				InventoryType: m.InventoryType,
-				Quantity:      m.Quantity,
-				Position:      m.Position,
+				Item:          item,
 				OldPosition:   m.OldPosition,
 			}
 			result.Modifications = append(result.Modifications, mi)

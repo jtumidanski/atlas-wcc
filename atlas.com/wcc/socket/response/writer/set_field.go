@@ -172,7 +172,7 @@ func addItemInfo(w *response.Writer, i domain.Item) {
 
 func addItemInfoZero(w *response.Writer, i domain.Item, zeroPosition bool) {
 	if !zeroPosition {
-		w.WriteInt8(i.Slot() + 1)
+		w.WriteInt8(int8(i.Slot() + 1))
 	}
 	w.WriteByte(2)
 	w.WriteInt(i.ItemId())

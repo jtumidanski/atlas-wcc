@@ -8,12 +8,23 @@ import (
 
 const OpCodeInventoryOperation uint16 = 0x1D
 
+type InventoryItem interface {
+	Slotter
+	Quantity
+}
+
+type Slotter interface {
+	Slot() int16
+}
+
+type Quantity interface {
+	Quantity() uint16
+}
+
 type Modification struct {
 	Mode          byte
-	ItemId        uint32
 	InventoryType byte
-	Quantity      uint16
-	Position      int16
+	Item          InventoryItem
 	OldPosition   int16
 }
 
@@ -34,11 +45,19 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 		if mod.Mode == 2 {
 			w.WriteInt16(mod.OldPosition + 1)
 		} else {
-			w.WriteInt16(mod.Position + 1)
+			w.WriteInt16(mod.Item.Slot() + 1)
 		}
 		switch mod.Mode {
 		case 0:
-			addItem(w, mod)
+			if mod.InventoryType == 1 {
+				if val, ok := mod.Item.(*domain.EquippedItem); ok {
+					addEquipmentInfoZero(w, *val, true)
+				}
+			} else {
+				if val, ok := mod.Item.(*domain.Item); ok {
+					addItemInfoZero(w, *val, true)
+				}
+			}
 			break
 		case 1:
 			updateQuantity(w, mod)
@@ -60,15 +79,15 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 }
 
 func removeItem(movement int8, mod Modification) int8 {
-	if (mod.Position + 1) < 0 {
+	if (mod.Item.Slot() + 1) < 0 {
 		return 2
 	}
 	return movement
 }
 
 func moveItem(w *response.Writer, movement int8, mod Modification) int8 {
-	w.WriteInt16(mod.Position + 1)
-	if (mod.Position+1) < 0 || (mod.OldPosition+1) < 0 {
+	w.WriteInt16(mod.Item.Slot())
+	if (mod.Item.Slot() + 1) < 0 || (mod.OldPosition + 1) < 0 {
 		if (mod.OldPosition + 1) < 0 {
 			return 1
 		}
@@ -78,9 +97,5 @@ func moveItem(w *response.Writer, movement int8, mod Modification) int8 {
 }
 
 func updateQuantity(w *response.Writer, mod Modification) {
-	w.WriteShort(mod.Quantity)
-}
-
-func addItem(w *response.Writer, mod Modification) {
-	addItemInfoZero(w, domain.NewItem(mod.ItemId, int8(mod.Position+1), mod.Quantity), true)
+	w.WriteShort(mod.Item.Quantity())
 }

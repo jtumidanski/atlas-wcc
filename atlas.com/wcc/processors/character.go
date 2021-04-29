@@ -233,6 +233,42 @@ func getEquippedItemsForCharacter(characterId uint32) ([]domain.EquippedItem, er
 	return eis, nil
 }
 
+func GetEquipItemForCharacter(characterId uint32, slot int16) (*domain.EquippedItem, error) {
+	r, err := requests.Character().GetEquippedItemForCharacter(characterId, slot)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range r.GetIncludedEquips() {
+		ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
+		if ea != nil {
+			ei := domain.NewEquippedItemBuilder().
+				SetItemId(ea.ItemId).
+				SetSlot(e.Attributes.Slot).
+				SetStrength(ea.Strength).
+				SetDexterity(ea.Dexterity).
+				SetIntelligence(ea.Intelligence).
+				SetLuck(ea.Luck).
+				SetHp(ea.Hp).
+				SetMp(ea.Mp).
+				SetWeaponAttack(ea.WeaponAttack).
+				SetMagicAttack(ea.MagicAttack).
+				SetWeaponDefense(ea.WeaponDefense).
+				SetMagicDefense(ea.MagicDefense).
+				SetAccuracy(ea.Accuracy).
+				SetAvoidability(ea.Avoidability).
+				SetHands(ea.Hands).
+				SetSpeed(ea.Speed).
+				SetJump(ea.Jump).
+				SetSlots(ea.Slots).
+				Build()
+			return &ei, nil
+		}
+	}
+
+	return nil, errors.New("equipment not found")
+}
+
 func GetCharacterWeaponDamage(characterId uint32) uint32 {
 	r, err := requests.Character().GetCharacterWeaponDamage(characterId)
 	if err != nil {

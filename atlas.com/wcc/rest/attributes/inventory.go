@@ -111,7 +111,7 @@ type ItemData struct {
 type ItemAttributes struct {
 	ItemId   uint32 `json:"itemId"`
 	Quantity uint16 `json:"quantity"`
-	Slot     int8   `json:"slot"`
+	Slot     int16  `json:"slot"`
 }
 
 func transformItemAttributes() (string, objectMapper) {
