@@ -172,7 +172,7 @@ func addItemInfo(w *response.Writer, i domain.Item) {
 
 func addItemInfoZero(w *response.Writer, i domain.Item, zeroPosition bool) {
 	if !zeroPosition {
-		w.WriteInt8(int8(i.Slot() + 1))
+		w.WriteInt8(int8(i.Slot()))
 	}
 	w.WriteByte(2)
 	w.WriteInt(i.ItemId())
@@ -192,8 +192,6 @@ func addEquipmentInfoZero(w *response.Writer, e domain.EquippedItem, zeroPositio
 	if !zeroPosition {
 		if slot < 0 {
 			slot *= -1
-		} else {
-			slot += 1
 		}
 		if slot > 100 {
 			w.WriteShort(uint16(slot - 100))

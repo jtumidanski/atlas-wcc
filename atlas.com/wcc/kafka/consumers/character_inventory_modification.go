@@ -11,7 +11,7 @@ import (
 type inventoryModification struct {
 	Mode          byte   `json:"mode"`
 	ItemId        uint32 `json:"itemId"`
-	InventoryType byte   `json:"inventoryType"`
+	InventoryType int8   `json:"inventoryType"`
 	Quantity      uint16 `json:"quantity"`
 	Position      int16  `json:"position"`
 	OldPosition   int16  `json:"oldPosition"`

@@ -239,7 +239,14 @@ func GetEquipItemForCharacter(characterId uint32, slot int16) (*domain.EquippedI
 		return nil, err
 	}
 
-	for _, e := range r.GetIncludedEquips() {
+	var equips []attributes.EquipmentData
+	if slot < 0 {
+		equips = r.GetIncludedEquippedItems()
+	} else {
+		equips = r.GetIncludedEquips()
+	}
+
+	for _, e := range equips {
 		ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
 		if ea != nil {
 			ei := domain.NewEquippedItemBuilder().

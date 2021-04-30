@@ -23,7 +23,7 @@ type Quantity interface {
 
 type Modification struct {
 	Mode          byte
-	InventoryType byte
+	InventoryType int8
 	Item          InventoryItem
 	OldPosition   int16
 }
@@ -41,11 +41,11 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 	addMovement := int8(-1)
 	for _, mod := range input.Modifications {
 		w.WriteByte(mod.Mode)
-		w.WriteByte(mod.InventoryType)
+		w.WriteInt8(mod.InventoryType)
 		if mod.Mode == 2 {
-			w.WriteInt16(mod.OldPosition + 1)
+			w.WriteInt16(mod.OldPosition)
 		} else {
-			w.WriteInt16(mod.Item.Slot() + 1)
+			w.WriteInt16(mod.Item.Slot())
 		}
 		switch mod.Mode {
 		case 0:
@@ -79,16 +79,20 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 }
 
 func removeItem(movement int8, mod Modification) int8 {
-	if (mod.Item.Slot() + 1) < 0 {
+	slot := mod.Item.Slot()
+	if (slot) < 0 {
 		return 2
 	}
 	return movement
 }
 
 func moveItem(w *response.Writer, movement int8, mod Modification) int8 {
-	w.WriteInt16(mod.Item.Slot())
-	if (mod.Item.Slot() + 1) < 0 || (mod.OldPosition + 1) < 0 {
-		if (mod.OldPosition + 1) < 0 {
+	slot := mod.Item.Slot()
+	oldSlot := mod.OldPosition
+
+	w.WriteInt16(slot)
+	if slot < 0 || oldSlot < 0 {
+		if oldSlot < 0 {
 			return 1
 		}
 		return 2
