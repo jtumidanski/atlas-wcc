@@ -14,7 +14,6 @@ import (
 	"context"
 	"github.com/jtumidanski/atlas-socket"
 	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -75,10 +74,7 @@ func disconnect() processors.SessionOperator {
 func createSocketService(l *logrus.Logger, wid uint64, cid uint64, err error, port uint64) {
 	lss := services.NewMapleSessionService(l, byte(wid), byte(cid))
 
-	w := l.Writer()
-	defer w.Close()
-
-	ss, err := socket.NewServer(log.New(w, "", 0), lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
+	ss, err := socket.NewServer(l, lss, socket.IpAddress("0.0.0.0"), socket.Port(int(port)))
 	if err != nil {
 		l.Fatal(err.Error())
 	}

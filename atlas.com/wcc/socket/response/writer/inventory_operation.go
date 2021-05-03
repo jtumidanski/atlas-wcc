@@ -54,8 +54,8 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 					addEquipmentInfoZero(w, *val, true)
 				}
 			} else {
-				if val, ok := mod.Item.(*domain.Item); ok {
-					addItemInfoZero(w, *val, true)
+				if val, ok := mod.Item.(domain.Item); ok {
+					addItemInfoZero(w, val, true)
 				}
 			}
 			break
