@@ -78,7 +78,7 @@ func WriteCharacterStatUpdate(updates []StatUpdate, enableActions bool) []byte {
 			} else if u.Stat < 0x20 {
 				w.WriteByte(byte(u.Amount))
 			} else if u.Stat == 0x8000 {
-				w.WriteByte(byte(u.Amount))
+				w.WriteShort(uint16(u.Amount))
 			} else if u.Stat < 0xFFFF {
 				w.WriteShort(uint16(u.Amount))
 			} else if u.Stat == 0x20000 {
