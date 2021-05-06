@@ -107,4 +107,6 @@ func registerSocketRequestHandlers(ss *socket.Server, l logrus.FieldLogger) {
 	hr(handler.OpCharacterDamage, request.LoggedInValidator(), handler.HandleCharacterDamageRequest())
 	hr(handler.OpMoveItem, request.LoggedInValidator(), handler.MoveItemHandler())
 	hr(handler.OpCodeSpecialMove, request.LoggedInValidator(), handler.HandleSpecialMove())
+	hr(handler.OpQuestAction, request.LoggedInValidator(), handler.HandleQuestAction())
+	hr(handler.OpInnerPortal, request.LoggedInValidator(), handler.HandleInnerPortal())
 }
