@@ -11,13 +11,13 @@ import (
 const OpNpcAction uint16 = 0xC5
 
 type npcAnimationRequest struct {
-	first  uint32
-	second byte
-	third  byte
+	objectId uint32
+	second   byte
+	third    byte
 }
 
-func (r npcAnimationRequest) First() uint32 {
-	return r.first
+func (r npcAnimationRequest) ObjectId() uint32 {
+	return r.objectId
 }
 
 func (r npcAnimationRequest) Second() byte {
@@ -54,7 +54,7 @@ func HandleNPCAction() request.SessionRequestHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
-			(*s).Announce(writer.WriteNPCAnimation(val.First(), val.Second(), val.Third()))
+			(*s).Announce(writer.WriteNPCAnimation(val.ObjectId(), val.Second(), val.Third()))
 		} else if val, ok := p.(*npcMoveRequest); ok {
 			(*s).Announce(writer.WriteNPCMove(val.Movement()))
 		} else {

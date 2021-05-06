@@ -20,7 +20,7 @@ func WriteGetCharacterInfo(channelId byte, character domain.Character) []byte {
 		w.WriteInt(rand.Uint32())
 	}
 	addCharacterInfo(w, character)
-	w.WriteLong(uint64(getTime(timeNow())))
+	w.WriteInt64(getTime(timeNow()))
 	return w.Bytes()
 }
 
@@ -312,7 +312,7 @@ func getTime(utcTimestamp int64) int64 {
 		}
 	}
 
-	ftUtOffset := 116444736010800000 + (10000 * time.Now().UnixNano())
+	ftUtOffset := 116444736010800000 + (10000 * timeNow())
 	return utcTimestamp*10000 + ftUtOffset
 }
 

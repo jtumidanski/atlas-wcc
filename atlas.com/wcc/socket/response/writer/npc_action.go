@@ -4,10 +4,10 @@ import "atlas-wcc/socket/response"
 
 const OpCodeNPCAction uint16 = 0x104
 
-func WriteNPCAnimation(first uint32, second byte, third byte) []byte {
+func WriteNPCAnimation(objectId uint32, second byte, third byte) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeNPCAction)
-	w.WriteInt(first)
+	w.WriteInt(objectId)
 	w.WriteByte(second)
 	w.WriteByte(third)
 	return w.Bytes()
