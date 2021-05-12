@@ -23,7 +23,7 @@ func (i Item) ItemId() uint32 {
 }
 
 func (i Item) Expiration() int64 {
-   return 0
+   return -1
 }
 
 func (i Item) Quantity() uint16 {
