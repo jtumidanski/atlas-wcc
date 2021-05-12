@@ -29,16 +29,14 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 				return
 			}
 
-			var handler processors.SessionOperator
 			if event.Type == "ENTER" {
-				handler = enterMap(l, *event)
+				processors.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
 			} else if event.Type == "EXIT" {
-				handler = exitMap(l, *event)
+				processors.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(event.CharacterId))
 			} else {
 				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
 			}
-			processors.ForSessionByCharacterId(event.CharacterId, handler)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
@@ -113,20 +111,6 @@ func spawnNPCForSession(session mapleSession.MapleSession) processors.NPCOperato
 	return func(npc domain.NPC) {
 		session.Announce(writer.WriteSpawnNPC(npc))
 		session.Announce(writer.WriteSpawnNPCController(npc, true))
-	}
-}
-
-func exitMap(_ logrus.FieldLogger, event mapCharacterEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		processors.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(event.CharacterId))
-		processors.ForEachNPCInMap(event.MapId, removeNpcForSession(session))
-	}
-}
-
-func removeNpcForSession(session mapleSession.MapleSession) processors.NPCOperator {
-	return func(npc domain.NPC) {
-		session.Announce(writer.WriteRemoveNPCController(npc.ObjectId()))
-		session.Announce(writer.WriteRemoveNPC(npc.ObjectId()))
 	}
 }
 
