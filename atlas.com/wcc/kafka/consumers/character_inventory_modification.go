@@ -50,12 +50,17 @@ func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryM
 		for _, m := range event.Modifications {
 			var item writer.InventoryItem
 			if m.InventoryType == 1 {
-				e, err := processors.GetEquipItemForCharacter(event.CharacterId, m.Position)
-				if err != nil {
-					l.WithError(err).Errorf("Retrieving equipment in position %d for character %d.", m.Position, event.CharacterId)
-					continue
+				if m.Mode == 3 {
+					// create dummy item for removal.
+					item = domain.NewItem(m.ItemId, m.Position, 1)
+				} else {
+					e, err := processors.GetEquipItemForCharacter(event.CharacterId, m.Position)
+					if err != nil {
+						l.WithError(err).Errorf("Retrieving equipment in position %d for character %d.", m.Position, event.CharacterId)
+						continue
+					}
+					item = e
 				}
-				item = e
 			} else {
 				item = domain.NewItem(m.ItemId, m.Position, m.Quantity)
 			}

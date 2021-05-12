@@ -11,7 +11,7 @@ import (
 const OpMoveItem uint16 = 0x47
 
 type moveItemRequest struct {
-	inventoryType byte
+	inventoryType int8
 	source        int16
 	action        int16
 	quantity      int16
@@ -25,9 +25,17 @@ func (r moveItemRequest) Action() int16 {
 	return r.action
 }
 
+func (r moveItemRequest) InventoryType() int8 {
+	return r.inventoryType
+}
+
+func (r moveItemRequest) Quantity() int16 {
+	return r.quantity
+}
+
 func readMoveItemRequest(reader *request.RequestReader) moveItemRequest {
 	reader.Skip(4)
-	inventoryType := reader.ReadByte()
+	inventoryType := reader.ReadInt8()
 	source := reader.ReadInt16()
 	action := reader.ReadInt16()
 	quantity := reader.ReadInt16()
@@ -45,6 +53,8 @@ func MoveItemHandler() request2.SessionRequestHandler {
 			producers.UnequipItem(l)((*s).CharacterId(), source, action)
 		} else if p.Action() < 0 {
 			producers.EquipItem(l)((*s).CharacterId(), source, action)
+		} else if p.Action() == 0 {
+			producers.DropItem(l)((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
 		}
 
 	}
