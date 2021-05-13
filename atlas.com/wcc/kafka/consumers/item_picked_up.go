@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -13,7 +14,7 @@ type itemPickedUpEvent struct {
 	Quantity    uint32 `json:"quantity"`
 }
 
-func ItemPickedUpEventCreator() EmptyEventCreator {
+func ItemPickedUpEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &itemPickedUpEvent{}
 	}

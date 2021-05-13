@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,44 +25,41 @@ type startNPCConversationCommand struct {
 	NPCObjectId uint32 `json:"npcObjectId"`
 }
 
-var NPCConversation = func(l logrus.FieldLogger, ctx context.Context) *npcConversation {
-	return &npcConversation{
-		l:   l,
-		ctx: ctx,
+func SetReturnText(l logrus.FieldLogger) func(characterId uint32, returnText string) {
+	producer := ProduceEvent(l, "TOPIC_SET_RETURN_TEXT")
+	return func(characterId uint32, returnText string) {
+		e := &setReturnTextCommand{
+			CharacterId: characterId,
+			Text:        returnText,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
 }
 
-type npcConversation struct {
-	l   logrus.FieldLogger
-	ctx context.Context
+func ContinueConversation(l logrus.FieldLogger) func(characterId uint32, action byte, messageType byte, selection int32) {
+	producer := ProduceEvent(l, "TOPIC_CONTINUE_NPC_CONVERSATION")
+	return func(characterId uint32, action byte, messageType byte, selection int32) {
+		e := &continueNPCConversationCommand{
+			CharacterId: characterId,
+			Mode:        action,
+			Type:        messageType,
+			Selection:   selection,
+		}
+		producer(CreateKey(int(characterId)), e)
+	}
 }
 
-func (m *npcConversation) SetReturnText(characterId uint32, returnText string) {
-	e := &setReturnTextCommand{
-		CharacterId: characterId,
-		Text:        returnText,
+func StartConversation(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
+	producer := ProduceEvent(l, "TOPIC_START_NPC_CONVERSATION")
+	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
+		e := &startNPCConversationCommand{
+			WorldId:     worldId,
+			ChannelId:   channelId,
+			MapId:       mapId,
+			CharacterId: characterId,
+			NPCId:       npcId,
+			NPCObjectId: objectId,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-	produceEvent(m.l, "TOPIC_SET_RETURN_TEXT", createKey(int(characterId)), e)
-}
-
-func (m *npcConversation) ContinueConversation(characterId uint32, action byte, messageType byte, selection int32) {
-	e := &continueNPCConversationCommand{
-		CharacterId: characterId,
-		Mode:        action,
-		Type:        messageType,
-		Selection:   selection,
-	}
-	produceEvent(m.l, "TOPIC_CONTINUE_NPC_CONVERSATION", createKey(int(characterId)), e)
-}
-
-func (m *npcConversation) StartConversation(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
-	e := &startNPCConversationCommand{
-		WorldId:     worldId,
-		ChannelId:   channelId,
-		MapId:       mapId,
-		CharacterId: characterId,
-		NPCId:       npcId,
-		NPCObjectId: objectId,
-	}
-	produceEvent(m.l, "TOPIC_START_NPC_CONVERSATION", createKey(int(characterId)), e)
 }

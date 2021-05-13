@@ -1,8 +1,10 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type SkillDataContainer struct {
-   data     dataSegment
-   included dataSegment
+   data     response.DataSegment
+   included response.DataSegment
 }
 
 type SkillData struct {
@@ -18,7 +20,7 @@ type SkillAttributes struct {
 }
 
 func (a *SkillDataContainer) UnmarshalJSON(data []byte) error {
-   d, i, err := unmarshalRoot(data, mapperFunc(EmptySkillData))
+   d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptySkillData))
    if err != nil {
       return err
    }

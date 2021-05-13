@@ -1,8 +1,10 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type AccountDataContainer struct {
-	data     dataSegment
-	included dataSegment
+	data     response.DataSegment
+	included response.DataSegment
 }
 
 type AccountData struct {
@@ -27,7 +29,7 @@ type AccountAttributes struct {
 }
 
 func (a *AccountDataContainer) UnmarshalJSON(data []byte) error {
-	d, i, err := unmarshalRoot(data, mapperFunc(EmptyAccountData))
+	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyAccountData))
 	if err != nil {
 		return err
 	}

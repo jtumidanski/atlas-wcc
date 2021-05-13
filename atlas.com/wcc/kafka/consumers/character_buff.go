@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -21,7 +22,7 @@ type stat struct {
 	Amount uint16 `json:"amount"`
 }
 
-func CharacterBuffEventCreator() EmptyEventCreator {
+func CharacterBuffEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterBuffEvent{}
 	}
@@ -61,7 +62,7 @@ type characterCancelBuffEvent struct {
 	Stats       []stat `json:"stats"`
 }
 
-func CharacterCancelBuffEventCreator() EmptyEventCreator {
+func CharacterCancelBuffEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterCancelBuffEvent{}
 	}

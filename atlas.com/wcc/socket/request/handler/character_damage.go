@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -69,6 +68,6 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 func HandleCharacterDamageRequest() request2.SessionRequestHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
-		producers.CharacterDamage(l, context.Background()).Emit((*s).CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
+		producers.CharacterDamage(l)((*s).CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
 	}
 }

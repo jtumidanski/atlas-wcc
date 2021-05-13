@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -115,7 +114,7 @@ func MoveCharacterHandler() request2.SessionRequestHandler {
 		}
 
 		summary := processMovementList(p.movementData)
-		producers.CharacterMovement(l, context.Background()).Move((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
+		producers.MoveCharacter(l)((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -40,6 +39,6 @@ func GeneralChatHandler() request2.SessionRequestHandler {
 			return
 		}
 
-		producers.CharacterMapMessage(l, context.Background()).Emit((*s).WorldId(), (*s).ChannelId(), ca.MapId(), (*s).CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		producers.CharacterMapMessage(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), (*s).CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }

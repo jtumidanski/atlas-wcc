@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,26 +13,17 @@ type monsterDamageEvent struct {
 	Damage      uint32 `json:"damage"`
 }
 
-var MonsterDamage = func(l logrus.FieldLogger, ctx context.Context) *monsterDamage {
-	return &monsterDamage{
-		l:   l,
-		ctx: ctx,
+func MonsterDamage(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, uniqueId uint32, characterId uint32, damage uint32) {
+	producer := ProduceEvent(l, "TOPIC_MONSTER_DAMAGE")
+	return func(worldId byte, channelId byte, mapId uint32, uniqueId uint32, characterId uint32, damage uint32) {
+		e := &monsterDamageEvent{
+			WorldId:     worldId,
+			ChannelId:   channelId,
+			MapId:       mapId,
+			UniqueId:    uniqueId,
+			CharacterId: characterId,
+			Damage:      damage,
+		}
+		producer(CreateKey(int(uniqueId)), e)
 	}
-}
-
-type monsterDamage struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *monsterDamage) Emit(worldId byte, channelId byte, mapId uint32, uniqueId uint32, characterId uint32, damage uint32) {
-	e := &monsterDamageEvent{
-		WorldId:     worldId,
-		ChannelId:   channelId,
-		MapId:       mapId,
-		UniqueId:    uniqueId,
-		CharacterId: characterId,
-		Damage:      damage,
-	}
-	produceEvent(m.l, "TOPIC_MONSTER_DAMAGE", createKey(int(uniqueId)), e)
 }

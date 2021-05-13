@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -24,7 +25,7 @@ type MonsterKilledEvent struct {
 	DamageEntries []DamageEntry `json:"damageEntries"`
 }
 
-func MonsterKilledEventCreator() EmptyEventCreator {
+func MonsterKilledEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &MonsterKilledEvent{}
 	}

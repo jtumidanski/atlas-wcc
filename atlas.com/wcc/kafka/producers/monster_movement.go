@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,33 +20,24 @@ type monsterMovementEvent struct {
 	RawMovement   rawMovement `json:"rawMovement"`
 }
 
-var MonsterMovement = func(l logrus.FieldLogger, ctx context.Context) *monsterMovement {
-	return &monsterMovement{
-		l:   l,
-		ctx: ctx,
+func MonsterMovement(l logrus.FieldLogger) func(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
+	producer := ProduceEvent(l, "TOPIC_MONSTER_MOVEMENT")
+	return func(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
+		e := &monsterMovementEvent{
+			UniqueId:      uniqueId,
+			ObserverId:    observerId,
+			SkillPossible: skillPossible,
+			Skill:         skill,
+			SkillId:       skillId,
+			SkillLevel:    skillLevel,
+			Option:        option,
+			StartX:        startX,
+			StartY:        startY,
+			EndX:          endX,
+			EndY:          endY,
+			Stance:        stance,
+			RawMovement:   rawMovement,
+		}
+		producer(CreateKey(int(uniqueId)), e)
 	}
-}
-
-type monsterMovement struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *monsterMovement) Move(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
-	e := &monsterMovementEvent{
-		UniqueId:      uniqueId,
-		ObserverId:    observerId,
-		SkillPossible: skillPossible,
-		Skill:         skill,
-		SkillId:       skillId,
-		SkillLevel:    skillLevel,
-		Option:        option,
-		StartX:        startX,
-		StartY:        startY,
-		EndX:          endX,
-		EndY:          endY,
-		Stance:        stance,
-		RawMovement:   rawMovement,
-	}
-	produceEvent(m.l, "TOPIC_MONSTER_MOVEMENT", createKey(int(uniqueId)), e)
 }

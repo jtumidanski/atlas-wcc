@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type NpcDataContainer struct {
-   data dataSegment
+   data response.DataSegment
 }
 
 type NpcData struct {
@@ -24,7 +26,7 @@ type NpcAttributes struct {
 }
 
 func (c *NpcDataContainer) UnmarshalJSON(data []byte) error {
-   d, _, err := unmarshalRoot(data, mapperFunc(EmptyNpcData))
+   d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyNpcData))
    if err != nil {
       return err
    }

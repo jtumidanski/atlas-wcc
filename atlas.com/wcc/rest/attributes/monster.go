@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type MonsterDataContainer struct {
-   data dataSegment
+   data response.DataSegment
 }
 
 type MonsterData struct {
@@ -31,7 +33,7 @@ type MonsterAttributes struct {
 }
 
 func (c *MonsterDataContainer) UnmarshalJSON(data []byte) error {
-   d, _, err := unmarshalRoot(data, mapperFunc(EmptyMonsterData))
+   d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyMonsterData))
    if err != nil {
       return err
    }

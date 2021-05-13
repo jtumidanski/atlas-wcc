@@ -5,7 +5,6 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -62,7 +61,7 @@ func ChangeMapHandler() request2.SessionRequestHandler {
 				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), (*s).CharacterId())
 				return
 			}
-			producers.PortalEnter(l, context.Background()).Enter((*s).WorldId(), (*s).ChannelId(), ca.MapId(), portal.Id(), (*s).CharacterId())
+			producers.PortalEnter(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), portal.Id(), (*s).CharacterId())
 		}
 	}
 }

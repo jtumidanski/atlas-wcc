@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -16,7 +17,7 @@ type characterCreatedEvent struct {
 	Name        string `json:"name"`
 }
 
-func CharacterCreatedEventCreator() EmptyEventCreator {
+func CharacterCreatedEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterCreatedEvent{}
 	}

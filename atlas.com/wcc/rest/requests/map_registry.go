@@ -7,7 +7,7 @@ import (
 
 const (
 	mapRegistryServicePrefix string = "/ms/mrg/"
-	mapRegistryService              = baseRequest + mapRegistryServicePrefix
+	mapRegistryService              = BaseRequest + mapRegistryServicePrefix
 	mapResource                     = mapRegistryService + "worlds/%d/channels/%d/maps/%d"
 	mapCharactersResource           = mapResource + "/characters/"
 )

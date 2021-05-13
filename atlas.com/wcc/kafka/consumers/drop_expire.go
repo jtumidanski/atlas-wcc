@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -14,7 +15,7 @@ type DropExpireEvent struct {
 	UniqueId  uint32 `json:"uniqueId"`
 }
 
-func DropExpireEventCreator() EmptyEventCreator {
+func DropExpireEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &DropExpireEvent{}
 	}

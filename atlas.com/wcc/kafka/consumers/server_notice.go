@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -24,7 +25,7 @@ type ServerNoticeEvent struct {
 	Message     string `json:"message"`
 }
 
-func ServerNoticeEventCreator() EmptyEventCreator {
+func ServerNoticeEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &ServerNoticeEvent{}
 	}

@@ -1,8 +1,10 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type DamageDataContainer struct {
-	data     dataSegment
-	included dataSegment
+	data     response.DataSegment
+	included response.DataSegment
 }
 
 type DamageData struct {
@@ -17,7 +19,7 @@ type DamageAttributes struct {
 }
 
 func (a *DamageDataContainer) UnmarshalJSON(data []byte) error {
-	d, i, err := unmarshalRoot(data, mapperFunc(EmptyDamageData))
+	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyDamageData))
 	if err != nil {
 		return err
 	}

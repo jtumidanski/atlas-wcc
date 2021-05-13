@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"atlas-wcc/json"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/registries"
 	"atlas-wcc/rest/attributes"
@@ -26,7 +27,7 @@ func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 		response.Data = append(response.Data, *getSessionObject(x))
 	}
 
-	err := attributes.ToJSON(response, rw)
+	err := json.ToJSON(response, rw)
 	if err != nil {
 		s.l.WithError(err).Errorf("Encoding GetSessions response")
 		rw.WriteHeader(http.StatusInternalServerError)

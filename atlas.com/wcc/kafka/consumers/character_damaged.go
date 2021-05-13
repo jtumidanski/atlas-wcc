@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -23,7 +24,7 @@ type CharacterDamagedEvent struct {
 	PG              bool   `json:"pg"`
 }
 
-func CharacterDamagedEventCreator() EmptyEventCreator {
+func CharacterDamagedEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &CharacterDamagedEvent{}
 	}

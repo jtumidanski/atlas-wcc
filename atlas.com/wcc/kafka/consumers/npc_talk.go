@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -16,7 +17,7 @@ type npcTalkEvent struct {
 	Speaker     string `json:"speaker"`
 }
 
-func NPCTalkEventCreator() EmptyEventCreator {
+func NPCTalkEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &npcTalkEvent{}
 	}

@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,25 +12,16 @@ type characterMapMessageEvent struct {
 	Show        bool   `json:"show"`
 }
 
-var CharacterMapMessage = func(l logrus.FieldLogger, ctx context.Context) *characterMapMessage {
-	return &characterMapMessage{
-		l:   l,
-		ctx: ctx,
+func CharacterMapMessage(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
+	producer := ProduceEvent(l, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT")
+	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
+		e := &characterMapMessageEvent{
+			CharacterId: characterId,
+			MapId:       mapId,
+			Message:     message,
+			GM:          gm,
+			Show:        show,
+		}
+		producer(CreateKey(int(worldId)*1000+int(channelId)), e)
 	}
-}
-
-type characterMapMessage struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterMapMessage) Emit(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
-	e := &characterMapMessageEvent{
-		CharacterId: characterId,
-		MapId:       mapId,
-		Message:     message,
-		GM:          gm,
-		Show:        show,
-	}
-	produceEvent(m.l, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT", createKey(int(worldId)*1000+int(channelId)), e)
 }

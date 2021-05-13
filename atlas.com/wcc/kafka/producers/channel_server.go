@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,27 +12,21 @@ type channelServerEvent struct {
 	Status    string `json:"status"`
 }
 
-var ChannelServer = func(l logrus.FieldLogger, ctx context.Context) *channelServer {
-	return &channelServer{
-		l:   l,
-		ctx: ctx,
+func StartChannelServer(l logrus.FieldLogger) func(worldId byte, channelId byte, ipAddress string, port uint32) {
+	producer := ProduceEvent(l, "TOPIC_CHANNEL_SERVICE")
+	return func(worldId byte, channelId byte, ipAddress string, port uint32) {
+		emitChannelServer(producer, worldId, channelId, ipAddress, port, "STARTED")
 	}
 }
 
-type channelServer struct {
-	l   logrus.FieldLogger
-	ctx context.Context
+func ShutdownChannelServer(l logrus.FieldLogger) func(worldId byte, channelId byte, ipAddress string, port uint32) {
+	producer := ProduceEvent(l, "TOPIC_CHANNEL_SERVICE")
+	return func(worldId byte, channelId byte, ipAddress string, port uint32) {
+		emitChannelServer(producer, worldId, channelId, ipAddress, port, "SHUTDOWN")
+	}
 }
 
-func (m *channelServer) Start(worldId byte, channelId byte, ipAddress string, port uint32) {
-	m.emit(worldId, channelId, ipAddress, port, "STARTED")
-}
-
-func (m *channelServer) Shutdown(worldId byte, channelId byte, ipAddress string, port uint32) {
-	m.emit(worldId, channelId, ipAddress, port, "SHUTDOWN")
-}
-
-func (m *channelServer) emit(worldId byte, channelId byte, ipAddress string, port uint32, status string) {
+func emitChannelServer(producer func(key []byte, event interface{}), worldId byte, channelId byte, ipAddress string, port uint32, status string) {
 	e := &channelServerEvent{
 		WorldId:   worldId,
 		ChannelId: channelId,
@@ -41,5 +34,5 @@ func (m *channelServer) emit(worldId byte, channelId byte, ipAddress string, por
 		Port:      port,
 		Status:    status,
 	}
-	produceEvent(m.l, "TOPIC_CHANNEL_SERVICE", createKey(int(worldId)*1000+int(channelId)), e)
+	producer(CreateKey(int(worldId)*1000+int(channelId)), e)
 }

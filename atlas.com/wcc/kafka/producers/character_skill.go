@@ -11,6 +11,7 @@ type applySkillCommand struct {
 }
 
 func ApplySkill(l logrus.FieldLogger) func(characterId uint32, skillId uint32, level uint8, x int16, y int16) {
+	producer := ProduceEvent(l, "TOPIC_APPLY_SKILL_COMMAND")
 	return func(characterId uint32, skillId uint32, level uint8, x int16, y int16) {
 		e := &applySkillCommand{
 			CharacterId: characterId,
@@ -19,7 +20,7 @@ func ApplySkill(l logrus.FieldLogger) func(characterId uint32, skillId uint32, l
 			X:           x,
 			Y:           y,
 		}
-		produceEvent(l, "TOPIC_APPLY_SKILL_COMMAND", createKey(int(characterId)), e)
+		producer(CreateKey(int(characterId)), e)
 	}
 }
 
@@ -37,6 +38,7 @@ type applyMonsterMagnetCommand struct {
 }
 
 func ApplyMonsterMagnet(l logrus.FieldLogger) func(characterId uint32, skillId uint32, level uint8, direction int8, data []MonsterMagnetData) {
+	producer := ProduceEvent(l, "TOPIC_APPLY_MONSTER_MAGNET_COMMAND")
 	return func(characterId uint32, skillId uint32, level uint8, direction int8, data []MonsterMagnetData) {
 		e := applyMonsterMagnetCommand{
 			CharacterId: characterId,
@@ -45,6 +47,6 @@ func ApplyMonsterMagnet(l logrus.FieldLogger) func(characterId uint32, skillId u
 			Direction:   direction,
 			Data:        data,
 		}
-		produceEvent(l, "TOPIC_APPLY_MONSTER_MAGNET_COMMAND", createKey(int(characterId)), e)
+		producer(CreateKey(int(characterId)), e)
 	}
 }

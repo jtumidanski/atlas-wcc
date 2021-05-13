@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -17,29 +16,20 @@ type characterMovementEvent struct {
 	RawMovement rawMovement `json:"rawMovement"`
 }
 
-var CharacterMovement = func(l logrus.FieldLogger, ctx context.Context) *characterMovement {
-	return &characterMovement{
-		l:   l,
-		ctx: ctx,
+func MoveCharacter(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
+	producer := ProduceEvent(l, "TOPIC_CHARACTER_MOVEMENT")
+	return func(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
+		e := &characterMovementEvent{
+			WorldId:     worldId,
+			ChannelId:   channelId,
+			CharacterId: characterId,
+			X:           x,
+			Y:           y,
+			Stance:      stance,
+			RawMovement: rawMovement,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type characterMovement struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterMovement) Move(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
-	e := &characterMovementEvent{
-		WorldId:     worldId,
-		ChannelId:   channelId,
-		CharacterId: characterId,
-		X:           x,
-		Y:           y,
-		Stance:      stance,
-		RawMovement: rawMovement,
-	}
-	produceEvent(m.l, "TOPIC_CHARACTER_MOVEMENT", createKey(int(characterId)), e)
 }
 
 type rawMovement []byte

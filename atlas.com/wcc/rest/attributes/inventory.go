@@ -1,6 +1,9 @@
 package attributes
 
-import "strconv"
+import (
+	"atlas-wcc/rest/response"
+	"strconv"
+)
 
 const (
 	ItemAttributesType      string = "com.atlas.cos.rest.attribute.ItemAttributes"
@@ -8,15 +11,15 @@ const (
 	EquipmentStatisticsType string = "com.atlas.cos.rest.attribute.EquipmentStatisticsAttributes"
 )
 
-var equipmentIncludes = []conditionalMapperProvider{
+var equipmentIncludes = []response.ConditionalMapperProvider{
 	transformItemAttributes,
 	transformEquipmentAttributes,
 	transformEquipmentStatistics,
 }
 
 type InventoryDataContainer struct {
-	data     dataSegment
-	included dataSegment
+	data     response.DataSegment
+	included response.DataSegment
 }
 
 type InventoryData struct {
@@ -31,7 +34,7 @@ type InventoryAttributes struct {
 }
 
 func (c *InventoryDataContainer) UnmarshalJSON(data []byte) error {
-	d, i, err := unmarshalRoot(data, mapperFunc(EmptyInventoryData), equipmentIncludes...)
+	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyInventoryData), equipmentIncludes...)
 	if err != nil {
 		return err
 	}
@@ -114,16 +117,16 @@ type ItemAttributes struct {
 	Slot     int16  `json:"slot"`
 }
 
-func transformItemAttributes() (string, objectMapper) {
-	return unmarshalData(ItemAttributesType, EmptyItemData)
+func transformItemAttributes() (string, response.ObjectMapper) {
+	return response.UnmarshalData(ItemAttributesType, EmptyItemData)
 }
 
-func transformEquipmentAttributes() (string, objectMapper) {
-	return unmarshalData(EquipmentAttributesType, EmptyEquipmentData)
+func transformEquipmentAttributes() (string, response.ObjectMapper) {
+	return response.UnmarshalData(EquipmentAttributesType, EmptyEquipmentData)
 }
 
-func transformEquipmentStatistics() (string, objectMapper) {
-	return unmarshalData(EquipmentStatisticsType, EmptyEquipmentStatisticsData)
+func transformEquipmentStatistics() (string, response.ObjectMapper) {
+	return response.UnmarshalData(EquipmentStatisticsType, EmptyEquipmentStatisticsData)
 }
 
 func EmptyInventoryData() interface{} {

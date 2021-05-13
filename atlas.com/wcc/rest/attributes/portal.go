@@ -1,8 +1,10 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type PortalDataContainer struct {
-   data     dataSegment
-   included dataSegment
+   data     response.DataSegment
+   included response.DataSegment
 }
 
 type PortalData struct {
@@ -22,7 +24,7 @@ type PortalAttributes struct {
 }
 
 func (a *PortalDataContainer) UnmarshalJSON(data []byte) error {
-   d, i, err := unmarshalRoot(data, mapperFunc(EmptyPortalData))
+   d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyPortalData))
    if err != nil {
       return err
    }

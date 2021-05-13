@@ -7,7 +7,7 @@ import (
 
 const (
 	accountsServicePrefix string = "/ms/aos/"
-	accountsService              = baseRequest + accountsServicePrefix
+	accountsService              = BaseRequest + accountsServicePrefix
 	accountsResource             = accountsService + "accounts/"
 	accountsById                 = accountsResource + "%d"
 )

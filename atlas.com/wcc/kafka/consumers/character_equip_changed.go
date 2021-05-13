@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -12,7 +13,7 @@ type characterEquipChangedEvent struct {
 	Change      string `json:"change"`
 }
 
-func CharacterEquipChangedEventCreator() EmptyEventCreator {
+func CharacterEquipChangedEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterEquipChangedEvent{}
 	}

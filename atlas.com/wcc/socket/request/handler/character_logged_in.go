@@ -6,7 +6,6 @@ import (
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -38,7 +37,7 @@ func CharacterLoggedInHandler() request2.SessionRequestHandler {
 		(*s).SetCharacterId(c.Attributes().Id())
 		(*s).SetGm(c.Attributes().Gm())
 
-		producers.CharacterStatus(l, context.Background()).Login((*s).WorldId(), (*s).ChannelId(), (*s).AccountId(), p.CharacterId())
+		producers.Login(l)((*s).WorldId(), (*s).ChannelId(), (*s).AccountId(), p.CharacterId())
 		(*s).Announce(writer.WriteGetCharacterInfo((*s).ChannelId(), *c))
 	}
 }

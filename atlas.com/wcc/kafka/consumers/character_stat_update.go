@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/domain"
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -13,7 +14,7 @@ type CharacterStatUpdateEvent struct {
 	Updates     []string `json:"updates"`
 }
 
-func CharacterStatUpdateEventCreator() EmptyEventCreator {
+func CharacterStatUpdateEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &CharacterStatUpdateEvent{}
 	}

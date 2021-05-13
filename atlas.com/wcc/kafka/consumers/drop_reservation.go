@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -13,7 +14,7 @@ type dropReservationEvent struct {
 	Type        string `json:"type"`
 }
 
-func DropReservationEventCreator() EmptyEventCreator {
+func DropReservationEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &dropReservationEvent{}
 	}

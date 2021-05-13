@@ -7,7 +7,7 @@ import (
 
 const (
 	mapInformationServicePrefix string = "/ms/mis/"
-	mapInformationService              = baseRequest + mapInformationServicePrefix
+	mapInformationService              = BaseRequest + mapInformationServicePrefix
 	mapsResource                       = mapInformationService + "maps/"
 	npcsInMap                          = mapsResource + "%d/npcs"
 	npcsInMapByObjectId                = mapsResource + "%d/npcs?objectId=%d"

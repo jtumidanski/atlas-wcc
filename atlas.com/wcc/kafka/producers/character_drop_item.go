@@ -11,9 +11,10 @@ type characterDropItem struct {
 	Quantity      int16  `json:"quantity"`
 }
 
-func DropItem(l logrus.FieldLogger) func(worldId byte, channelId byte, chcharacterId uint32, inventoryType int8, source int16, quantity int16) {
+func DropItem(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, inventoryType int8, source int16, quantity int16) {
+	producer := ProduceEvent(l, "TOPIC_CHARACTER_DROP_ITEM")
 	return func(worldId byte, channelId byte, characterId uint32, inventoryType int8, source int16, quantity int16) {
 		e := &characterDropItem{WorldId: worldId, ChannelId: channelId, CharacterId: characterId, InventoryType: inventoryType, Source: source, Quantity: quantity}
-		produceEvent(l, "TOPIC_CHARACTER_DROP_ITEM", createKey(int(characterId)), e)
+		producer(CreateKey(int(characterId)), e)
 	}
 }

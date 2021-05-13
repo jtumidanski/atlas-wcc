@@ -6,7 +6,6 @@ import (
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -149,7 +148,7 @@ func MoveLifeHandler() request2.SessionRequestHandler {
 		(*s).Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
 
 		if p.hasMovement {
-			producers.MonsterMovement(l, context.Background()).Move(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
+			producers.MonsterMovement(l)(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
 		}
 	}
 }

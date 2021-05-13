@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"atlas-wcc/json"
 	"atlas-wcc/processors"
 	"atlas-wcc/rest/attributes"
 	"atlas-wcc/socket/response/writer"
@@ -28,11 +29,11 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 	characterId := getCharacterId(r)
 
 	cs := &attributes.InstructionInputDataContainer{}
-	err := attributes.FromJSON(cs, r.Body)
+	err := json.FromJSON(cs, r.Body)
 	if err != nil {
 		i.l.WithError(err).Errorf("Deserializing instruction")
 		rw.WriteHeader(http.StatusBadRequest)
-		attributes.ToJSON(&GenericError{Message: err.Error()}, rw)
+		json.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 

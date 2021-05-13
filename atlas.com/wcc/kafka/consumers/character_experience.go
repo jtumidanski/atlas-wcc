@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
@@ -15,7 +16,7 @@ type characterExperienceEvent struct {
 	White        bool   `json:"white"`
 }
 
-func CharacterExperienceEventCreator() EmptyEventCreator {
+func CharacterExperienceEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterExperienceEvent{}
 	}

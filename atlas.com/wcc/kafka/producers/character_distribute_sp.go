@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,22 +9,13 @@ type characterDistributeSpEvent struct {
 	SkillId     uint32 `json:"skillId"`
 }
 
-var CharacterDistributeSp = func(l logrus.FieldLogger, ctx context.Context) *characterDistributeSp {
-	return &characterDistributeSp{
-		l:   l,
-		ctx: ctx,
+func CharacterDistributeSp(l logrus.FieldLogger) func(characterId uint32, skillId uint32) {
+	producer := ProduceEvent(l, "TOPIC_ASSIGN_SP_COMMAND")
+	return func(characterId uint32, skillId uint32) {
+		e := &characterDistributeSpEvent{
+			CharacterId: characterId,
+			SkillId:     skillId,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type characterDistributeSp struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterDistributeSp) Emit(characterId uint32, skillId uint32) {
-	e := &characterDistributeSpEvent{
-		CharacterId: characterId,
-		SkillId:     skillId,
-	}
-	produceEvent(m.l, "TOPIC_ASSIGN_SP_COMMAND", createKey(int(characterId)), e)
 }

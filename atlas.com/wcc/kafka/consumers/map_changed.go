@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/rest/requests"
@@ -16,7 +17,7 @@ type mapChangedEvent struct {
 	CharacterId uint32 `json:"characterId"`
 }
 
-func ChangeMapEventCreator() EmptyEventCreator {
+func ChangeMapEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &mapChangedEvent{}
 	}

@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -25,7 +26,7 @@ type monsterMovementEvent struct {
 
 type RawMovement []byte
 
-func MonsterMovementEventCreator() EmptyEventCreator {
+func MonsterMovementEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &monsterMovementEvent{}
 	}

@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -13,7 +14,7 @@ type dropPickedUpEvent struct {
 	MapId       uint32 `json:"mapId"`
 }
 
-func DropPickedUpEventCreator() EmptyEventCreator {
+func DropPickedUpEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &dropPickedUpEvent{}
 	}

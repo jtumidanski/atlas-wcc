@@ -9,8 +9,9 @@ type characterUnequipItem struct {
 }
 
 func UnequipItem(l logrus.FieldLogger) func(characterId uint32, source int16, destination int16) {
+	producer := ProduceEvent(l, "TOPIC_UNEQUIP_ITEM")
 	return func(characterId uint32, source int16, destination int16) {
 		e := &characterUnequipItem{CharacterId: characterId, Source: source, Destination: destination}
-		produceEvent(l, "TOPIC_UNEQUIP_ITEM", createKey(int(characterId)), e)
+		producer(CreateKey(int(characterId)), e)
 	}
 }

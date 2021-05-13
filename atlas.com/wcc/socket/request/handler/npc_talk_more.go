@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -62,8 +61,8 @@ func HandleNPCTalkMoreRequest() request2.SessionRequestHandler {
 				if questInProcess((*s).CharacterId()) {
 					continueQuestConversation((*s).CharacterId(), p)
 				} else {
-					producers.NPCConversation(l, context.Background()).SetReturnText((*s).CharacterId(), p.ReturnText())
-					producers.NPCConversation(l, context.Background()).ContinueConversation((*s).CharacterId(), p.Action(), p.LastMessageType(), -1)
+					producers.SetReturnText(l)((*s).CharacterId(), p.ReturnText())
+					producers.ContinueConversation(l)((*s).CharacterId(), p.Action(), p.LastMessageType(), -1)
 				}
 			} else if questInProcess((*s).CharacterId()) {
 				questDispose((*s).CharacterId())
@@ -74,7 +73,7 @@ func HandleNPCTalkMoreRequest() request2.SessionRequestHandler {
 			if questInProcess((*s).CharacterId()) {
 				continueQuestConversation((*s).CharacterId(), p)
 			} else if conversationInProgress((*s).CharacterId()) {
-				producers.NPCConversation(l, context.Background()).ContinueConversation((*s).CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
+				producers.ContinueConversation(l)((*s).CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
 	}

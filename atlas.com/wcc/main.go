@@ -11,7 +11,6 @@ import (
 	"atlas-wcc/services"
 	"atlas-wcc/socket/request"
 	"atlas-wcc/socket/request/handler"
-	"context"
 	"github.com/jtumidanski/atlas-socket"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -51,7 +50,7 @@ func main() {
 
 	rest.CreateRestService(l)
 
-	producers.ChannelServer(l, context.Background()).Start(byte(wid), byte(cid), ha, uint32(port))
+	producers.StartChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -60,7 +59,7 @@ func main() {
 	// Block until a signal is received.
 	sig := <-c
 	l.Infoln("Shutting down via signal:", sig)
-	producers.ChannelServer(l, context.Background()).Shutdown(byte(wid), byte(cid), ha, uint32(port))
+	producers.ShutdownChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
 
 	processors.ForEachSession(disconnect())
 }

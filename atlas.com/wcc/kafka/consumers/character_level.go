@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -11,7 +12,7 @@ type characterLevelEvent struct {
 	CharacterId uint32 `json:"characterId"`
 }
 
-func CharacterLevelEventCreator() EmptyEventCreator {
+func CharacterLevelEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterLevelEvent{}
 	}

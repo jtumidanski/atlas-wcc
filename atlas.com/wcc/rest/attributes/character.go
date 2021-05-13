@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type CharacterAttributesDataContainer struct {
-   data dataSegment
+   data response.DataSegment
 }
 
 type CharacterAttributesData struct {
@@ -44,7 +46,7 @@ type CharacterAttributesAttributes struct {
 }
 
 func (c *CharacterAttributesDataContainer) UnmarshalJSON(data []byte) error {
-   d, _, err := unmarshalRoot(data, mapperFunc(EmptyCharacterAttributesData))
+   d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyCharacterAttributesData))
    if err != nil {
       return err
    }

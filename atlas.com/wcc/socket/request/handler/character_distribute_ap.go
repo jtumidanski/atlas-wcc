@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -30,7 +29,7 @@ func DistributeApHandler() request2.SessionRequestHandler {
 		p := readDistributeApRequest(r)
 
 		attributeType := getType(p.Number())
-		producers.CharacterDistributeAp(l, context.Background()).Emit((*s).CharacterId(), attributeType)
+		producers.CharacterDistributeAp(l)((*s).CharacterId(), attributeType)
 	}
 }
 

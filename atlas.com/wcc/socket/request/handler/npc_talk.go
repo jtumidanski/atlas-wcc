@@ -6,7 +6,6 @@ import (
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -78,7 +77,7 @@ func HandleNPCTalkRequest() request2.SessionRequestHandler {
 		}
 
 		if hasConversationScript(npc.Id()) {
-			producers.NPCConversation(l, context.Background()).StartConversation((*s).WorldId(), (*s).ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
+			producers.StartConversation(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
 

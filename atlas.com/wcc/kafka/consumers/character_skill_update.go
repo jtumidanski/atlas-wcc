@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -15,7 +16,7 @@ type CharacterSkillUpdateEvent struct {
 	Expiration  int64  `json:"expiration"`
 }
 
-func CharacterSkillUpdateEventCreator() EmptyEventCreator {
+func CharacterSkillUpdateEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &CharacterSkillUpdateEvent{}
 	}

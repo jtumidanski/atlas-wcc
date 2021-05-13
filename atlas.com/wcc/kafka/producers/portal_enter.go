@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,25 +12,16 @@ type portalEnterCommand struct {
 	CharacterId uint32 `json:"characterId"`
 }
 
-var PortalEnter = func(l logrus.FieldLogger, ctx context.Context) *portalEnter {
-	return &portalEnter{
-		l:   l,
-		ctx: ctx,
+func PortalEnter(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
+	producer := ProduceEvent(l, "TOPIC_ENTER_PORTAL")
+	return func(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
+		e := &portalEnterCommand{
+			WorldId:     worldId,
+			ChannelId:   channelId,
+			MapId:       mapId,
+			PortalId:    portalId,
+			CharacterId: characterId,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type portalEnter struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *portalEnter) Enter(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
-	e := &portalEnterCommand{
-		WorldId:     worldId,
-		ChannelId:   channelId,
-		MapId:       mapId,
-		PortalId:    portalId,
-		CharacterId: characterId,
-	}
-	produceEvent(m.l, "TOPIC_ENTER_PORTAL", createKey(int(characterId)), e)
 }

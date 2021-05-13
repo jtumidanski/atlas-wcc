@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -28,7 +29,7 @@ type DropEvent struct {
 	Mod             byte   `json:"mod"`
 }
 
-func DropEventCreator() EmptyEventCreator {
+func DropEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &DropEvent{}
 	}

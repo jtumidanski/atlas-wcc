@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type DropDataContainer struct {
-   data dataSegment
+   data response.DataSegment
 }
 
 type DropData struct {
@@ -31,7 +33,7 @@ type DropAttributes struct {
 }
 
 func (c *DropDataContainer) UnmarshalJSON(data []byte) error {
-   d, _, err := unmarshalRoot(data, mapperFunc(EmptyDropData))
+   d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyDropData))
    if err != nil {
       return err
    }

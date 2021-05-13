@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -15,27 +14,18 @@ type characterDamageEvent struct {
 	Direction       int8   `json:"direction"`
 }
 
-var CharacterDamage = func(l logrus.FieldLogger, ctx context.Context) *characterDamage {
-	return &characterDamage{
-		l:   l,
-		ctx: ctx,
+func CharacterDamage(l logrus.FieldLogger) func(characterId uint32, monsterIdFrom uint32, uniqueId uint32, damageFrom int8, element byte, damage int32, direction int8) {
+	producer := ProduceEvent(l, "DAMAGE_CHARACTER")
+	return func(characterId uint32, monsterIdFrom uint32, uniqueId uint32, damageFrom int8, element byte, damage int32, direction int8) {
+		e := &characterDamageEvent{
+			CharacterId:     characterId,
+			MonsterId:       monsterIdFrom,
+			MonsterUniqueId: uniqueId,
+			DamageFrom:      damageFrom,
+			Element:         element,
+			Damage:          damage,
+			Direction:       direction,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type characterDamage struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterDamage) Emit(characterId uint32, monsterIdFrom uint32, uniqueId uint32, damageFrom int8, element byte, damage int32, direction int8) {
-	e := &characterDamageEvent{
-		CharacterId:     characterId,
-		MonsterId:       monsterIdFrom,
-		MonsterUniqueId: uniqueId,
-		DamageFrom:      damageFrom,
-		Element:         element,
-		Damage:          damage,
-		Direction:       direction,
-	}
-	produceEvent(m.l, "DAMAGE_CHARACTER", createKey(int(characterId)), e)
 }

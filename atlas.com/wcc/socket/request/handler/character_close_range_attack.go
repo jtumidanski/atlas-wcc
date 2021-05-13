@@ -6,7 +6,6 @@ import (
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 	"math"
@@ -175,7 +174,7 @@ func applyAttack(l logrus.FieldLogger, p attackPacket, worldId byte, channelId b
 			for _, e := range v {
 				totalDamage += e
 			}
-			producers.MonsterDamage(l, context.Background()).Emit(worldId, channelId, mapId, m.UniqueId(), characterId, totalDamage)
+			producers.MonsterDamage(l)(worldId, channelId, mapId, m.UniqueId(), characterId, totalDamage)
 		}
 	}
 }

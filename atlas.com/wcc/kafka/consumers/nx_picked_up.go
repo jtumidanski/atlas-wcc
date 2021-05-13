@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -15,7 +16,7 @@ type nxPickedUpEvent struct {
 	Gain        uint32 `json:"gain"`
 }
 
-func NXPickedUpEventCreator() EmptyEventCreator {
+func NXPickedUpEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &nxPickedUpEvent{}
 	}

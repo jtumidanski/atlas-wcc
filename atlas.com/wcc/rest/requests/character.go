@@ -7,7 +7,7 @@ import (
 
 const (
 	charactersServicePrefix     string = "/ms/cos/"
-	charactersService                  = baseRequest + charactersServicePrefix
+	charactersService                  = BaseRequest + charactersServicePrefix
 	charactersResource                 = charactersService + "characters/"
 	charactersById                     = charactersResource + "%d"
 	charactersInventoryResource        = charactersResource + "%d/inventories/"

@@ -7,7 +7,7 @@ import (
 
 const (
 	monsterRegistryServicePrefix string = "/ms/morg/"
-	monsterRegistryService              = baseRequest + monsterRegistryServicePrefix
+	monsterRegistryService              = BaseRequest + monsterRegistryServicePrefix
 	mapMonstersResource                 = monsterRegistryService + "worlds/%d/channels/%d/maps/%d/monsters"
 	monstersResource                    = monsterRegistryService + "monsters"
 	monsterResource                     = monstersResource + "/%d"

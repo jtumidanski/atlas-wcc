@@ -1,6 +1,7 @@
 package consumers
 
 import (
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -15,7 +16,7 @@ type monsterControlEvent struct {
 	Type        string `json:"type"`
 }
 
-func MonsterControlEventCreator() EmptyEventCreator {
+func MonsterControlEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &monsterControlEvent{}
 	}

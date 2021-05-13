@@ -2,6 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/domain"
+	"atlas-wcc/kafka/handler"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	"atlas-wcc/socket/response/writer"
@@ -23,7 +24,7 @@ type characterInventoryModificationEvent struct {
 	Modifications []inventoryModification `json:"modifications"`
 }
 
-func CharacterInventoryModificationEventCreator() EmptyEventCreator {
+func CharacterInventoryModificationEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
 		return &characterInventoryModificationEvent{}
 	}

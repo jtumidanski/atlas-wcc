@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	request2 "atlas-wcc/socket/request"
-	"context"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
@@ -27,6 +26,6 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 func CharacterExpressionHandler() request2.SessionRequestHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
-		producers.CharacterExpression(l, context.Background()).Emit((*s).CharacterId(), p.Emote())
+		producers.CharacterExpression(l)((*s).CharacterId(), p.Emote())
 	}
 }

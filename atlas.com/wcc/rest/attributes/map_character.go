@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type MapCharacterDataContainer struct {
-   data dataSegment
+   data response.DataSegment
 }
 
 type MapCharacterData struct {
@@ -14,7 +16,7 @@ type MapCharacterAttributes struct {
 }
 
 func (c *MapCharacterDataContainer) UnmarshalJSON(data []byte) error {
-   d, _, err := unmarshalRoot(data, mapperFunc(EmptyMapCharacterData))
+   d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyMapCharacterData))
    if err != nil {
       return err
    }

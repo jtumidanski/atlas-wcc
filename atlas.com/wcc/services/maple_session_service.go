@@ -1,58 +1,57 @@
 package services
 
 import (
-   "atlas-wcc/kafka/producers"
-   "atlas-wcc/mapleSession"
-   "atlas-wcc/registries"
-   "context"
-   "github.com/jtumidanski/atlas-socket/session"
-   "github.com/sirupsen/logrus"
-   "net"
+	"atlas-wcc/kafka/producers"
+	"atlas-wcc/mapleSession"
+	"atlas-wcc/registries"
+	"github.com/jtumidanski/atlas-socket/session"
+	"github.com/sirupsen/logrus"
+	"net"
 )
 
 type Service interface {
-   session.Service
+	session.Service
 }
 
 type mapleSessionService struct {
-   l         logrus.FieldLogger
-   r         *registries.SessionRegistry
-   worldId   byte
-   channelId byte
+	l         logrus.FieldLogger
+	r         *registries.SessionRegistry
+	worldId   byte
+	channelId byte
 }
 
 func NewMapleSessionService(l logrus.FieldLogger, wid byte, cid byte) Service {
-   return &mapleSessionService{l, registries.GetSessionRegistry(), wid, cid}
+	return &mapleSessionService{l, registries.GetSessionRegistry(), wid, cid}
 }
 
 func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
-   ses := mapleSession.NewSession(sessionId, conn)
-   s.r.Add(&ses)
-   ses.SetWorldId(s.worldId)
-   ses.SetChannelId(s.channelId)
-   ses.WriteHello()
-   return ses, nil
+	ses := mapleSession.NewSession(sessionId, conn)
+	s.r.Add(&ses)
+	ses.SetWorldId(s.worldId)
+	ses.SetChannelId(s.channelId)
+	ses.WriteHello()
+	return ses, nil
 }
 
 func (s *mapleSessionService) Get(sessionId int) session.Session {
-   return s.r.Get(sessionId)
+	return s.r.Get(sessionId)
 }
 
 func (s *mapleSessionService) GetAll() []session.Session {
-   ss := s.r.GetAll()
-   b := make([]session.Session, len(ss))
-   for i, v := range ss {
-      b[i] = v.(session.Session)
-   }
-   return b
+	ss := s.r.GetAll()
+	b := make([]session.Session, len(ss))
+	for i, v := range ss {
+		b[i] = v.(session.Session)
+	}
+	return b
 }
 
 func (s *mapleSessionService) Destroy(sessionId int) {
-   ses := s.Get(sessionId).(mapleSession.MapleSession)
+	ses := s.Get(sessionId).(mapleSession.MapleSession)
 
-   s.r.Remove(sessionId)
+	s.r.Remove(sessionId)
 
-   ses.Disconnect()
+	ses.Disconnect()
 
-   producers.CharacterStatus(s.l, context.Background()).Logout(ses.WorldId(), ses.ChannelId(), ses.AccountId(), ses.CharacterId())
+	producers.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), ses.CharacterId())
 }

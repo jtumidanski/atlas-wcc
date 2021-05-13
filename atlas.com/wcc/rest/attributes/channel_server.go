@@ -1,7 +1,9 @@
 package attributes
 
+import "atlas-wcc/rest/response"
+
 type ChannelServerDataContainer struct {
-	data dataSegment
+	data response.DataSegment
 }
 
 type ChannelServerData struct {
@@ -19,7 +21,7 @@ type ChannelServerAttributes struct {
 }
 
 func (c *ChannelServerDataContainer) UnmarshalJSON(data []byte) error {
-	d, _, err := unmarshalRoot(data, mapperFunc(EmptyChannelServerData))
+	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyChannelServerData))
 	if err != nil {
 		return err
 	}

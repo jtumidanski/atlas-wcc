@@ -1,7 +1,6 @@
 package producers
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,22 +9,13 @@ type characterDistributeApEvent struct {
 	Type        string `json:"type"`
 }
 
-var CharacterDistributeAp = func(l logrus.FieldLogger, ctx context.Context) *characterDistributeAp {
-	return &characterDistributeAp{
-		l:   l,
-		ctx: ctx,
+func CharacterDistributeAp(l logrus.FieldLogger) func(characterId uint32, attributeType string) {
+	producer := ProduceEvent(l, "TOPIC_ASSIGN_AP_COMMAND")
+	return func(characterId uint32, attributeType string) {
+		e := &characterDistributeApEvent{
+			CharacterId: characterId,
+			Type:        attributeType,
+		}
+		producer(CreateKey(int(characterId)), e)
 	}
-}
-
-type characterDistributeAp struct {
-	l   logrus.FieldLogger
-	ctx context.Context
-}
-
-func (m *characterDistributeAp) Emit(characterId uint32, attributeType string) {
-	e := &characterDistributeApEvent{
-		CharacterId: characterId,
-		Type:        attributeType,
-	}
-	produceEvent(m.l, "TOPIC_ASSIGN_AP_COMMAND", createKey(int(characterId)), e)
 }
