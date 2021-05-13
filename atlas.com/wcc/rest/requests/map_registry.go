@@ -21,7 +21,7 @@ type mapRegistry struct {
 
 func (m *mapRegistry) GetCharactersInMap(worldId byte, channelId byte, mapId uint32) (*attributes.MapCharacterDataContainer, error) {
 	ar := &attributes.MapCharacterDataContainer{}
-	err := get(fmt.Sprintf(mapCharactersResource, worldId, channelId, mapId), ar)
+	err := Get(fmt.Sprintf(mapCharactersResource, worldId, channelId, mapId), ar)
 	if err != nil {
 		return nil, err
 	}

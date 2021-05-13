@@ -20,7 +20,7 @@ type dropRegistry struct {
 
 func (d *dropRegistry) GetDropsInMap(worldId byte, channelId byte, mapId uint32) (*attributes.DropDataContainer, error) {
    ar := &attributes.DropDataContainer{}
-   err := get(fmt.Sprintf(dropResource, worldId, channelId, mapId), ar)
+   err := Get(fmt.Sprintf(dropResource, worldId, channelId, mapId), ar)
    if err != nil {
       return nil, err
    }

@@ -25,7 +25,7 @@ type character struct {
 
 func (c *character) GetCharacterAttributesById(characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
 	ar := &attributes.CharacterAttributesDataContainer{}
-	err := get(fmt.Sprintf(charactersById, characterId), ar)
+	err := Get(fmt.Sprintf(charactersById, characterId), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (c *character) GetCharacterAttributesById(characterId uint32) (*attributes.
 
 func (c *character) GetItemsForCharacter(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 	ar := &attributes.InventoryDataContainer{}
-	err := get(fmt.Sprintf(characterItems, characterId, inventoryType), ar)
+	err := Get(fmt.Sprintf(characterItems, characterId, inventoryType), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (c *character) GetItemsForCharacter(characterId uint32, inventoryType strin
 
 func (c *character) GetItemForCharacter(characterId uint32, inventoryType string, slot int16) (*attributes.InventoryDataContainer, error) {
 	ar := &attributes.InventoryDataContainer{}
-	err := get(fmt.Sprintf(characterItem, characterId, inventoryType, slot), ar)
+	err := Get(fmt.Sprintf(characterItem, characterId, inventoryType, slot), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (c *character) GetEquippedItemForCharacter(characterId uint32, slot int16) 
 
 func (c *character) GetCharacterWeaponDamage(characterId uint32) (*attributes.DamageDataContainer, error) {
 	ar := &attributes.DamageDataContainer{}
-	err := get(fmt.Sprintf(characterWeaponDamage, characterId), ar)
+	err := Get(fmt.Sprintf(characterWeaponDamage, characterId), ar)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"atlas-wcc/character/keymap"
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
@@ -39,5 +40,12 @@ func CharacterLoggedInHandler() request2.SessionRequestHandler {
 
 		producers.Login(l)((*s).WorldId(), (*s).ChannelId(), (*s).AccountId(), p.CharacterId())
 		(*s).Announce(writer.WriteGetCharacterInfo((*s).ChannelId(), *c))
+
+		keys, err := keymap.GetKeyMap(l)(c.Attributes().Id())
+		if err != nil || len(keys) == 0 {
+			l.WithError(err).Warnf("Unable to send keybinding to character %d.", c.Attributes().Id())
+		} else {
+			(*s).Announce(writer.WriteKeyMap(keys))
+		}
 	}
 }

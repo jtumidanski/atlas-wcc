@@ -20,7 +20,7 @@ type skill struct {
 
 func (s *skill) GetForCharacter(characterId uint32) (*attributes.SkillDataContainer, error) {
 	ar := &attributes.SkillDataContainer{}
-	err := get(fmt.Sprintf(skillsByCharacter, characterId), ar)
+	err := Get(fmt.Sprintf(skillsByCharacter, characterId), ar)
 	if err != nil {
 		return nil, err
 	}

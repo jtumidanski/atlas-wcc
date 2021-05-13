@@ -22,7 +22,7 @@ type monsterRegistry struct {
 
 func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (*attributes.MonsterDataContainer, error) {
 	ar := &attributes.MonsterDataContainer{}
-	err := get(fmt.Sprintf(mapMonstersResource, worldId, channelId, mapId), ar)
+	err := Get(fmt.Sprintf(mapMonstersResource, worldId, channelId, mapId), ar)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (
 
 func (m *monsterRegistry) GetById(id uint32) (*attributes.MonsterDataContainer, error) {
 	ar := &attributes.MonsterDataContainer{}
-	err := get(fmt.Sprintf(monsterResource, id), ar)
+	err := Get(fmt.Sprintf(monsterResource, id), ar)
 	if err != nil {
 		return nil, err
 	}

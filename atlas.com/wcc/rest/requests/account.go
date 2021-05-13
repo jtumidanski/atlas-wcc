@@ -21,7 +21,7 @@ type account struct {
 
 func (a *account) GetById(id uint32) (*attributes.AccountDataContainer, error) {
 	ar := &attributes.AccountDataContainer{}
-	err := get(fmt.Sprintf(accountsById, id), ar)
+	err := Get(fmt.Sprintf(accountsById, id), ar)
 	if err != nil {
 		return nil, err
 	}
