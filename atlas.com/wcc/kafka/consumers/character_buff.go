@@ -11,7 +11,7 @@ import (
 type characterBuffEvent struct {
 	CharacterId uint32 `json:"characterId"`
 	BuffId      uint32 `json:"id"`
-	Duration    uint32 `json:"duration"`
+	Duration    int32 `json:"duration"`
 	Stats       []stat `json:"stats"`
 	Special     bool   `json:"special"`
 }

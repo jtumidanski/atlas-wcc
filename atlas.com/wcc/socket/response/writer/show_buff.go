@@ -18,14 +18,14 @@ func (s BuffStat) Amount() uint16 {
 	return s.amount
 }
 
-func WriteShowBuff(buffId uint32, buffDuration uint32, stats []BuffStat, hasSpecial bool) []byte {
+func WriteShowBuff(buffId uint32, buffDuration int32, stats []BuffStat, hasSpecial bool) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeShowBuff)
 	writeLongMask(w, stats)
 	for _, stat := range stats {
 		w.WriteShort(stat.Amount())
 		w.WriteInt(buffId)
-		w.WriteInt(buffDuration * 1000)
+		w.WriteInt32(buffDuration * 1000)
 	}
 	w.WriteInt(0)
 	w.WriteByte(0)

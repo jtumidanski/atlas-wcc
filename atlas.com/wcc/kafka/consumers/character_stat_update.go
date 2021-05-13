@@ -64,7 +64,7 @@ func getStatUpdate(ca *domain.CharacterAttributes, stat string) writer.StatUpdat
 	case "AVAILABLE_AP":
 		return writer.NewStatUpdate(writer.StatUpdateAvailableAP, uint32(ca.Ap()))
 	case "AVAILABLE_SP":
-		return writer.NewStatUpdate(writer.StatUpdateAvailableSP, 0)
+		return writer.NewStatUpdate(writer.StatUpdateAvailableSP, uint32(ca.Sp()[0]))
 	case "HP":
 		return writer.NewStatUpdate(writer.StatUpdateHP, uint32(ca.Hp()))
 	case "MP":
