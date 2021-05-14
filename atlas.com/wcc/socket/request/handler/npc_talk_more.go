@@ -3,6 +3,7 @@ package handler
 import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
+	"atlas-wcc/npc/conversation"
 	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -72,15 +73,17 @@ func HandleNPCTalkMoreRequest() request2.SessionRequestHandler {
 		} else {
 			if questInProcess((*s).CharacterId()) {
 				continueQuestConversation((*s).CharacterId(), p)
-			} else if conversationInProgress((*s).CharacterId()) {
+			} else if conversationInProgress(l)((*s).CharacterId()) {
 				producers.ContinueConversation(l)((*s).CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
 	}
 }
 
-func conversationInProgress(characterId uint32) bool {
-	return true
+func conversationInProgress(l logrus.FieldLogger) func(characterId uint32) bool {
+	return func(characterId uint32) bool {
+		return conversation.InConversation(l)(characterId)
+	}
 }
 
 func conversationDispose(characterId uint32) {

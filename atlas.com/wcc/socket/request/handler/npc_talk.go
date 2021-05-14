@@ -3,6 +3,8 @@ package handler
 import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
+	"atlas-wcc/npc/conversation"
+	"atlas-wcc/npc/shop"
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
@@ -76,17 +78,34 @@ func HandleNPCTalkRequest() request2.SessionRequestHandler {
 			return
 		}
 
-		if hasConversationScript(npc.Id()) {
+		if hasConversationScript(l)(npc.Id()) {
 			producers.StartConversation(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
-
-		//TODO deal with shops
+		if hasShop(l)(npc.Id()) {
+			ns, err := shop.GetShop(l)(npc.Id())
+			if err != nil {
+				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
+				return
+			}
+			err = (*s).Announce(writer.WriteGetNPCShop(ns))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), (*s).CharacterId())
+			}
+		}
 	}
 }
 
-func hasConversationScript(npcId uint32) bool {
-	return true
+func hasShop(l logrus.FieldLogger) func(npcId uint32) bool {
+	return func(npcId uint32) bool {
+		return shop.HasShop(l)(npcId)
+	}
+}
+
+func hasConversationScript(l logrus.FieldLogger) func(npcId uint32) bool {
+	return func(npcId uint32) bool {
+		return conversation.HasScript(l)(npcId)
+	}
 }
 
 func handleGachapon(s *mapleSession.MapleSession) {
