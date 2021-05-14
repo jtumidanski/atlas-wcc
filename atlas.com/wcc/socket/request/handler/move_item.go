@@ -55,7 +55,8 @@ func MoveItemHandler() request2.SessionRequestHandler {
 			producers.EquipItem(l)((*s).CharacterId(), source, action)
 		} else if p.Action() == 0 {
 			producers.DropItem(l)((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
+		} else {
+			producers.MoveItem(l)((*s).CharacterId(), p.InventoryType(), p.Source(), p.Action())
 		}
-
 	}
 }
