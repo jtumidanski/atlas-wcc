@@ -1,0 +1,25 @@
+package handler
+
+import (
+   "atlas-wcc/kafka/producers"
+   "atlas-wcc/mapleSession"
+   "atlas-wcc/processors"
+   request2 "atlas-wcc/socket/request"
+   "github.com/jtumidanski/atlas-socket/request"
+   "github.com/sirupsen/logrus"
+)
+
+const OpCharacterRangedAttack uint16 = 0x2D
+
+func CharacterRangedAttackHandler() request2.SessionRequestHandler {
+   return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+      p := readAttackPacket(r, (*s).CharacterId(), true, false)
+
+      catt, err := processors.GetCharacterAttributesById((*s).CharacterId())
+      if err != nil {
+         l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", (*s).CharacterId())
+         return
+      }
+      producers.CharacterAttack(l)((*s).WorldId(), (*s).ChannelId(), catt.MapId(), (*s).CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
+   }
+}
