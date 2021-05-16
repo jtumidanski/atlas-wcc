@@ -5,7 +5,6 @@ import (
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/processors"
 	request2 "atlas-wcc/socket/request"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 	"math"
@@ -62,6 +61,38 @@ func (p attackPacket) Direction() byte {
 
 func (p attackPacket) Display() byte {
 	return p.display
+}
+
+func (p attackPacket) RangedDirection() byte {
+	return p.rangedDirection
+}
+
+func (p attackPacket) NumberAttacked() byte {
+	return p.numberAttacked
+}
+
+func (p attackPacket) NumberDamaged() byte {
+	return p.numberDamaged
+}
+
+func (p attackPacket) Charge() uint32 {
+	return p.charge
+}
+
+func (p attackPacket) Ranged() bool {
+	return p.ranged
+}
+
+func (p attackPacket) Magic() bool {
+	return p.magic
+}
+
+func (p attackPacket) X() int16 {
+	return p.x
+}
+
+func (p attackPacket) Y() int16 {
+	return p.y
 }
 
 func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged bool, magic bool) attackPacket {
@@ -150,31 +181,6 @@ func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
 			l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", (*s).CharacterId())
 			return
 		}
-
-		processors.ForEachSessionInMap((*s).WorldId(), (*s).ChannelId(), catt.MapId(), writeCloseRangeAttack((*s).CharacterId(), p))
-
-		attackCount := uint32(1)
-		applyAttack(l, p, (*s).WorldId(), (*s).ChannelId(), catt.MapId(), (*s).CharacterId(), attackCount)
-	}
-}
-
-func writeCloseRangeAttack(attacker uint32, p attackPacket) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteCloseRangeAttack(attacker, p.Skill(), p.SkillLevel(), p.Stance(), p.NumberAttackedAndDamaged(), p.AllDamage(), p.Speed(), p.Direction(), p.Display()))
-	}
-}
-
-func applyAttack(l logrus.FieldLogger, p attackPacket, worldId byte, channelId byte, mapId uint32, characterId uint32, attackCount uint32) {
-	for k, v := range p.allDamage {
-		m, err := processors.GetMonster(k)
-		if err != nil {
-			l.WithError(err).Errorf("Cannot locate monster %d which the attack from %d hit.", k, characterId)
-		} else {
-			totalDamage := uint32(0)
-			for _, e := range v {
-				totalDamage += e
-			}
-			producers.MonsterDamage(l)(worldId, channelId, mapId, m.UniqueId(), characterId, totalDamage)
-		}
+		producers.CharacterAttack(l)((*s).WorldId(), (*s).ChannelId(), catt.MapId(), (*s).CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
 	}
 }

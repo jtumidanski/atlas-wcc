@@ -44,6 +44,7 @@ func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte) {
 	cec("TOPIC_CHARACTER_CANCEL_BUFF", CharacterCancelBuffEventCreator(), HandleCharacterCancelBuffEvent())
 	cec("TOPIC_CHARACTER_EQUIP_CHANGED", CharacterEquipChangedEventCreator(), HandleCharacterEquipChangedEvent())
 	cec("TOPIC_INVENTORY_FULL", InventoryFullCommandCreator(), HandleInventoryFullCommand())
+	cec("TOPIC_CLOSE_RANGE_ATTACK_EVENT", EmptyCloseRangeAttackEventCreator(), HandleCloseRangeAttackEvent())
 }
 
 func createEventConsumer(l *logrus.Logger, wid byte, cid byte, topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {
