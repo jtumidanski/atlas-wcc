@@ -47,6 +47,7 @@ func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte) {
 	cec("TOPIC_CLOSE_RANGE_ATTACK_EVENT", EmptyCloseRangeAttackEventCreator(), HandleCloseRangeAttackEvent())
 	cec("TOPIC_RANGE_ATTACK_EVENT", EmptyRangeAttackEventCreator(), HandleRangeAttackEvent())
 	cec("TOPIC_MAGIC_ATTACK_EVENT", EmptyMagicAttackEventCreator(), HandleMagicAttackEvent())
+	cec("TOPIC_CHARACTER_MP_EATER_EVENT", EmptyMPEaterEventCreator(), HandleMPEaterEvent())
 }
 
 func createEventConsumer(l *logrus.Logger, wid byte, cid byte, topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {

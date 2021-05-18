@@ -11,7 +11,7 @@ import (
 type characterBuffEvent struct {
 	CharacterId uint32 `json:"characterId"`
 	BuffId      uint32 `json:"id"`
-	Duration    int32 `json:"duration"`
+	Duration    int32  `json:"duration"`
 	Stats       []stat `json:"stats"`
 	Special     bool   `json:"special"`
 }
@@ -55,7 +55,6 @@ func makeBuffStats(stats []stat) []writer.BuffStat {
 func makeBuffStat(s stat) writer.BuffStat {
 	return writer.NewBuffStat(s.First, s.Mask, s.Amount)
 }
-
 
 type characterCancelBuffEvent struct {
 	CharacterId uint32 `json:"characterId"`
