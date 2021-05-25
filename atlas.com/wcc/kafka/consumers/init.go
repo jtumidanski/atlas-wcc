@@ -39,6 +39,8 @@ func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte) {
 	cec("TOPIC_MONSTER_KILLED_EVENT", MonsterKilledEventCreator(), HandleMonsterKilledEvent())
 	cec("TOPIC_SHOW_DAMAGE_CHARACTER_COMMAND", CharacterDamagedEventCreator(), HandleCharacterDamagedEvent())
 	cec("TOPIC_NPC_TALK_COMMAND", NPCTalkEventCreator(), HandleNPCTalkEvent())
+	cec("TOPIC_NPC_TALK_NUM_COMMAND", EmptyNPCTalkNumCommandCreator(), HandleNPCTalkNumCommand())
+	cec("TOPIC_NPC_TALK_STYLE_COMMAND", EmptyNPCTalkStyleCommandCreator(), HandleNPCTalkStyleCommand())
 	cec("TOPIC_DROP_EXPIRE_EVENT", DropExpireEventCreator(), HandleDropExpireEvent())
 	cec("TOPIC_CHARACTER_BUFF", CharacterBuffEventCreator(), HandleCharacterBuffEvent())
 	cec("TOPIC_CHARACTER_CANCEL_BUFF", CharacterCancelBuffEventCreator(), HandleCharacterCancelBuffEvent())
