@@ -2,17 +2,19 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
+	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"sync"
 )
 
 const (
 	consumerGroupFormat = "World Channel Coordinator %d %d"
 )
 
-func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte) {
+func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte, ctx context.Context, wg *sync.WaitGroup) {
 	cec := func(topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {
-		createEventConsumer(l, wid, cid, topicToken, emptyEventCreator, processor)
+		createEventConsumer(l, wid, cid, ctx, wg, topicToken, emptyEventCreator, processor)
 	}
 	cec("TOPIC_ENABLE_ACTIONS", EnableActionsEventCreator(), HandleEnableActionsEvent())
 	cec("TOPIC_CHANGE_MAP_EVENT", ChangeMapEventCreator(), HandleChangeMapEvent())
@@ -52,10 +54,11 @@ func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte) {
 	cec("TOPIC_CHARACTER_MP_EATER_EVENT", EmptyMPEaterEventCreator(), HandleMPEaterEvent())
 }
 
-func createEventConsumer(l *logrus.Logger, wid byte, cid byte, topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {
-	groupId := fmt.Sprintf(consumerGroupFormat, wid, cid)
+func createEventConsumer(l *logrus.Logger, wid byte, cid byte, ctx context.Context, wg *sync.WaitGroup, topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {
+	wg.Add(1)
 	h := func(logger logrus.FieldLogger, event interface{}) {
 		processor(logger, wid, cid, event)
 	}
-	go NewConsumer(l, topicToken, groupId, emptyEventCreator, h)
+	groupId := fmt.Sprintf(consumerGroupFormat, wid, cid)
+	go NewConsumer(l, ctx, wg, topicToken, groupId, emptyEventCreator, h)
 }
