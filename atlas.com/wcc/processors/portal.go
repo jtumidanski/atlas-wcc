@@ -24,5 +24,5 @@ func GetPortalByName(mapId uint32, portalName string) (*domain.Portal, error) {
 }
 
 func makePortal(id uint32, mapId uint32, attr attributes.PortalAttributes) domain.Portal {
-   return domain.NewPortal(id, mapId, attr.Name, attr.Target, attr.TargetMap, attr.Type, attr.X, attr.Y, attr.ScriptName)
+   return domain.NewPortal(id, mapId, attr.Name, attr.Target, attr.TargetMapId, attr.Type, attr.X, attr.Y, attr.ScriptName)
 }
