@@ -85,9 +85,9 @@ func HandleSpecialMove() request2.MessageHandler {
 				data = append(data, producers.MonsterMagnetData{MonsterId: d.monsterId, Success: d.success})
 			}
 
-			producers.ApplyMonsterMagnet(l)((*s).CharacterId(), event.skillId, event.level, event.direction, data)
+			producers.ApplyMonsterMagnet(l)(s.CharacterId(), event.skillId, event.level, event.direction, data)
 		} else if event, ok := p.(specialMoveRequest); ok {
-			producers.ApplySkill(l)((*s).CharacterId(), event.skillId, event.level, event.x, event.y)
+			producers.ApplySkill(l)(s.CharacterId(), event.skillId, event.level, event.x, event.y)
 		} else {
 			l.Errorf("Received unexpected result from reading the special move request.")
 		}

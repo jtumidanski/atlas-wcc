@@ -30,17 +30,17 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 func ChangeMapSpecialHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
-		c, err := character.GetCharacterAttributesById((*s).CharacterId())
+		c, err := character.GetCharacterAttributesById(s.CharacterId())
 		if err != nil {
-			l.WithError(err).Errorf("Cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", s.CharacterId())
 			return
 		}
 
 		portal, err := portal2.GetPortalByName(c.MapId(), p.StartWarp())
 		if err != nil {
-			l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), s.CharacterId())
 			return
 		}
-		producers.PortalEnter(l)((*s).WorldId(), (*s).ChannelId(), c.MapId(), portal.Id(), (*s).CharacterId())
+		producers.PortalEnter(l)(s.WorldId(), s.ChannelId(), c.MapId(), portal.Id(), s.CharacterId())
 	}
 }

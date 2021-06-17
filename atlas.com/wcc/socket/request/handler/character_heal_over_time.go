@@ -34,7 +34,7 @@ func HealOverTimeHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readHealOverTimeRequest(r)
 
-		producers.CharacterAdjustHealth(l)((*s).CharacterId(), p.HP())
-		producers.CharacterAdjustMana(l)((*s).CharacterId(), p.MP())
+		producers.CharacterAdjustHealth(l)(s.CharacterId(), p.HP())
+		producers.CharacterAdjustMana(l)(s.CharacterId(), p.MP())
 	}
 }

@@ -29,7 +29,7 @@ func DistributeApHandler() request2.MessageHandler {
 		p := readDistributeApRequest(r)
 
 		attributeType := getType(p.Number())
-		producers.CharacterDistributeAp(l)((*s).CharacterId(), attributeType)
+		producers.CharacterDistributeAp(l)(s.CharacterId(), attributeType)
 	}
 }
 

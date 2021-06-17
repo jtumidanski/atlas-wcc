@@ -62,7 +62,7 @@ func ChangeKeyMapHandler() request2.MessageHandler {
 				for _, c := range packet.changes {
 					changes = append(changes, producers.KeyMapChange{Key: c.Key(), ChangeType: c.Type(), Action: c.Action()})
 				}
-				producers.ChangeKeyMap(l)((*s).CharacterId(), changes)
+				producers.ChangeKeyMap(l)(s.CharacterId(), changes)
 			}
 		}
 	}

@@ -26,6 +26,6 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 func CharacterExpressionHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
-		producers.CharacterExpression(l)((*s).CharacterId(), p.Emote())
+		producers.CharacterExpression(l)(s.CharacterId(), p.Emote())
 	}
 }

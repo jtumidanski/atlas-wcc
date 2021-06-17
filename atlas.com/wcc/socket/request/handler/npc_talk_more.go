@@ -59,22 +59,22 @@ func HandleNPCTalkMoreRequest() request2.MessageHandler {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {
 			if p.Action() != 0 {
-				if questInProcess((*s).CharacterId()) {
-					continueQuestConversation((*s).CharacterId(), p)
+				if questInProcess(s.CharacterId()) {
+					continueQuestConversation(s.CharacterId(), p)
 				} else {
-					producers.SetReturnText(l)((*s).CharacterId(), p.ReturnText())
-					producers.ContinueConversation(l)((*s).CharacterId(), p.Action(), p.LastMessageType(), -1)
+					producers.SetReturnText(l)(s.CharacterId(), p.ReturnText())
+					producers.ContinueConversation(l)(s.CharacterId(), p.Action(), p.LastMessageType(), -1)
 				}
-			} else if questInProcess((*s).CharacterId()) {
-				questDispose((*s).CharacterId())
+			} else if questInProcess(s.CharacterId()) {
+				questDispose(s.CharacterId())
 			} else {
-				conversationDispose((*s).CharacterId())
+				conversationDispose(s.CharacterId())
 			}
 		} else {
-			if questInProcess((*s).CharacterId()) {
-				continueQuestConversation((*s).CharacterId(), p)
-			} else if conversationInProgress(l)((*s).CharacterId()) {
-				producers.ContinueConversation(l)((*s).CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
+			if questInProcess(s.CharacterId()) {
+				continueQuestConversation(s.CharacterId(), p)
+			} else if conversationInProgress(l)(s.CharacterId()) {
+				producers.ContinueConversation(l)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
 	}

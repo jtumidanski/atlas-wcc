@@ -22,7 +22,7 @@ func GetRegistry() *Registry {
 
 func (r *Registry) Add(s *Model) {
 	r.mutex.Lock()
-	r.sessionRegistry[(*s).SessionId()] = s
+	r.sessionRegistry[s.SessionId()] = s
 	r.mutex.Unlock()
 }
 

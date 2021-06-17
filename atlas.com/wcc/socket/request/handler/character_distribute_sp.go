@@ -27,6 +27,6 @@ func readDistributeSpRequest(reader *request.RequestReader) distributeSpRequest 
 func DistributeSpHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readDistributeSpRequest(r)
-		producers.CharacterDistributeSp(l)((*s).CharacterId(), p.SkillId())
+		producers.CharacterDistributeSp(l)(s.CharacterId(), p.SkillId())
 	}
 }

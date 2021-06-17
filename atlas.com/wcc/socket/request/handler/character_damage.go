@@ -68,6 +68,6 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 func HandleCharacterDamageRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
-		producers.CharacterDamage(l)((*s).CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
+		producers.CharacterDamage(l)(s.CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
 	}
 }

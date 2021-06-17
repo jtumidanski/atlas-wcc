@@ -34,6 +34,6 @@ func ItemPickUpHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 
-		producers.CharacterReserveDrop(l)((*s).CharacterId(), p.ObjectId())
+		producers.CharacterReserveDrop(l)(s.CharacterId(), p.ObjectId())
 	}
 }

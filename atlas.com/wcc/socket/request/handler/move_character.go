@@ -114,7 +114,7 @@ func MoveCharacterHandler() request2.MessageHandler {
 		}
 
 		summary := processMovementList(p.movementData)
-		producers.MoveCharacter(l)((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
+		producers.MoveCharacter(l)(s.WorldId(), s.ChannelId(), s.CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
 	}
 }
 

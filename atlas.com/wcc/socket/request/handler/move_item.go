@@ -50,13 +50,13 @@ func MoveItemHandler() request2.MessageHandler {
 		action := p.Action()
 
 		if p.Source() < 0 && p.Action() > 0 {
-			producers.UnequipItem(l)((*s).CharacterId(), source, action)
+			producers.UnequipItem(l)(s.CharacterId(), source, action)
 		} else if p.Action() < 0 {
-			producers.EquipItem(l)((*s).CharacterId(), source, action)
+			producers.EquipItem(l)(s.CharacterId(), source, action)
 		} else if p.Action() == 0 {
-			producers.DropItem(l)((*s).WorldId(), (*s).ChannelId(), (*s).CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
+			producers.DropItem(l)(s.WorldId(), s.ChannelId(), s.CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
 		} else {
-			producers.MoveItem(l)((*s).CharacterId(), p.InventoryType(), p.Source(), p.Action())
+			producers.MoveItem(l)(s.CharacterId(), p.InventoryType(), p.Source(), p.Action())
 		}
 	}
 }

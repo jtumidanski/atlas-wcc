@@ -33,12 +33,12 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 func GeneralChatHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
-		ca, err := character.GetCharacterAttributesById((*s).CharacterId())
+		ca, err := character.GetCharacterAttributesById(s.CharacterId())
 		if err != nil {
-			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", (*s).CharacterId())
+			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", s.CharacterId())
 			return
 		}
 
-		producers.CharacterMapMessage(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), (*s).CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		producers.CharacterMapMessage(l)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }
