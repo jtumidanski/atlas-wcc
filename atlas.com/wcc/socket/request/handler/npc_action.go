@@ -50,7 +50,7 @@ func readNPCAction(reader *request2.RequestReader) interface{} {
 	return nil
 }
 
-func HandleNPCAction() request.SessionRequestHandler {
+func HandleNPCAction() request.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {

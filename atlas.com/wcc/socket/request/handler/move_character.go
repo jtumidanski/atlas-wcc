@@ -106,7 +106,7 @@ func updatePosition(reader *request.RequestReader, offset int16) []interface{} {
 	return mdl
 }
 
-func MoveCharacterHandler() request2.SessionRequestHandler {
+func MoveCharacterHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readMoveCharacterRequest(r)
 		if p == nil {

@@ -3,31 +3,14 @@ package mapleSession
 import (
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/crypto"
-	"github.com/jtumidanski/atlas-socket/session"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
 )
 
-type MapleSession interface {
-	session.Session
-	AccountId() uint32
-	SetAccountId(id uint32)
-	Announce(response []byte) error
-	WorldId() byte
-	SetWorldId(id byte)
-	ChannelId() byte
-	SetChannelId(id byte)
-	CharacterId() uint32
-	SetCharacterId(id uint32)
-	SetGm(gm bool)
-	Disconnect()
-	GM() bool
-}
-
-type mapleSession struct {
-	id          int
+type MapleSession struct {
+	id          uint32
 	accountId   uint32
 	worldId     byte
 	channelId   byte
@@ -44,29 +27,29 @@ const (
 	version uint16 = 83
 )
 
-func NewSession(id int, con net.Conn) MapleSession {
+func NewSession(id uint32, con net.Conn) *MapleSession {
 	recvIv := []byte{70, 114, 122, 82}
 	sendIv := []byte{82, 48, 120, 115}
 	recvIv[3] = byte(rand.Float64() * 255)
 	sendIv[3] = byte(rand.Float64() * 255)
 	send := crypto.NewAESOFB(sendIv, uint16(65535)-version)
 	recv := crypto.NewAESOFB(recvIv, version)
-	return &mapleSession{id, 0, 0, 0, 0, false, con, *send, *recv, time.Now(), sync.RWMutex{}}
+	return &MapleSession{id, 0, 0, 0, 0, false, con, *send, *recv, time.Now(), sync.RWMutex{}}
 }
 
-func (s *mapleSession) SetAccountId(accountId uint32) {
+func (s *MapleSession) SetAccountId(accountId uint32) {
 	s.accountId = accountId
 }
 
-func (s *mapleSession) SessionId() int {
+func (s *MapleSession) SessionId() uint32 {
 	return s.id
 }
 
-func (s *mapleSession) AccountId() uint32 {
+func (s *MapleSession) AccountId() uint32 {
 	return s.accountId
 }
 
-func (s *mapleSession) Announce(b []byte) error {
+func (s *MapleSession) Announce(b []byte) error {
 	s.mutex.Lock()
 	tmp := make([]byte, len(b)+4)
 	copy(tmp, b)
@@ -77,63 +60,63 @@ func (s *mapleSession) Announce(b []byte) error {
 	return err
 }
 
-func (s *mapleSession) announce(b []byte) error {
+func (s *MapleSession) announce(b []byte) error {
 	_, err := s.con.Write(b)
 	return err
 }
 
-func (s *mapleSession) WriteHello() {
+func (s *MapleSession) WriteHello() {
 	s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
 }
 
-func (s *mapleSession) ReceiveAESOFB() *crypto.AESOFB {
+func (s *MapleSession) ReceiveAESOFB() *crypto.AESOFB {
 	return &s.recv
 }
 
-func (s *mapleSession) GetRemoteAddress() net.Addr {
+func (s *MapleSession) GetRemoteAddress() net.Addr {
 	return s.con.RemoteAddr()
 }
 
-func (s *mapleSession) SetWorldId(worldId byte) {
+func (s *MapleSession) SetWorldId(worldId byte) {
 	s.worldId = worldId
 }
 
-func (s *mapleSession) SetChannelId(channelId byte) {
+func (s *MapleSession) SetChannelId(channelId byte) {
 	s.channelId = channelId
 }
 
-func (s *mapleSession) WorldId() byte {
+func (s *MapleSession) WorldId() byte {
 	return s.worldId
 }
 
-func (s *mapleSession) ChannelId() byte {
+func (s *MapleSession) ChannelId() byte {
 	return s.channelId
 }
 
-func (s *mapleSession) UpdateLastRequest() {
+func (s *MapleSession) UpdateLastRequest() {
 	s.lastPacket = time.Now()
 }
 
-func (s *mapleSession) LastRequest() time.Time {
+func (s *MapleSession) LastRequest() time.Time {
 	return s.lastPacket
 }
 
-func (s *mapleSession) Disconnect() {
+func (s *MapleSession) Disconnect() {
 	_ = s.con.Close()
 }
 
-func (s *mapleSession) CharacterId() uint32 {
+func (s *MapleSession) CharacterId() uint32 {
 	return s.characterId
 }
 
-func (s *mapleSession) SetCharacterId(id uint32) {
+func (s *MapleSession) SetCharacterId(id uint32) {
 	s.characterId = id
 }
 
-func (s *mapleSession) SetGm(gm bool) {
+func (s *MapleSession) SetGm(gm bool) {
 	s.gm = gm
 }
 
-func (s *mapleSession) GM() bool {
+func (s *MapleSession) GM() bool {
 	return s.gm
 }

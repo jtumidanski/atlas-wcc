@@ -105,7 +105,7 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-func MoveLifeHandler() request2.SessionRequestHandler {
+func MoveLifeHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {

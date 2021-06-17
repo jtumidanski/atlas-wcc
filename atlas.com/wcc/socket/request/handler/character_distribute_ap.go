@@ -24,7 +24,7 @@ func readDistributeApRequest(reader *request.RequestReader) distributeApRequest 
 	return distributeApRequest{number}
 }
 
-func DistributeApHandler() request2.SessionRequestHandler {
+func DistributeApHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readDistributeApRequest(r)
 

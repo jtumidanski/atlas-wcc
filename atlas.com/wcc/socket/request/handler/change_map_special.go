@@ -26,7 +26,7 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 	return changeMapSpecialRequest{sw}
 }
 
-func ChangeMapSpecialHandler() request2.SessionRequestHandler {
+func ChangeMapSpecialHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
 		c, err := processors.GetCharacterAttributesById((*s).CharacterId())

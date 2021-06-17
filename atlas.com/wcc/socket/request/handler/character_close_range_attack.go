@@ -172,7 +172,7 @@ func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged 
    }
 }
 
-func CharacterCloseRangeAttackHandler() request2.SessionRequestHandler {
+func CharacterCloseRangeAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
       p := readAttackPacket(r, (*s).CharacterId(), false, false)
 

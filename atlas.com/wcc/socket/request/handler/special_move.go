@@ -76,7 +76,7 @@ func readSpecialMoveRequest(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleSpecialMove() request2.SessionRequestHandler {
+func HandleSpecialMove() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readSpecialMoveRequest(r)
 		if event, ok := p.(monsterMagnetRequest); ok {

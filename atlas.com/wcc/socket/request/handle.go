@@ -8,32 +8,28 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type SessionStateValidator func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool
+type MessageValidator func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool
 
-type SessionRequestHandler func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader)
-
-func NoOpValidator() SessionStateValidator {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
-		return true
-	}
+func NoOpValidator(_ logrus.FieldLogger, _ *mapleSession.MapleSession) bool {
+	return true
 }
 
-func LoggedInValidator() SessionStateValidator {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
-		v := processors.IsLoggedIn((*s).AccountId())
-		if !v {
-			l.Errorf("Attempting to process a request when the account %d is not logged in.", (*s).SessionId())
-		}
-		return v
+func LoggedInValidator(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
+	v := processors.IsLoggedIn((*s).AccountId())
+	if !v {
+		l.Errorf("Attempting to process a request when the account %d is not logged in.", (*s).SessionId())
 	}
+	return v
 }
 
-func AdaptHandler(l logrus.FieldLogger, validator SessionStateValidator, handler SessionRequestHandler) request.Handler {
-	return func(sessionId int, r request.RequestReader) {
+type MessageHandler func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader)
+
+func AdaptHandler(l logrus.FieldLogger, v MessageValidator, h MessageHandler) request.Handler {
+	return func(sessionId uint32, r request.RequestReader) {
 		s := registries.GetSessionRegistry().Get(sessionId)
 		if s != nil {
-			if validator(l, &s) {
-				handler(l, &s, &r)
+			if v(l, s) {
+				h(l, s, &r)
 				s.UpdateLastRequest()
 			}
 		} else {

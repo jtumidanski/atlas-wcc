@@ -30,7 +30,7 @@ func readItemPickUpRequest(reader *request.RequestReader) itemPickUpRequest {
 	return itemPickUpRequest{timestamp, x, y, objectId}
 }
 
-func ItemPickUpHandler() request2.SessionRequestHandler {
+func ItemPickUpHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 

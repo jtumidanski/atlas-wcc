@@ -10,7 +10,7 @@ import (
 const OpInnerPortal uint16 = 0x65
 
 
-func HandleInnerPortal() request.SessionRequestHandler {
+func HandleInnerPortal() request.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
 	}
 }

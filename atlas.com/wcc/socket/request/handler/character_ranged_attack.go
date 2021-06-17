@@ -11,7 +11,7 @@ import (
 
 const OpCharacterRangedAttack uint16 = 0x2D
 
-func CharacterRangedAttackHandler() request2.SessionRequestHandler {
+func CharacterRangedAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
       p := readAttackPacket(r, (*s).CharacterId(), true, false)
 

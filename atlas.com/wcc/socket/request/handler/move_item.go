@@ -42,7 +42,7 @@ func readMoveItemRequest(reader *request.RequestReader) moveItemRequest {
 	return moveItemRequest{inventoryType: inventoryType, source: source, action: action, quantity: quantity}
 }
 
-func MoveItemHandler() request2.SessionRequestHandler {
+func MoveItemHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readMoveItemRequest(r)
 		// adjust for client indexing positive from 1 not 0

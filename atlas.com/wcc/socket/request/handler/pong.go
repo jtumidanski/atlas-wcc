@@ -9,7 +9,7 @@ import (
 
 const OpCodePong uint16 = 0x18
 
-func PongHandler() request2.SessionRequestHandler {
+func PongHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 	}
 }

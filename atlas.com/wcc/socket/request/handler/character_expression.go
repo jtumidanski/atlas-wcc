@@ -23,7 +23,7 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 	return characterExpressionRequest{emote}
 }
 
-func CharacterExpressionHandler() request2.SessionRequestHandler {
+func CharacterExpressionHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
 		producers.CharacterExpression(l)((*s).CharacterId(), p.Emote())

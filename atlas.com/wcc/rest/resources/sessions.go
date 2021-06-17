@@ -36,7 +36,7 @@ func (s *SessionResource) GetSessions(rw http.ResponseWriter, _ *http.Request) {
 
 func getSessionObject(x mapleSession.MapleSession) *attributes.SessionData {
 	return &attributes.SessionData{
-		Id:   strconv.Itoa(x.SessionId()),
+		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",
 		Attributes: attributes.SessionAttributes{
 			AccountId:   x.AccountId(),

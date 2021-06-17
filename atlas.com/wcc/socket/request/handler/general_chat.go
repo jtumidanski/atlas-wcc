@@ -30,7 +30,7 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 	return generalChatRequest{message, show}
 }
 
-func GeneralChatHandler() request2.SessionRequestHandler {
+func GeneralChatHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
 		ca, err := processors.GetCharacterAttributesById((*s).CharacterId())

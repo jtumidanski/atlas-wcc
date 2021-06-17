@@ -25,7 +25,7 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 	return changeChannelRequest{channelId}
 }
 
-func ChangeChannelHandler() request2.SessionRequestHandler {
+func ChangeChannelHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == (*s).ChannelId() {

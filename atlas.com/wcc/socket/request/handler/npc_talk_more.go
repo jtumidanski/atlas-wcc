@@ -54,7 +54,7 @@ func readNPCTalkMoreRequest(reader *request.RequestReader) npcTalkMoreRequest {
 	return npcTalkMoreRequest{lastMessageType, action, returnText, selection}
 }
 
-func HandleNPCTalkMoreRequest() request2.SessionRequestHandler {
+func HandleNPCTalkMoreRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {

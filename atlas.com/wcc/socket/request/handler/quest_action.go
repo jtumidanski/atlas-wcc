@@ -74,7 +74,7 @@ func readQuestAction(r *request2.RequestReader) interface{} {
 	}
 }
 
-func HandleQuestAction() request.SessionRequestHandler {
+func HandleQuestAction() request.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
 		p := readQuestAction(r)
 		if val, ok := p.(*questActionRequest); ok {

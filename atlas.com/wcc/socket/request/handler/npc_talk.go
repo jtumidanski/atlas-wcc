@@ -26,7 +26,7 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 	return npcTalkRequest{reader.ReadUint32()}
 }
 
-func CharacterAliveValidator() request2.SessionStateValidator {
+func CharacterAliveValidator() request2.MessageValidator {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
 		v := processors.IsLoggedIn((*s).AccountId())
 		if !v {
@@ -51,7 +51,7 @@ func CharacterAliveValidator() request2.SessionStateValidator {
 	}
 }
 
-func HandleNPCTalkRequest() request2.SessionRequestHandler {
+func HandleNPCTalkRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 

@@ -4,54 +4,57 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/mapleSession"
 	"atlas-wcc/registries"
-	"github.com/jtumidanski/atlas-socket/session"
 	"github.com/sirupsen/logrus"
 	"net"
 )
 
-type Service interface {
-	session.Service
-}
-
-type mapleSessionService struct {
-	l         logrus.FieldLogger
-	r         *registries.SessionRegistry
-	worldId   byte
-	channelId byte
-}
-
-func NewMapleSessionService(l logrus.FieldLogger, wid byte, cid byte) Service {
-	return &mapleSessionService{l, registries.GetSessionRegistry(), wid, cid}
-}
-
-func (s *mapleSessionService) Create(sessionId int, conn net.Conn) (session.Session, error) {
-	ses := mapleSession.NewSession(sessionId, conn)
-	s.r.Add(&ses)
-	ses.SetWorldId(s.worldId)
-	ses.SetChannelId(s.channelId)
-	ses.WriteHello()
-	return ses, nil
-}
-
-func (s *mapleSessionService) Get(sessionId int) session.Session {
-	return s.r.Get(sessionId)
-}
-
-func (s *mapleSessionService) GetAll() []session.Session {
-	ss := s.r.GetAll()
-	b := make([]session.Session, len(ss))
-	for i, v := range ss {
-		b[i] = v.(session.Session)
+func Create(l logrus.FieldLogger, r *registries.SessionRegistry) func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
+	return func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
+		return func(sessionId uint32, conn net.Conn) {
+			l.Debugf("Creating session %d.", sessionId)
+			s := mapleSession.NewSession(sessionId, conn)
+			s.SetWorldId(worldId)
+			s.SetChannelId(channelId)
+			r.Add(s)
+			s.WriteHello()
+		}
 	}
-	return b
 }
 
-func (s *mapleSessionService) Destroy(sessionId int) {
-	ses := s.Get(sessionId).(mapleSession.MapleSession)
+func Decrypt(_ logrus.FieldLogger, r *registries.SessionRegistry) func(sessionId uint32, input []byte) []byte {
+	return func(sessionId uint32, input []byte) []byte {
+		s := r.Get(sessionId)
+		if s == nil {
+			return input
+		}
+		if s.ReceiveAESOFB() == nil {
+			return input
+		}
+		return s.ReceiveAESOFB().Decrypt(input, true, true)
+	}
+}
 
-	s.r.Remove(sessionId)
+func DestroyAll(l logrus.FieldLogger, r *registries.SessionRegistry) {
+	for _, s := range r.GetAll() {
+		Destroy(l, r)(&s)
+	}
+}
 
-	ses.Disconnect()
+func DestroyById(l logrus.FieldLogger, r *registries.SessionRegistry) func(sessionId uint32) {
+	return func(sessionId uint32) {
+		s := r.Get(sessionId)
+		if s == nil {
+			return
+		}
+		Destroy(l, r)(s)
+	}
+}
 
-	producers.Logout(s.l)(ses.WorldId(), ses.ChannelId(), ses.AccountId(), ses.CharacterId())
+func Destroy(l logrus.FieldLogger, r *registries.SessionRegistry) func(session *mapleSession.MapleSession) {
+	return func(s *mapleSession.MapleSession) {
+		l.Debugf("Destroying session %d.", s.SessionId())
+		r.Remove(s.SessionId())
+		s.Disconnect()
+		producers.Logout(l)(s.WorldId(), s.ChannelId(), s.AccountId(), s.CharacterId())
+	}
 }

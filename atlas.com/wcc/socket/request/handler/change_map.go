@@ -44,7 +44,7 @@ func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
 	return changeMapRequest{cs, fromDying, targetId, startWarp, wheel}
 }
 
-func ChangeMapHandler() request2.SessionRequestHandler {
+func ChangeMapHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeMapRequest(r)
 		if p.CashShop() {

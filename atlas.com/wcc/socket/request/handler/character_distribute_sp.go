@@ -24,7 +24,7 @@ func readDistributeSpRequest(reader *request.RequestReader) distributeSpRequest 
 	return distributeSpRequest{skillId}
 }
 
-func DistributeSpHandler() request2.SessionRequestHandler {
+func DistributeSpHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readDistributeSpRequest(r)
 		producers.CharacterDistributeSp(l)((*s).CharacterId(), p.SkillId())

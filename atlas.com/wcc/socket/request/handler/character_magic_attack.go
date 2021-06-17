@@ -11,7 +11,7 @@ import (
 
 const OpCharacterMagicAttack uint16 = 0x2E
 
-func CharacterMagicAttackHandler() request2.SessionRequestHandler {
+func CharacterMagicAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
       p := readAttackPacket(r, (*s).CharacterId(), false, true)
 

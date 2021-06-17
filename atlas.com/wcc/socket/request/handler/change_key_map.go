@@ -53,7 +53,7 @@ func readChangeKeyMapRequest(reader *request.RequestReader) interface{} {
 	return nil
 }
 
-func ChangeKeyMapHandler() request2.SessionRequestHandler {
+func ChangeKeyMapHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readChangeKeyMapRequest(r)
 		if packet, ok := p.(changeKeyMapRequest); ok {

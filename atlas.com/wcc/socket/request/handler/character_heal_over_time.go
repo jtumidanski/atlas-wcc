@@ -30,7 +30,7 @@ func readHealOverTimeRequest(reader *request.RequestReader) healOverTimeRequest 
 	return healOverTimeRequest{hp, mp}
 }
 
-func HealOverTimeHandler() request2.SessionRequestHandler {
+func HealOverTimeHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readHealOverTimeRequest(r)
 

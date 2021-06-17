@@ -65,7 +65,7 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 	}
 }
 
-func HandleCharacterDamageRequest() request2.SessionRequestHandler {
+func HandleCharacterDamageRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
 		producers.CharacterDamage(l)((*s).CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())

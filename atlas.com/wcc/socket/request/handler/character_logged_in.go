@@ -26,7 +26,7 @@ func readCharacterLoggedInRequest(reader *request.RequestReader) characterLogged
 	return characterLoggedInRequest{cid}
 }
 
-func CharacterLoggedInHandler() request2.SessionRequestHandler {
+func CharacterLoggedInHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
 		p := readCharacterLoggedInRequest(r)
 		c, err := processors.GetCharacterById(p.CharacterId())
