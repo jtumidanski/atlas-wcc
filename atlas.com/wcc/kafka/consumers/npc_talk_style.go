@@ -36,8 +36,12 @@ func HandleNPCTalkStyleCommand() ChannelEventProcessor {
 	}
 }
 
-func writeNpcTalkStyle(_ logrus.FieldLogger, event *npcTalkStyleCommand) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteNPCTalkStyle(event.NPCId, event.Message, event.Styles))
+func writeNpcTalkStyle(l logrus.FieldLogger, event *npcTalkStyleCommand) session.SessionOperator {
+	b := writer.WriteNPCTalkStyle(event.NPCId, event.Message, event.Styles)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

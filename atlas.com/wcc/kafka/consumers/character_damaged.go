@@ -13,7 +13,7 @@ type CharacterDamagedEvent struct {
 	MonsterId       uint32 `json:"monsterId"`
 	MonsterUniqueId uint32 `json:"monsterUniqueId"`
 	SkillId         int8   `json:"skillId"`
-	Damage          int32 `json:"damage"`
+	Damage          int32  `json:"damage"`
 	Fake            uint32 `json:"fake"`
 	Direction       int8   `json:"direction"`
 	X               int16  `json:"x"`
@@ -43,9 +43,12 @@ func HandleCharacterDamagedEvent() ChannelEventProcessor {
 	}
 }
 
-func writeCharacterDamaged(_ logrus.FieldLogger, event CharacterDamagedEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage,
-			event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y))
+func writeCharacterDamaged(l logrus.FieldLogger, event CharacterDamagedEvent) session.SessionOperator {
+	b := writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

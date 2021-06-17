@@ -37,9 +37,13 @@ func HandleCharacterBuffEvent() ChannelEventProcessor {
 	}
 }
 
-func showBuffEffect(_ logrus.FieldLogger, event *characterBuffEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteShowBuff(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special))
+func showBuffEffect(l logrus.FieldLogger, event *characterBuffEvent) session.SessionOperator {
+	b := writer.WriteShowBuff(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }
 
@@ -76,8 +80,11 @@ func HandleCharacterCancelBuffEvent() ChannelEventProcessor {
 	}
 }
 
-func cancelBuffEffect(_ logrus.FieldLogger, event *characterCancelBuffEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteCancelBuff(makeBuffStats(event.Stats)))
+func cancelBuffEffect(l logrus.FieldLogger, event *characterCancelBuffEvent) session.SessionOperator {
+	return func(s *session.Model) {
+		err := s.Announce(writer.WriteCancelBuff(makeBuffStats(event.Stats)))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to cancel buff for character %d", s.CharacterId())
+		}
 	}
 }

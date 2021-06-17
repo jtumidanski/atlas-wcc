@@ -45,7 +45,7 @@ func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 }
 
 func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryModificationEvent) session.SessionOperator {
-	return func(s session.Model) {
+	return func(s *session.Model) {
 		result := writer.ModifyInventory{}
 		result.UpdateTick = event.UpdateTick
 		for _, m := range event.Modifications {
@@ -74,6 +74,9 @@ func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryM
 			}
 			result.Modifications = append(result.Modifications, mi)
 		}
-		s.Announce(writer.WriteCharacterInventoryModification(result))
+		err := s.Announce(writer.WriteCharacterInventoryModification(result))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to write inventory modification for character %d", s.CharacterId())
+		}
 	}
 }

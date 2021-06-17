@@ -33,9 +33,17 @@ func HandleItemPickedUpEvent() ChannelEventProcessor {
 	}
 }
 
-func showItemGain(_ logrus.FieldLogger, event *itemPickedUpEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteShowItemGain(event.ItemId, event.Quantity))
-		s.Announce(writer.WriteEnableActions())
+func showItemGain(l logrus.FieldLogger, event *itemPickedUpEvent) session.SessionOperator {
+	ig := writer.WriteShowItemGain(event.ItemId, event.Quantity)
+	ea := writer.WriteEnableActions()
+	return func(s *session.Model) {
+		err := s.Announce(ig)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
+		err = s.Announce(ea)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

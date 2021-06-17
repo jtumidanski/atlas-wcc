@@ -33,10 +33,11 @@ func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 	}
 }
 
-func updateStats(_ logrus.FieldLogger, event *CharacterStatUpdateEvent) session.SessionOperator {
-	return func(s session.Model) {
+func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.SessionOperator {
+	return func(s *session.Model) {
 		ca, err := character.GetCharacterAttributesById(event.CharacterId)
 		if err != nil {
+			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
 			return
 		}
 
@@ -44,7 +45,10 @@ func updateStats(_ logrus.FieldLogger, event *CharacterStatUpdateEvent) session.
 		for _, t := range event.Updates {
 			statUpdates = append(statUpdates, getStatUpdate(ca, t))
 		}
-		s.Announce(writer.WriteCharacterStatUpdate(statUpdates, true))
+		err = s.Announce(writer.WriteCharacterStatUpdate(statUpdates, true))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to write character stat update for %d", event.CharacterId)
+		}
 	}
 }
 

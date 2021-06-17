@@ -34,8 +34,12 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 	}
 }
 
-func expireItem(_ logrus.FieldLogger, event *DropExpireEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
+func expireItem(l logrus.FieldLogger, event *DropExpireEvent) session.SessionOperator {
+	b := writer.WriteRemoveItem(event.UniqueId, 0, 0)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

@@ -29,15 +29,21 @@ func HandleCharacterCreatedEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachGMSession(announceCharacterCreated(event))
+			session.ForEachGMSession(announceCharacterCreated(l)(event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func announceCharacterCreated(event *characterCreatedEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name)))
+func announceCharacterCreated(l logrus.FieldLogger) func(event *characterCreatedEvent) session.SessionOperator {
+	return func(event *characterCreatedEvent) session.SessionOperator {
+		b := writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name))
+		return func(s *session.Model) {
+			err := s.Announce(b)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+		}
 	}
 }

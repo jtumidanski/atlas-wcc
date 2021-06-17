@@ -35,9 +35,17 @@ func HandleNXPickedUpEvent() ChannelEventProcessor {
 	}
 }
 
-func showNXGain(_ logrus.FieldLogger, event *nxPickedUpEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10))
-		s.Announce(writer.WriteEnableActions())
+func showNXGain(l logrus.FieldLogger, event *nxPickedUpEvent) session.SessionOperator {
+	h := writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10)
+	ea := writer.WriteEnableActions()
+	return func(s *session.Model) {
+		err := s.Announce(h)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
+		err = s.Announce(ea)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

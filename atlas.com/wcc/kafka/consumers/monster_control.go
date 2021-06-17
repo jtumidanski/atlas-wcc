@@ -29,17 +29,17 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 				return
 			}
 
-			var handler session.SessionOperator
+			var h session.SessionOperator
 			if event.Type == "START" {
-				handler = startControl(l, event)
+				h = startControl(l, event)
 			} else if event.Type == "STOP" {
-				handler = stopControl(l, event)
+				h = stopControl(l, event)
 			} else {
 				l.Warnf("Received unhandled monster control event type of %s", event.Type)
 				return
 			}
 
-			session.ForSessionByCharacterId(event.CharacterId, handler)
+			session.ForSessionByCharacterId(event.CharacterId, h)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
@@ -47,23 +47,31 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 }
 
 func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
-	return func(s session.Model) {
+	return func(s *session.Model) {
 		m, err := monster.GetMonster(event.UniqueId)
 		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
 		}
 		l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-		s.Announce(writer.WriteStopControlMonster(m))
+		err = s.Announce(writer.WriteStopControlMonster(m))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to stop control of %d by %d", event.UniqueId, event.CharacterId)
+		}
 	}
 }
 
 func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
-	return func(s session.Model) {
+	return func(s *session.Model) {
 		m, err := monster.GetMonster(event.UniqueId)
 		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
 		}
 		l.Infof("Starting control of %d for character %d.", event.UniqueId, event.CharacterId)
-		s.Announce(writer.WriteControlMonster(m, false, false))
+		err = s.Announce(writer.WriteControlMonster(m, false, false))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to start control of %d by %d", event.UniqueId, event.CharacterId)
+		}
 	}
 }

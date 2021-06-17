@@ -45,9 +45,13 @@ func HandleMonsterMovementEvent() ChannelEventProcessor {
 	}
 }
 
-func moveMonster(_ logrus.FieldLogger, event *monsterMovementEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
-			event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement))
+func moveMonster(l logrus.FieldLogger, event *monsterMovementEvent) session.SessionOperator {
+	b := writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
+		event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

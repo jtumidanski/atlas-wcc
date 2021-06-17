@@ -31,8 +31,12 @@ func HandleEnableActionsEvent() ChannelEventProcessor {
 	}
 }
 
-func enableActions(_ logrus.FieldLogger, _ *enableActionsEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteEnableActions())
+func enableActions(l logrus.FieldLogger, _ *enableActionsEvent) session.SessionOperator {
+	b := writer.WriteEnableActions()
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

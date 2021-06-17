@@ -39,11 +39,11 @@ func (r *Registry) Get(sessionId uint32) *Model {
 	return s
 }
 
-func (r *Registry) GetAll() []Model {
+func (r *Registry) GetAll() []*Model {
 	r.mutex.RLock()
-	s := make([]Model, 0)
+	s := make([]*Model, 0)
 	for _, v := range r.sessionRegistry {
-		s = append(s, *v)
+		s = append(s, v)
 	}
 	r.mutex.RUnlock()
 	return s

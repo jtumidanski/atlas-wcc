@@ -33,8 +33,12 @@ func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
 	}
 }
 
-func writeCharacterExpression(_ logrus.FieldLogger, event *characterExpressionChangedEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteCharacterExpression(event.CharacterId, event.Expression))
+func writeCharacterExpression(l logrus.FieldLogger, event *characterExpressionChangedEvent) session.SessionOperator {
+	b := writer.WriteCharacterExpression(event.CharacterId, event.Expression)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

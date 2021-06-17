@@ -38,8 +38,12 @@ func HandleNPCTalkNumCommand() ChannelEventProcessor {
 	}
 }
 
-func writeNpcTalkNum(_ logrus.FieldLogger, event *npcTalkNumCommand) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteNPCTalkNum(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue))
+func writeNpcTalkNum(l logrus.FieldLogger, event *npcTalkNumCommand) session.SessionOperator {
+	b := writer.WriteNPCTalkNum(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

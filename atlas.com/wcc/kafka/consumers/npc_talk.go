@@ -36,9 +36,13 @@ func HandleNPCTalkEvent() ChannelEventProcessor {
 	}
 }
 
-func writeNpcTalk(_ logrus.FieldLogger, event *npcTalkEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteNPCTalk(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker)))
+func writeNpcTalk(l logrus.FieldLogger, event *npcTalkEvent) session.SessionOperator {
+	b := writer.WriteNPCTalk(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }
 

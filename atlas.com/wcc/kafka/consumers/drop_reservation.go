@@ -37,8 +37,12 @@ func HandleDropReservationEvent() ChannelEventProcessor {
 	}
 }
 
-func cancelDropReservation(_ logrus.FieldLogger, _ *dropReservationEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteEnableActions())
+func cancelDropReservation(l logrus.FieldLogger, _ *dropReservationEvent) session.SessionOperator {
+	b := writer.WriteEnableActions()
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

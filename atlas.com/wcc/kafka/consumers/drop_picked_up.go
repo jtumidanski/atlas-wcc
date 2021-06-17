@@ -33,8 +33,12 @@ func HandleDropPickedUpEvent() ChannelEventProcessor {
 	}
 }
 
-func removeItem(_ logrus.FieldLogger, event *dropPickedUpEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteRemoveItem(event.DropId, 2, event.CharacterId))
+func removeItem(l logrus.FieldLogger, event *dropPickedUpEvent) session.SessionOperator {
+	b := writer.WriteRemoveItem(event.DropId, 2, event.CharacterId)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

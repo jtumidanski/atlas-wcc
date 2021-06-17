@@ -5,20 +5,20 @@ import (
 )
 
 // function which performs an operation on a single session
-type SessionOperator func(Model)
+type SessionOperator func(*Model)
 
 // function which performs a operation on a slice of sessions
-type SessionsOperator func([]Model)
+type SessionsOperator func([]*Model)
 
 // function which dictates whether a session should be considered or not
-type SessionFilter func(session Model) bool
+type SessionFilter func(*Model) bool
 
 // function which retrieves a slice of sessions
-type SessionGetter func() []Model
+type SessionGetter func() []*Model
 
 // executes a SessionOperator over a slice of sessions
 func ExecuteForEachSession(f SessionOperator) SessionsOperator {
-	return func(sessions []Model) {
+	return func(sessions []*Model) {
 		for _, session := range sessions {
 			f(session)
 		}
@@ -29,7 +29,7 @@ func ExecuteForEachSession(f SessionOperator) SessionsOperator {
 func GetSessionByCharacterId(characterId uint32) *Model {
 	sessions := getFilteredSessions(CharacterIdFilter(characterId))
 	if len(sessions) >= 1 {
-		return &sessions[0]
+		return sessions[0]
 	}
 	return nil
 }
@@ -40,13 +40,13 @@ func ForSessionByCharacterId(characterId uint32, f SessionOperator) {
 	if s == nil {
 		return
 	}
-	f(*s)
+	f(s)
 	return
 }
 
 // a SessionGetter which will retrieve all sessions for characters in the given map, not identified by the supplied characterId
 func GetOtherSessionsInMap(worldId byte, channelId byte, mapId uint32, characterId uint32) SessionGetter {
-	return func() []Model {
+	return func() []*Model {
 		cs, err := character.GetCharacterIdsInMap(worldId, channelId, mapId)
 		if err != nil {
 			return nil
@@ -60,28 +60,28 @@ func GetOtherSessionsInMap(worldId byte, channelId byte, mapId uint32, character
 
 // a filter which yields true when the characterId matches the one in the session
 func CharacterIdFilter(characterId uint32) SessionFilter {
-	return func(session Model) bool {
+	return func(session *Model) bool {
 		return session.CharacterId() == characterId
 	}
 }
 
 // a filter which yields true when the characterId does not match the one in the session
 func CharacterIdNotFilter(characterId uint32) SessionFilter {
-	return func(session Model) bool {
+	return func(session *Model) bool {
 		return session.CharacterId() != characterId
 	}
 }
 
 // a filter which yields true when the characterId of the session is in the slice of provided characterIds
 func CharacterIdInFilter(validIds []uint32) SessionFilter {
-	return func(session Model) bool {
+	return func(session *Model) bool {
 		return contains(validIds, session.CharacterId())
 	}
 }
 
 // a SessionGetter which which retrieve all sessions which reside in the identified map
 func GetSessionsInMap(worldId byte, channelId byte, mapId uint32) SessionGetter {
-	return func() []Model {
+	return func() []*Model {
 		cs, err := character.GetCharacterIdsInMap(worldId, channelId, mapId)
 		if err != nil {
 			return nil
@@ -133,13 +133,13 @@ func forSessions(getter SessionGetter, f SessionsOperator) {
 }
 
 // retrieves all sessions which correspond to GMs
-func GetGMSessions() []Model {
+func GetGMSessions() []*Model {
 	return getFilteredSessions(OnlyGMs())
 }
 
 // a SessionFilter which yields true when the session is a GM
 func OnlyGMs() SessionFilter {
-	return func(session Model) bool {
+	return func(session *Model) bool {
 		return session.GM()
 	}
 }
@@ -149,17 +149,17 @@ func ForEachSession(f SessionOperator) {
 }
 
 func ForAllSessions(f SessionsOperator) {
-	getAll := func() []Model {
+	getAll := func() []*Model {
 		return getFilteredSessions()
 	}
 	forSessions(getAll, f)
 }
 
 // retrieves all sessions which pass the provided SessionFilter slice.
-func getFilteredSessions(filters ...SessionFilter) []Model {
+func getFilteredSessions(filters ...SessionFilter) []*Model {
 	sessions := GetRegistry().GetAll()
 
-	var results []Model
+	var results []*Model
 	for _, session := range sessions {
 		if len(filters) == 0 {
 			results = append(results, session)

@@ -36,12 +36,16 @@ func HandleChangeMapEvent() ChannelEventProcessor {
 	}
 }
 
-func warpCharacter(_ logrus.FieldLogger, event *mapChangedEvent) session.SessionOperator {
-	return func(s session.Model) {
+func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.SessionOperator {
+	return func(s *session.Model) {
 		catt, err := requests.Character().GetCharacterAttributesById(event.CharacterId)
 		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return
 		}
-		s.Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
+		err = s.Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to warp character %d to map %d", event.CharacterId, event.MapId)
+		}
 	}
 }

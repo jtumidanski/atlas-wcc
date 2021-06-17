@@ -15,7 +15,7 @@ func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 		var response attributes.SessionListDataContainer
 		response.Data = make([]attributes.SessionData, 0)
 		for _, x := range ss {
-			response.Data = append(response.Data, *getSessionObject(x))
+			response.Data = append(response.Data, getSessionObject(x))
 		}
 
 		err := json.ToJSON(response, w)
@@ -26,8 +26,8 @@ func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 	}
 }
 
-func getSessionObject(x Model) *attributes.SessionData {
-	return &attributes.SessionData{
+func getSessionObject(x *Model) attributes.SessionData {
+	return attributes.SessionData{
 		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",
 		Attributes: attributes.SessionAttributes{

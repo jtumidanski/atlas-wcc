@@ -48,16 +48,19 @@ func HandleDropEvent() ChannelEventProcessor {
 	}
 }
 
-func dropItem(_ logrus.FieldLogger, event *DropEvent) session.SessionOperator {
-	return func(s session.Model) {
+func dropItem(l logrus.FieldLogger, event *DropEvent) session.SessionOperator {
+	return func(s *session.Model) {
 		a := uint32(0)
 		if event.ItemId != 0 {
 			a = 0
 		} else {
 			a = event.Meso
 		}
-		s.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
+		err := s.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
 			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0,
 			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to write drop in map for character %d", s.CharacterId())
+		}
 	}
 }

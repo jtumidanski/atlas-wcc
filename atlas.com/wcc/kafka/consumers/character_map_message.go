@@ -35,8 +35,12 @@ func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 	}
 }
 
-func showChatText(_ logrus.FieldLogger, event *characterMapMessageEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show))
+func showChatText(l logrus.FieldLogger, event *characterMapMessageEvent) session.SessionOperator {
+	b := writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

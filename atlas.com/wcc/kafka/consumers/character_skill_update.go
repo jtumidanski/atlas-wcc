@@ -35,8 +35,11 @@ func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	}
 }
 
-func updateSkill(_ logrus.FieldLogger, event *CharacterSkillUpdateEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
+func updateSkill(l logrus.FieldLogger, event *CharacterSkillUpdateEvent) session.SessionOperator {
+	return func(s *session.Model) {
+		err := s.Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to write skill update for character %d", event.CharacterId)
+		}
 	}
 }

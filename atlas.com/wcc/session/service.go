@@ -34,7 +34,7 @@ func Decrypt(_ logrus.FieldLogger, r *Registry) func(sessionId uint32, input []b
 
 func DestroyAll(l logrus.FieldLogger, r *Registry) {
 	for _, s := range r.GetAll() {
-		Destroy(l, r)(&s)
+		Destroy(l, r)(s)
 	}
 }
 

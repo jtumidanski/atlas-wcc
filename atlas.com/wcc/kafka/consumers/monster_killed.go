@@ -45,8 +45,12 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 	}
 }
 
-func killMonster(_ logrus.FieldLogger, event *MonsterKilledEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
+func killMonster(l logrus.FieldLogger, event *MonsterKilledEvent) session.SessionOperator {
+	b := writer.WriteKillMonster(event.UniqueId, true)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

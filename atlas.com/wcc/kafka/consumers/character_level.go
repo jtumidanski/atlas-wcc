@@ -31,8 +31,12 @@ func HandleCharacterLevelEvent() ChannelEventProcessor {
 	}
 }
 
-func showForeignEffect(_ logrus.FieldLogger, event *characterLevelEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteShowForeignEffect(event.CharacterId, 0))
+func showForeignEffect(l logrus.FieldLogger, event *characterLevelEvent) session.SessionOperator {
+	b := writer.WriteShowForeignEffect(event.CharacterId, 0)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

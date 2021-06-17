@@ -37,8 +37,12 @@ func HandleCharacterMovementEvent() ChannelEventProcessor {
 	}
 }
 
-func moveCharacter(_ logrus.FieldLogger, event *characterMovementEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteMoveCharacter(event.CharacterId, event.RawMovement))
+func moveCharacter(l logrus.FieldLogger, event *characterMovementEvent) session.SessionOperator {
+	b := writer.WriteMoveCharacter(event.CharacterId, event.RawMovement)
+	return func(s *session.Model) {
+		err := s.Announce(b)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

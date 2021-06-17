@@ -50,7 +50,10 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 				party = 0
 				white = false
 			}
-			as.Announce(writer.WriteShowExperienceGain(gain, 0, party, event.Chat, white))
+			err := as.Announce(writer.WriteShowExperienceGain(gain, 0, party, event.Chat, white))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show experience gain to character %d", as.CharacterId())
+			}
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

@@ -31,38 +31,50 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			monster, err := monster.GetMonster(event.UniqueId)
+			m, err := monster.GetMonster(event.UniqueId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
 			}
 
-			var handler session.SessionOperator
+			var h session.SessionOperator
 			if event.Type == "CREATED" {
-				handler = createMonster(l, event, *monster)
+				h = createMonster(l, event, *m)
 			} else if event.Type == "DESTROYED" {
-				handler = destroyMonster(l, event)
+				h = destroyMonster(l, event)
 			} else {
 				l.Warnf("Unable to handle %s event type for monster events.", event.Type)
 				return
 			}
 
-			session.ForEachSessionInMap(wid, cid, event.MapId, handler)
+			session.ForEachSessionInMap(wid, cid, event.MapId, h)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func destroyMonster(_ logrus.FieldLogger, event *monsterEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteKillMonster(event.UniqueId, false))
-		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
+func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.SessionOperator {
+	k1 := writer.WriteKillMonster(event.UniqueId, false)
+	k2 := writer.WriteKillMonster(event.UniqueId, true)
+	return func(s *session.Model) {
+		err := s.Announce(k1)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
+		err = s.Announce(k2)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }
 
-func createMonster(_ logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteSpawnMonster(monster, false))
+func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.SessionOperator {
+	sm := writer.WriteSpawnMonster(monster, false)
+	return func(s *session.Model) {
+		err := s.Announce(sm)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

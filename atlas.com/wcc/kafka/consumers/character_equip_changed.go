@@ -34,7 +34,7 @@ func HandleCharacterEquipChangedEvent() ChannelEventProcessor {
 }
 
 func updateCharacterLook(l logrus.FieldLogger, characterId uint32) session.SessionOperator {
-	return func(s session.Model) {
+	return func(s *session.Model) {
 		r, err := character.GetCharacterById(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d details.", s.CharacterId())

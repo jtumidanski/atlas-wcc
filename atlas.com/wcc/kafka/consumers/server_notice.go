@@ -44,9 +44,12 @@ func HandleServerNoticeEvent() ChannelEventProcessor {
 	}
 }
 
-func showServerNotice(_ logrus.FieldLogger, event *ServerNoticeEvent) session.SessionOperator {
-	return func(s session.Model) {
-		s.Announce(writer.WriteServerNotice(s.ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
+func showServerNotice(l logrus.FieldLogger, event *ServerNoticeEvent) session.SessionOperator {
+	return func(s *session.Model) {
+		err := s.Announce(writer.WriteServerNotice(s.ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }
 
