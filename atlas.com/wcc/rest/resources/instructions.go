@@ -2,8 +2,8 @@ package resources
 
 import (
 	"atlas-wcc/json"
-	"atlas-wcc/processors"
 	"atlas-wcc/rest/attributes"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -37,7 +37,7 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	s := processors.GetSessionByCharacterId(characterId)
+	s := session.GetSessionByCharacterId(characterId)
 	if s == nil {
 		i.l.WithError(err).Errorf("Cannot locate session for instruction")
 		rw.WriteHeader(http.StatusBadRequest)

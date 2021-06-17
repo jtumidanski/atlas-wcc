@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -31,9 +31,9 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 }
 
 func GeneralChatHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
-		ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
+		ca, err := character.GetCharacterAttributesById((*s).CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", (*s).CharacterId())
 			return

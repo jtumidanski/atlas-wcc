@@ -2,8 +2,8 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/monster"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -29,7 +29,7 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 				return
 			}
 
-			var handler processors.SessionOperator
+			var handler session.SessionOperator
 			if event.Type == "START" {
 				handler = startControl(l, event)
 			} else if event.Type == "STOP" {
@@ -39,31 +39,31 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForSessionByCharacterId(event.CharacterId, handler)
+			session.ForSessionByCharacterId(event.CharacterId, handler)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func stopControl(l logrus.FieldLogger, event *monsterControlEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		m, err := processors.GetMonster(event.UniqueId)
+func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
+	return func(s session.Model) {
+		m, err := monster.GetMonster(event.UniqueId)
 		if err != nil {
 			return
 		}
 		l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-		session.Announce(writer.WriteStopControlMonster(m))
+		s.Announce(writer.WriteStopControlMonster(m))
 	}
 }
 
-func startControl(l logrus.FieldLogger, event *monsterControlEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		m, err := processors.GetMonster(event.UniqueId)
+func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
+	return func(s session.Model) {
+		m, err := monster.GetMonster(event.UniqueId)
 		if err != nil {
 			return
 		}
 		l.Infof("Starting control of %d for character %d.", event.UniqueId, event.CharacterId)
-		session.Announce(writer.WriteControlMonster(m, false, false))
+		s.Announce(writer.WriteControlMonster(m, false, false))
 	}
 }

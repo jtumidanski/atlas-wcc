@@ -2,7 +2,7 @@ package handler
 
 import (
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -77,7 +77,7 @@ func readSpecialMoveRequest(r *request.RequestReader) interface{} {
 }
 
 func HandleSpecialMove() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readSpecialMoveRequest(r)
 		if event, ok := p.(monsterMagnetRequest); ok {
 			data := make([]producers.MonsterMagnetData, 0)

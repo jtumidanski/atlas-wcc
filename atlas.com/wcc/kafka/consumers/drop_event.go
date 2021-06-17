@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -42,23 +41,23 @@ func HandleDropEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForEachSessionInMap(wid, cid, event.MapId, dropItem(l, event))
+			session.ForEachSessionInMap(wid, cid, event.MapId, dropItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func dropItem(_ logrus.FieldLogger, event *DropEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
+func dropItem(_ logrus.FieldLogger, event *DropEvent) session.SessionOperator {
+	return func(s session.Model) {
 		a := uint32(0)
 		if event.ItemId != 0 {
 			a = 0
 		} else {
 			a = event.Meso
 		}
-		session.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
-			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, session.CharacterId(), 0,
+		s.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
+			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0,
 			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
 	}
 }

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/mapleSession"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	request2 "github.com/jtumidanski/atlas-socket/request"
@@ -51,7 +51,7 @@ func readNPCAction(reader *request2.RequestReader) interface{} {
 }
 
 func HandleNPCAction() request.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request2.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
 			(*s).Announce(writer.WriteNPCAnimation(val.ObjectId(), val.Second(), val.Third()))

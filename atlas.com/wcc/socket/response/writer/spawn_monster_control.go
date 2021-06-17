@@ -1,13 +1,13 @@
 package writer
 
 import (
-	"atlas-wcc/domain"
+	"atlas-wcc/monster"
 	"atlas-wcc/socket/response"
 )
 
 const OpCodeSpawnMonsterControl uint16 = 0xEE
 
-func WriteControlMonster(m *domain.Monster, newSpawn bool, aggro bool) []byte {
+func WriteControlMonster(m *monster.Model, newSpawn bool, aggro bool) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeSpawnMonsterControl)
 	if aggro {
@@ -56,7 +56,7 @@ func WriteControlMonster(m *domain.Monster, newSpawn bool, aggro bool) []byte {
 	return w.Bytes()
 }
 
-func WriteStopControlMonster(m *domain.Monster) []byte {
+func WriteStopControlMonster(m *monster.Model) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeSpawnMonsterControl)
 	w.WriteByte(0)

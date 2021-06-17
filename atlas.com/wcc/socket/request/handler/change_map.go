@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	portal2 "atlas-wcc/portal"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -45,18 +46,18 @@ func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
 }
 
 func ChangeMapHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readChangeMapRequest(r)
 		if p.CashShop() {
 
 		} else {
-			ca, err := processors.GetCharacterAttributesById((*s).CharacterId())
+			ca, err := character.GetCharacterAttributesById((*s).CharacterId())
 			if err != nil {
 				l.WithError(err).Errorf("Cannot handle [ChangeMapRequest] because the acting character %d cannot be located.", (*s).CharacterId())
 				return
 			}
 
-			portal, err := processors.GetPortalByName(ca.MapId(), p.StartWarp())
+			portal, err := portal2.GetPortalByName(ca.MapId(), p.StartWarp())
 			if err != nil {
 				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), (*s).CharacterId())
 				return

@@ -1,12 +1,12 @@
 package main
 
 import (
+	"atlas-wcc/configuration"
 	"atlas-wcc/kafka/consumers"
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/logger"
-	"atlas-wcc/registries"
 	"atlas-wcc/rest"
-	"atlas-wcc/services"
+	"atlas-wcc/session"
 	"atlas-wcc/socket"
 	"context"
 	"os"
@@ -23,7 +23,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	_, err := registries.GetConfiguration()
+	_, err := configuration.GetConfiguration()
 	if err != nil {
 		l.WithError(err).Fatalf("Unable to successfully load configuration.")
 	}
@@ -64,7 +64,7 @@ func main() {
 	wg.Wait()
 
 	producers.ShutdownChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
-	services.DestroyAll(l, registries.GetSessionRegistry())
+	session.DestroyAll(l, session.GetRegistry())
 
 	l.Infoln("Service shutdown.")
 }

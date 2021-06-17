@@ -2,6 +2,7 @@ package rest
 
 import (
 	"atlas-wcc/rest/resources"
+	"atlas-wcc/session"
 	"context"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -17,9 +18,8 @@ func ProduceRoutes(l logrus.FieldLogger) http.Handler {
 	router := mux.NewRouter().StrictSlash(true).PathPrefix("/ms/csrv/worlds/{worldId}/channels/{channelId}").Subrouter()
 	router.Use(CommonHeader)
 
-	s := resources.NewSessionResource(l)
 	sRouter := router.PathPrefix("/sessions").Subrouter()
-	sRouter.HandleFunc("", s.GetSessions)
+	sRouter.HandleFunc("", session.HandleGetSessions(l)).Methods(http.MethodGet)
 
 	i := resources.NewInstructionResource(l)
 	iRouter := router.PathPrefix("/characters/{characterId}/instructions").Subrouter()

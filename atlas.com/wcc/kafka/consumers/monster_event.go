@@ -1,10 +1,9 @@
 package consumers
 
 import (
-	"atlas-wcc/domain"
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/monster"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -32,13 +31,13 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			monster, err := processors.GetMonster(event.UniqueId)
+			monster, err := monster.GetMonster(event.UniqueId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
 			}
 
-			var handler processors.SessionOperator
+			var handler session.SessionOperator
 			if event.Type == "CREATED" {
 				handler = createMonster(l, event, *monster)
 			} else if event.Type == "DESTROYED" {
@@ -48,22 +47,22 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForEachSessionInMap(wid, cid, event.MapId, handler)
+			session.ForEachSessionInMap(wid, cid, event.MapId, handler)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func destroyMonster(_ logrus.FieldLogger, event *monsterEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteKillMonster(event.UniqueId, false))
-		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
+func destroyMonster(_ logrus.FieldLogger, event *monsterEvent) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteKillMonster(event.UniqueId, false))
+		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }
 
-func createMonster(_ logrus.FieldLogger, _ *monsterEvent, monster domain.Monster) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteSpawnMonster(monster, false))
+func createMonster(_ logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteSpawnMonster(monster, false))
 	}
 }

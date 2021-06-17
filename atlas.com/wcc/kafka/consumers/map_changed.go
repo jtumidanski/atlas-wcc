@@ -2,9 +2,8 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
 	"atlas-wcc/rest/requests"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -30,19 +29,19 @@ func HandleChangeMapEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, event))
+			session.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func warpCharacter(_ logrus.FieldLogger, event *mapChangedEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
+func warpCharacter(_ logrus.FieldLogger, event *mapChangedEvent) session.SessionOperator {
+	return func(s session.Model) {
 		catt, err := requests.Character().GetCharacterAttributesById(event.CharacterId)
 		if err != nil {
 			return
 		}
-		session.Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
+		s.Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
 	}
 }

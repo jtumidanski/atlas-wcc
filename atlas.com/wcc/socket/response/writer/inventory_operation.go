@@ -1,7 +1,7 @@
 package writer
 
 import (
-	"atlas-wcc/domain"
+	"atlas-wcc/inventory"
 	"atlas-wcc/socket/response"
 	"fmt"
 )
@@ -50,11 +50,11 @@ func WriteCharacterInventoryModification(input ModifyInventory) []byte {
 		switch mod.Mode {
 		case 0:
 			if mod.InventoryType == 1 {
-				if val, ok := mod.Item.(*domain.EquippedItem); ok {
+				if val, ok := mod.Item.(*inventory.EquippedItem); ok {
 					addEquipmentInfoZero(w, *val, true)
 				}
 			} else {
-				if val, ok := mod.Item.(domain.Item); ok {
+				if val, ok := mod.Item.(inventory.Item); ok {
 					addItemInfoZero(w, val, true)
 				}
 			}

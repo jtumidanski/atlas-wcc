@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -30,15 +29,15 @@ func HandleCharacterCreatedEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForEachGMSession(announceCharacterCreated(event))
+			session.ForEachGMSession(announceCharacterCreated(event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func announceCharacterCreated(event *characterCreatedEvent) processors.SessionOperator {
-	return func(sessions mapleSession.MapleSession) {
-		sessions.Announce(writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name)))
+func announceCharacterCreated(event *characterCreatedEvent) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name)))
 	}
 }

@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -28,15 +27,15 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 				return
 			}
 
-			processors.ForEachSessionInMap(wid, cid, event.MapId, expireItem(l, event))
+			session.ForEachSessionInMap(wid, cid, event.MapId, expireItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func expireItem(_ logrus.FieldLogger, event *DropExpireEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
+func expireItem(_ logrus.FieldLogger, event *DropExpireEvent) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteRemoveItem(event.UniqueId, 0, 0))
 	}
 }

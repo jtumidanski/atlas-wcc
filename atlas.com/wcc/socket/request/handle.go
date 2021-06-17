@@ -1,32 +1,31 @@
 package request
 
 import (
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
-	"atlas-wcc/registries"
+	"atlas-wcc/account"
+	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
 )
 
-type MessageValidator func(l logrus.FieldLogger, s *mapleSession.MapleSession) bool
+type MessageValidator func(l logrus.FieldLogger, s *session.Model) bool
 
-func NoOpValidator(_ logrus.FieldLogger, _ *mapleSession.MapleSession) bool {
+func NoOpValidator(_ logrus.FieldLogger, _ *session.Model) bool {
 	return true
 }
 
-func LoggedInValidator(l logrus.FieldLogger, s *mapleSession.MapleSession) bool {
-	v := processors.IsLoggedIn((*s).AccountId())
+func LoggedInValidator(l logrus.FieldLogger, s *session.Model) bool {
+	v := account.IsLoggedIn((*s).AccountId())
 	if !v {
 		l.Errorf("Attempting to process a request when the account %d is not logged in.", (*s).SessionId())
 	}
 	return v
 }
 
-type MessageHandler func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader)
+type MessageHandler func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader)
 
 func AdaptHandler(l logrus.FieldLogger, v MessageValidator, h MessageHandler) request.Handler {
 	return func(sessionId uint32, r request.RequestReader) {
-		s := registries.GetSessionRegistry().Get(sessionId)
+		s := session.GetRegistry().Get(sessionId)
 		if s != nil {
 			if v(l, s) {
 				h(l, s, &r)

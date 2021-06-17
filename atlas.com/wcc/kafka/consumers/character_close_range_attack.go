@@ -2,8 +2,7 @@ package consumers
 
 import (
    "atlas-wcc/kafka/handler"
-   "atlas-wcc/mapleSession"
-   "atlas-wcc/processors"
+   "atlas-wcc/session"
    "atlas-wcc/socket/response/writer"
    "github.com/sirupsen/logrus"
 )
@@ -36,15 +35,15 @@ func HandleCloseRangeAttackEvent() ChannelEventProcessor {
             return
          }
 
-         processors.ForEachSessionInMap(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
+         session.ForEachSessionInMap(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
       } else {
          l.Errorf("Unable to cast event provided to handler")
       }
    }
 }
 
-func writeCloseRangeAttack(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) func(s mapleSession.MapleSession) {
-   return func(s mapleSession.MapleSession) {
+func writeCloseRangeAttack(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) func(s session.Model) {
+   return func(s session.Model) {
       s.Announce(writer.WriteCloseRangeAttack(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display))
    }
 }

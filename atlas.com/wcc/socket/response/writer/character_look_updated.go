@@ -1,13 +1,13 @@
 package writer
 
 import (
-	"atlas-wcc/domain"
+	"atlas-wcc/character"
 	"atlas-wcc/socket/response"
 )
 
 const OpCodeUpdateCharacterLook uint16 = 0xC5
 
-func WriteCharacterLookUpdated(r domain.Character, c domain.Character) []byte {
+func WriteCharacterLookUpdated(r character.Model, c character.Model) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeUpdateCharacterLook)
 	w.WriteInt(c.Attributes().Id())

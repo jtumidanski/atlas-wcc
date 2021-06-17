@@ -1,10 +1,12 @@
 package consumers
 
 import (
-	"atlas-wcc/domain"
+	"atlas-wcc/character"
+	"atlas-wcc/drop"
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/monster"
+	"atlas-wcc/npc"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -31,9 +33,9 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 			}
 
 			if event.Type == "ENTER" {
-				processors.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
+				session.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
 			} else if event.Type == "EXIT" {
-				processors.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(event.CharacterId))
+				session.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(event.CharacterId))
 			} else {
 				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
@@ -44,16 +46,16 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 	}
 }
 
-func enterMap(l logrus.FieldLogger, event mapCharacterEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		cIds, err := processors.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
+func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.SessionOperator {
+	return func(s session.Model) {
+		cIds, err := character.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
 		if err != nil {
 			return
 		}
 
-		cm := make(map[uint32]*domain.Character)
+		cm := make(map[uint32]*character.Model)
 		for _, cId := range cIds {
-			c, err := processors.GetCharacterById(cId)
+			c, err := character.GetCharacterById(cId)
 			if err != nil {
 				//log something
 			} else {
@@ -64,7 +66,7 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) processors.SessionO
 		// Spawn new character for other character.
 		for k, v := range cm {
 			if k != event.CharacterId {
-				s := *processors.GetSessionByCharacterId(k)
+				s := *session.GetSessionByCharacterId(k)
 				s.Announce(writer.WriteSpawnCharacter(*v, *cm[event.CharacterId], true))
 			}
 		}
@@ -72,51 +74,51 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) processors.SessionO
 		// Spawn other characters for incoming character.
 		for k, v := range cm {
 			if k != event.CharacterId {
-				session.Announce(writer.WriteSpawnCharacter(*cm[event.CharacterId], *v, false))
+				s.Announce(writer.WriteSpawnCharacter(*cm[event.CharacterId], *v, false))
 			}
 		}
 
 		// Spawn NPCs for incoming character.
-		processors.ForEachNPCInMap(event.MapId, spawnNPCForSession(session))
+		npc.ForEachNPCInMap(event.MapId, spawnNPCForSession(s))
 
 		// Spawn monsters for incoming character.
-		processors.ForEachMonsterInMap(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(session))
+		monster.ForEachMonsterInMap(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(s))
 
 		// Spawn drops for incoming character.
-		processors.ForEachDropInMap(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(session))
+		drop.ForEachDropInMap(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(s))
 	}
 }
 
-func spawnDropForSession(session mapleSession.MapleSession) processors.DropOperator {
-	return func(drop domain.Drop) {
+func spawnDropForSession(s session.Model) drop.DropOperator {
+	return func(drop drop.Model) {
 		var a = uint32(0)
 		if drop.ItemId() != 0 {
 			a = 0
 		} else {
 			a = drop.Meso()
 		}
-		session.Announce(writer.WriteDropItemFromMapObject(drop.UniqueId(), drop.ItemId(), drop.Meso(), a,
-			drop.DropperUniqueId(), drop.DropType(), drop.OwnerId(), drop.OwnerPartyId(), session.CharacterId(),
+		s.Announce(writer.WriteDropItemFromMapObject(drop.UniqueId(), drop.ItemId(), drop.Meso(), a,
+			drop.DropperUniqueId(), drop.DropType(), drop.OwnerId(), drop.OwnerPartyId(), s.CharacterId(),
 			0, drop.DropTime(), drop.DropX(), drop.DropY(), drop.DropperX(), drop.DropperY(),
 			drop.CharacterDrop(), drop.Mod()))
 	}
 }
 
-func spawnMonsterForSession(session mapleSession.MapleSession) processors.MonsterOperator {
-	return func(monster domain.Monster) {
-		session.Announce(writer.WriteSpawnMonster(monster, false))
+func spawnMonsterForSession(s session.Model) monster.MonsterOperator {
+	return func(monster monster.Model) {
+		s.Announce(writer.WriteSpawnMonster(monster, false))
 	}
 }
 
-func spawnNPCForSession(session mapleSession.MapleSession) processors.NPCOperator {
-	return func(npc domain.NPC) {
-		session.Announce(writer.WriteSpawnNPC(npc))
-		session.Announce(writer.WriteSpawnNPCController(npc, true))
+func spawnNPCForSession(s session.Model) npc.NPCOperator {
+	return func(npc npc.Model) {
+		s.Announce(writer.WriteSpawnNPC(npc))
+		s.Announce(writer.WriteSpawnNPCController(npc, true))
 	}
 }
 
-func removeCharacterForSession(characterId uint32) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteRemoveCharacterFromMap(characterId))
+func removeCharacterForSession(characterId uint32) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteRemoveCharacterFromMap(characterId))
 	}
 }

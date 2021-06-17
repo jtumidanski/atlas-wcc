@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/character/keymap"
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -27,9 +27,9 @@ func readCharacterLoggedInRequest(reader *request.RequestReader) characterLogged
 }
 
 func CharacterLoggedInHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readCharacterLoggedInRequest(r)
-		c, err := processors.GetCharacterById(p.CharacterId())
+		c, err := character.GetCharacterById(p.CharacterId())
 		if err != nil {
 			return
 		}

@@ -1,7 +1,9 @@
 package writer
 
 import (
-	"atlas-wcc/domain"
+	"atlas-wcc/character"
+	"atlas-wcc/inventory"
+	"atlas-wcc/pet"
 	"atlas-wcc/socket/response"
 	"math/rand"
 	"time"
@@ -9,7 +11,7 @@ import (
 
 const OpCodeSetField uint16 = 0x7D
 
-func WriteGetCharacterInfo(channelId byte, character domain.Character) []byte {
+func WriteGetCharacterInfo(channelId byte, character character.Model) []byte {
 	w := response.NewWriter()
 	w.WriteShort(OpCodeSetField)
 	w.WriteInt(uint32(channelId - 1))
@@ -24,7 +26,7 @@ func WriteGetCharacterInfo(channelId byte, character domain.Character) []byte {
 	return w.Bytes()
 }
 
-func addCharacterInfo(w *response.Writer, character domain.Character) {
+func addCharacterInfo(w *response.Writer, character character.Model) {
 	w.WriteInt64(-1)
 	w.WriteByte(0)
 	addCharacterStats(w, character)
@@ -49,21 +51,21 @@ func addCharacterInfo(w *response.Writer, character domain.Character) {
 	w.WriteShort(0)
 }
 
-func addAreaInfo(w *response.Writer, _ domain.Character) {
+func addAreaInfo(w *response.Writer, _ character.Model) {
 	w.WriteShort(0)
 }
 
-func addNewYearInfo(w *response.Writer, _ domain.Character) {
+func addNewYearInfo(w *response.Writer, _ character.Model) {
 	w.WriteShort(0)
 }
 
-func addMonsterBookInfo(w *response.Writer, _ domain.Character) {
+func addMonsterBookInfo(w *response.Writer, _ character.Model) {
 	w.WriteInt(0)
 	w.WriteByte(0)
 	w.WriteShort(0)
 }
 
-func addTeleportInfo(w *response.Writer, _ domain.Character) {
+func addTeleportInfo(w *response.Writer, _ character.Model) {
 	for i := 0; i < 5; i++ {
 		w.WriteInt(999999999)
 	}
@@ -72,22 +74,22 @@ func addTeleportInfo(w *response.Writer, _ domain.Character) {
 	}
 }
 
-func addRingInfo(w *response.Writer, _ domain.Character) {
+func addRingInfo(w *response.Writer, _ character.Model) {
 	w.WriteShort(0)
 	w.WriteShort(0)
 	w.WriteShort(0)
 }
 
-func addMiniGameInfo(w *response.Writer, _ domain.Character) {
+func addMiniGameInfo(w *response.Writer, _ character.Model) {
 	w.WriteShort(0)
 }
 
-func addQuestInfo(w *response.Writer, _ domain.Character) {
+func addQuestInfo(w *response.Writer, _ character.Model) {
 	w.WriteShort(0)
 	w.WriteShort(0)
 }
 
-func addSkillInfo(w *response.Writer, character domain.Character) {
+func addSkillInfo(w *response.Writer, character character.Model) {
 	w.WriteByte(0)
 
 	sc := uint16(0)
@@ -118,7 +120,7 @@ func addSkillInfo(w *response.Writer, character domain.Character) {
 	//      }
 }
 
-func addInventoryInfo(w *response.Writer, character domain.Character) {
+func addInventoryInfo(w *response.Writer, character character.Model) {
 	w.WriteByte(character.Inventory().EquipInventory().Capacity())
 	w.WriteByte(character.Inventory().UseInventory().Capacity())
 	w.WriteByte(character.Inventory().SetupInventory().Capacity())
@@ -166,11 +168,11 @@ func addInventoryInfo(w *response.Writer, character domain.Character) {
 	}
 }
 
-func addItemInfo(w *response.Writer, i domain.Item) {
+func addItemInfo(w *response.Writer, i inventory.Item) {
 	addItemInfoZero(w, i, false)
 }
 
-func addItemInfoZero(w *response.Writer, i domain.Item, zeroPosition bool) {
+func addItemInfoZero(w *response.Writer, i inventory.Item, zeroPosition bool) {
 	if !zeroPosition {
 		w.WriteInt8(int8(i.Slot()))
 	}
@@ -183,11 +185,11 @@ func addItemInfoZero(w *response.Writer, i domain.Item, zeroPosition bool) {
 	w.WriteShort(i.Flag())
 }
 
-func addEquipmentInfo(w *response.Writer, e domain.EquippedItem) {
+func addEquipmentInfo(w *response.Writer, e inventory.EquippedItem) {
 	addEquipmentInfoZero(w, e, false)
 }
 
-func addEquipmentInfoZero(w *response.Writer, e domain.EquippedItem, zeroPosition bool) {
+func addEquipmentInfoZero(w *response.Writer, e inventory.EquippedItem, zeroPosition bool) {
 	slot := e.Slot()
 	if !zeroPosition {
 		if slot < 0 {
@@ -233,7 +235,7 @@ func addEquipmentInfoZero(w *response.Writer, e domain.EquippedItem, zeroPositio
 	w.WriteInt32(-1)
 }
 
-func addCharacterStats(w *response.Writer, character domain.Character) {
+func addCharacterStats(w *response.Writer, character character.Model) {
 	w.WriteInt(character.Attributes().Id())
 	addPaddedCharacterName(w, character)
 	w.WriteByte(character.Attributes().Gender())
@@ -267,11 +269,11 @@ func addCharacterStats(w *response.Writer, character domain.Character) {
 	w.WriteInt(0)
 }
 
-func addRemainingSkillInfo(w *response.Writer, character domain.Character) {
+func addRemainingSkillInfo(w *response.Writer, character character.Model) {
 
 }
 
-func addPaddedCharacterName(w *response.Writer, character domain.Character) {
+func addPaddedCharacterName(w *response.Writer, character character.Model) {
 	name := character.Attributes().Name()
 	if len(name) > 13 {
 		name = name[:13]
@@ -283,7 +285,7 @@ func addPaddedCharacterName(w *response.Writer, character domain.Character) {
 	}
 }
 
-func writeForEachPet(w *response.Writer, ps []domain.Pet, pe func(w *response.Writer, p domain.Pet), pne func(w *response.Writer)) {
+func writeForEachPet(w *response.Writer, ps []pet.Model, pe func(w *response.Writer, p pet.Model), pne func(w *response.Writer)) {
 	for i := 0; i < 3; i++ {
 		if ps != nil && len(ps) > i {
 			pe(w, ps[i])
@@ -293,7 +295,7 @@ func writeForEachPet(w *response.Writer, ps []domain.Pet, pe func(w *response.Wr
 	}
 }
 
-func writePetId(w *response.Writer, pet domain.Pet) {
+func writePetId(w *response.Writer, pet pet.Model) {
 	w.WriteLong(pet.Id())
 }
 

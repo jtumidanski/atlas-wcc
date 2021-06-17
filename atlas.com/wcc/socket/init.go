@@ -1,8 +1,7 @@
 package socket
 
 import (
-	"atlas-wcc/registries"
-	"atlas-wcc/services"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/request"
 	"atlas-wcc/socket/request/handler"
 	"context"
@@ -22,9 +21,9 @@ func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGro
 			defer wg.Done()
 			err := socket.Run(l, handlerProducer(l),
 				socket.SetPort(port),
-				socket.SetSessionCreator(services.Create(l, registries.GetSessionRegistry())(worldId, channelId)),
-				socket.SetSessionMessageDecryptor(services.Decrypt(l, registries.GetSessionRegistry())),
-				socket.SetSessionDestroyer(services.DestroyById(l, registries.GetSessionRegistry())),
+				socket.SetSessionCreator(session.Create(l, session.GetRegistry())(worldId, channelId)),
+				socket.SetSessionMessageDecryptor(session.Decrypt(l, session.GetRegistry())),
+				socket.SetSessionDestroyer(session.DestroyById(l, session.GetRegistry())),
 			)
 			if err != nil {
 				l.WithError(err).Errorf("Socket service encountered error")

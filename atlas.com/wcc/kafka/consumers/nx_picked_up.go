@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -25,20 +24,20 @@ func NXPickedUpEventCreator() handler.EmptyEventCreator {
 func HandleNXPickedUpEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*nxPickedUpEvent); ok {
-			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
-			processors.ForSessionByCharacterId(event.CharacterId, showNXGain(l, event))
+			session.ForSessionByCharacterId(event.CharacterId, showNXGain(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showNXGain(_ logrus.FieldLogger, event *nxPickedUpEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10))
-		session.Announce(writer.WriteEnableActions())
+func showNXGain(_ logrus.FieldLogger, event *nxPickedUpEvent) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10))
+		s.Announce(writer.WriteEnableActions())
 	}
 }

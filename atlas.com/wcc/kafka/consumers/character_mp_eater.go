@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -25,28 +24,28 @@ func EmptyMPEaterEventCreator() handler.EmptyEventCreator {
 func HandleMPEaterEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, c interface{}) {
 		if event, ok := c.(*mpEaterEvent); ok {
-			processors.ForSessionByCharacterId(event.CharacterId, showMPEaterEffect(l, event))
-			processors.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
+			session.ForSessionByCharacterId(event.CharacterId, showMPEaterEffect(l, event))
+			session.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		err := session.Announce(writer.WriteShowOwnBuff(1, event.SkillId))
+func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.SessionOperator {
+	return func(s session.Model) {
+		err := s.Announce(writer.WriteShowOwnBuff(1, event.SkillId))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show MP Eater application for character %d.", event.CharacterId)
 		}
 	}
 }
 
-func showForeignMPEaterEffect(_ logrus.FieldLogger, event *mpEaterEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		err := session.Announce(writer.WriteShowBuffEffect(event.CharacterId, 1, event.SkillId, 3))
+func showForeignMPEaterEffect(_ logrus.FieldLogger, event *mpEaterEvent) session.SessionOperator {
+	return func(s session.Model) {
+		err := s.Announce(writer.WriteShowBuffEffect(event.CharacterId, 1, event.SkillId, 3))
 		if err != nil {
-			logrus.WithError(err).Errorf("Unable to show MP Eater effect to character %d for character %d.", session.CharacterId(), event.CharacterId)
+			logrus.WithError(err).Errorf("Unable to show MP Eater effect to character %d for character %d.", s.CharacterId(), event.CharacterId)
 		}
 	}
 }

@@ -2,7 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -25,7 +25,7 @@ func CharacterExperienceEventCreator() handler.EmptyEventCreator {
 func HandleCharacterExperienceEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExperienceEvent); ok {
-			if actingSession := processors.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -37,7 +37,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 				return
 			}
 
-			as := processors.GetSessionByCharacterId(event.CharacterId)
+			as := session.GetSessionByCharacterId(event.CharacterId)
 			if as == nil {
 				l.Errorf("Unable to locate session for character %d.", event.CharacterId)
 				return
@@ -50,7 +50,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 				party = 0
 				white = false
 			}
-			(*as).Announce(writer.WriteShowExperienceGain(gain, 0, party, event.Chat, white))
+			as.Announce(writer.WriteShowExperienceGain(gain, 0, party, event.Chat, white))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

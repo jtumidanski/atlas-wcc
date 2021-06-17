@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	channel2 "atlas-wcc/channel"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -26,7 +26,7 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 }
 
 func ChangeChannelHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == (*s).ChannelId() {
 			l.Errorf("Character %s trying to change to the same channel.", (*s).CharacterId())
@@ -40,7 +40,7 @@ func ChangeChannelHandler() request2.MessageHandler {
 		// not being dead
 		// not being in a mini dungeon
 
-		channel, err := processors.GetChannelForWorld((*s).WorldId(), p.ChannelId())
+		channel, err := channel2.GetForWorld((*s).WorldId(), p.ChannelId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", (*s).WorldId(), p.ChannelId())
 			return

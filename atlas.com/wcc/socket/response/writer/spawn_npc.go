@@ -1,13 +1,13 @@
 package writer
 
 import (
-   "atlas-wcc/domain"
-   "atlas-wcc/socket/response"
+	"atlas-wcc/npc"
+	"atlas-wcc/socket/response"
 )
 
 const OpCodeSpawnNpc uint16 = 0x101
 
-func WriteSpawnNPC(npc domain.NPC) []byte {
+func WriteSpawnNPC(npc npc.Model) []byte {
    w := response.NewWriter()
    w.WriteShort(OpCodeSpawnNpc)
    w.WriteInt(npc.ObjectId())

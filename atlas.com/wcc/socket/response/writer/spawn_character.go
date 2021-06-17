@@ -1,14 +1,16 @@
 package writer
 
 import (
-   "atlas-wcc/domain"
+   "atlas-wcc/character"
+   "atlas-wcc/inventory"
+   "atlas-wcc/pet"
    "atlas-wcc/socket/response"
    "math/rand"
 )
 
 const OpCodeSpawnCharacter uint16 = 0xA0
 
-func WriteSpawnCharacter(target domain.Character, character domain.Character, enteringField bool) []byte {
+func WriteSpawnCharacter(target character.Model, character character.Model, enteringField bool) []byte {
    w := response.NewWriter()
    w.WriteShort(OpCodeSpawnCharacter)
    w.WriteInt(character.Attributes().Id())
@@ -110,11 +112,11 @@ func WriteSpawnCharacter(target domain.Character, character domain.Character, en
 func noOpWrite(_ *response.Writer) {
 }
 
-func addPetInfoButDoNotShow(w *response.Writer, p domain.Pet) {
+func addPetInfoButDoNotShow(w *response.Writer, p pet.Model) {
    addPetInfo(w, p, false)
 }
 
-func addPetInfo(w *response.Writer, p domain.Pet, showPet bool) {
+func addPetInfo(w *response.Writer, p pet.Model, showPet bool) {
    w.WriteByte(1)
    if showPet {
       w.WriteByte(0)
@@ -128,19 +130,19 @@ func addPetInfo(w *response.Writer, p domain.Pet, showPet bool) {
    w.WriteInt(p.Fh())
 }
 
-func encodeNewYearCardInfo(w *response.Writer, character domain.Character) {
+func encodeNewYearCardInfo(w *response.Writer, character character.Model) {
    w.WriteByte(0)
 }
 
-func addMarriageRingLook(w *response.Writer, target domain.Character, character domain.Character) {
+func addMarriageRingLook(w *response.Writer, target character.Model, character character.Model) {
    w.WriteByte(0)
 }
 
-func addRingLook(w *response.Writer, character domain.Character, crush bool) {
+func addRingLook(w *response.Writer, character character.Model, crush bool) {
    w.WriteByte(0)
 }
 
-func addCharacterLook(w *response.Writer, character domain.Character, mega bool) {
+func addCharacterLook(w *response.Writer, character character.Model, mega bool) {
    w.WriteByte(character.Attributes().Gender())
    w.WriteByte(character.Attributes().SkinColor())
    w.WriteInt(character.Attributes().Face())
@@ -153,12 +155,12 @@ func addCharacterLook(w *response.Writer, character domain.Character, mega bool)
    addCharacterEquips(w, character)
 }
 
-func addCharacterEquips(w *response.Writer, character domain.Character) {
+func addCharacterEquips(w *response.Writer, character character.Model) {
    var equips = getEquippedItemSlotMap(character.Equipment())
    var maskedEquips = make(map[int16]uint32)
    writeEquips(w, equips, maskedEquips)
 
-   var weapon *domain.EquippedItem
+   var weapon *inventory.EquippedItem
    for _, x := range character.Equipment() {
       if x.InWeaponSlot() {
          weapon = &x
@@ -185,7 +187,7 @@ func writeEquips(w *response.Writer, equips map[int16]uint32, maskedEquips map[i
    w.WriteByte(0xFF)
 }
 
-func getEquippedItemSlotMap(e []domain.EquippedItem) map[int16]uint32 {
+func getEquippedItemSlotMap(e []inventory.EquippedItem) map[int16]uint32 {
    var equips = make(map[int16]uint32, 0)
    for _, x := range e {
       if x.NotInWeaponSlot() {
@@ -196,7 +198,7 @@ func getEquippedItemSlotMap(e []domain.EquippedItem) map[int16]uint32 {
    return equips
 }
 
-func writePetItemId(w *response.Writer, p domain.Pet) {
+func writePetItemId(w *response.Writer, p pet.Model) {
    w.WriteInt(p.ItemId())
 }
 
@@ -204,7 +206,7 @@ func writeEmptyPetItemId(w *response.Writer) {
    w.WriteInt(0)
 }
 
-func writeForeignBuffs(w *response.Writer, character domain.Character) {
+func writeForeignBuffs(w *response.Writer, character character.Model) {
    w.WriteInt(0)
    w.WriteShort(0)
    w.WriteByte(0xFC)

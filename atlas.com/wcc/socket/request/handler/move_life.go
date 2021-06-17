@@ -2,8 +2,8 @@ package handler
 
 import (
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/monster"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -106,13 +106,13 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 }
 
 func MoveLifeHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {
 			return
 		}
 
-		_, err := processors.GetMonster(p.ObjectId())
+		_, err := monster.GetMonster(p.ObjectId())
 		if err != nil {
 			l.WithError(err).Errorf("Received move life request for unknown monster %d", p.ObjectId())
 			return

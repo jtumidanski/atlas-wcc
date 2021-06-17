@@ -2,8 +2,8 @@ package handler
 
 import (
 	"atlas-wcc/kafka/producers"
-	"atlas-wcc/mapleSession"
 	"atlas-wcc/npc/conversation"
+	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -55,7 +55,7 @@ func readNPCTalkMoreRequest(reader *request.RequestReader) npcTalkMoreRequest {
 }
 
 func HandleNPCTalkMoreRequest() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {
 			if p.Action() != 0 {

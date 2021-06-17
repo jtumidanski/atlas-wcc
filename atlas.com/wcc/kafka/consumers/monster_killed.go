@@ -2,8 +2,7 @@ package consumers
 
 import (
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/mapleSession"
-	"atlas-wcc/processors"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
 )
@@ -39,15 +38,15 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 			}
 
 			l.Infof("Character %d killed %d.", event.UniqueId, event.KillerId)
-			processors.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
+			session.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func killMonster(_ logrus.FieldLogger, event *MonsterKilledEvent) processors.SessionOperator {
-	return func(session mapleSession.MapleSession) {
-		session.Announce(writer.WriteKillMonster(event.UniqueId, true))
+func killMonster(_ logrus.FieldLogger, event *MonsterKilledEvent) session.SessionOperator {
+	return func(s session.Model) {
+		s.Announce(writer.WriteKillMonster(event.UniqueId, true))
 	}
 }

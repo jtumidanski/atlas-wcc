@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/mapleSession"
+	"atlas-wcc/session"
 	"atlas-wcc/socket/request"
 	request2 "github.com/jtumidanski/atlas-socket/request"
 	"github.com/sirupsen/logrus"
@@ -75,7 +75,7 @@ func readQuestAction(r *request2.RequestReader) interface{} {
 }
 
 func HandleQuestAction() request.MessageHandler {
-	return func(l logrus.FieldLogger, s *mapleSession.MapleSession, r *request2.RequestReader) {
+	return func(l logrus.FieldLogger, s *session.Model, r *request2.RequestReader) {
 		p := readQuestAction(r)
 		if val, ok := p.(*questActionRequest); ok {
 			if val.Action() == 0 {

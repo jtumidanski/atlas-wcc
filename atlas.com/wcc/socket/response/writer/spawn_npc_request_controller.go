@@ -1,13 +1,13 @@
 package writer
 
 import (
-   "atlas-wcc/domain"
-   "atlas-wcc/socket/response"
+	"atlas-wcc/npc"
+	"atlas-wcc/socket/response"
 )
 
 const OpCodeSpawnNPCRequestController uint16 = 0x103
 
-func WriteSpawnNPCController(npc domain.NPC, miniMap bool) []byte {
+func WriteSpawnNPCController(npc npc.Model, miniMap bool) []byte {
    w := response.NewWriter()
    w.WriteShort(OpCodeSpawnNPCRequestController)
    w.WriteByte(1)

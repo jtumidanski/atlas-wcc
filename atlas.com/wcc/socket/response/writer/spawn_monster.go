@@ -1,17 +1,17 @@
 package writer
 
 import (
-   "atlas-wcc/domain"
-   "atlas-wcc/socket/response"
+	"atlas-wcc/monster"
+	"atlas-wcc/socket/response"
 )
 
 const OpCodeSpawnMonster uint16 = 0xEC
 
-func WriteSpawnMonster(m domain.Monster, newSpawn bool) []byte  {
+func WriteSpawnMonster(m monster.Model, newSpawn bool) []byte  {
    return WriteSpawnMonsterWithEffect(m, newSpawn, 0)
 }
 
-func WriteSpawnMonsterWithEffect(m domain.Monster, newSpawn bool, effect byte) []byte {
+func WriteSpawnMonsterWithEffect(m monster.Model, newSpawn bool, effect byte) []byte {
    w := response.NewWriter()
    w.WriteShort(OpCodeSpawnMonster)
    w.WriteInt(m.UniqueId())
