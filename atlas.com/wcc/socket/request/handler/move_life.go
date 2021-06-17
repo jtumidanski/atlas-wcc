@@ -145,10 +145,13 @@ func MoveLifeHandler() request2.MessageHandler {
 		startY := p.StartY() - 2
 
 		summary := processMovementList(p.MovementData())
-		(*s).Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+		err = s.Announce(writer.WriteMoveMonsterResponse(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 
 		if p.hasMovement {
-			producers.MonsterMovement(l)(p.ObjectId(), (*s).CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
+			producers.MonsterMovement(l)(p.ObjectId(), s.CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
 		}
 	}
 }

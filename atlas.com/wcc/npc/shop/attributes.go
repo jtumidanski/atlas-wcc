@@ -1,9 +1,5 @@
 package shop
 
-type dataListContainer struct {
-	Data []dataBody `json:"data"`
-}
-
 type dataContainer struct {
 	Data dataBody `json:"data"`
 }

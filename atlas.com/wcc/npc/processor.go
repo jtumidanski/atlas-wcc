@@ -64,6 +64,6 @@ func GetNPCsInMapByObjectId(mapId uint32, objectId uint32) ([]Model, error) {
 	return ns, nil
 }
 
-func makeNPC(id uint32, att NpcAttributes) Model {
+func makeNPC(id uint32, att attributes) Model {
 	return NewNPC(id, att.Id, att.X, att.CY, att.F, att.FH, att.RX0, att.RX1)
 }

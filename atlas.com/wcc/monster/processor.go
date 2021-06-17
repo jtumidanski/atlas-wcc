@@ -57,7 +57,7 @@ func GetMonster(id uint32) (*Model, error) {
 	return &n, nil
 }
 
-func makeMonster(id uint32, att MonsterAttributes) Model {
+func makeMonster(id uint32, att attributes) Model {
 	return NewMonster(id, att.ControlCharacterId, att.MonsterId, att.X, att.Y, att.Stance, att.FH, att.Team)
 }
 

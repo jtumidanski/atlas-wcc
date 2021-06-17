@@ -74,20 +74,3 @@ func (c *channelBuilder) Build() Model {
 		port:      c.port,
 	}
 }
-
-type Load struct {
-	channelId byte
-	capacity  int
-}
-
-func NewChannelLoad(channelId byte, capacity int) Load {
-	return Load{channelId, capacity}
-}
-
-func (cl Load) ChannelId() byte {
-	return cl.channelId
-}
-
-func (cl Load) Capacity() int {
-	return cl.capacity
-}

@@ -34,18 +34,24 @@ func CharacterLoggedInHandler() request2.MessageHandler {
 			return
 		}
 
-		(*s).SetAccountId(c.Attributes().AccountId())
-		(*s).SetCharacterId(c.Attributes().Id())
-		(*s).SetGm(c.Attributes().Gm())
+		s.SetAccountId(c.Attributes().AccountId())
+		s.SetCharacterId(c.Attributes().Id())
+		s.SetGm(c.Attributes().Gm())
 
-		producers.Login(l)((*s).WorldId(), (*s).ChannelId(), (*s).AccountId(), p.CharacterId())
-		(*s).Announce(writer.WriteGetCharacterInfo((*s).ChannelId(), *c))
+		producers.Login(l)(s.WorldId(), s.ChannelId(), s.AccountId(), p.CharacterId())
+		err = s.Announce(writer.WriteGetCharacterInfo(s.ChannelId(), *c))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 
 		keys, err := keymap.GetKeyMap(l)(c.Attributes().Id())
 		if err != nil || len(keys) == 0 {
 			l.WithError(err).Warnf("Unable to send keybinding to character %d.", c.Attributes().Id())
 		} else {
-			(*s).Announce(writer.WriteKeyMap(keys))
+			err = s.Announce(writer.WriteKeyMap(keys))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
 		}
 	}
 }

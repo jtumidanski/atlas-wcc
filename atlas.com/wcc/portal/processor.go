@@ -20,6 +20,6 @@ func GetPortalByName(mapId uint32, portalName string) (*Model, error) {
 	return &a, nil
 }
 
-func makePortal(id uint32, mapId uint32, attr PortalAttributes) Model {
+func makePortal(id uint32, mapId uint32, attr attributes) Model {
 	return NewPortal(id, mapId, attr.Name, attr.Target, attr.TargetMapId, attr.Type, attr.X, attr.Y, attr.ScriptName)
 }

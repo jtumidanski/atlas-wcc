@@ -13,8 +13,8 @@ const (
 	portalsByName                      = portalsResource + "?name=%s"
 )
 
-func requestPortalByName(mapId uint32, portalName string) (*PortalDataContainer, error) {
-	ar := &PortalDataContainer{}
+func requestPortalByName(mapId uint32, portalName string) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(portalsByName, mapId, portalName), ar)
 	if err != nil {
 		return nil, err

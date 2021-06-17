@@ -33,7 +33,10 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 	if err != nil {
 		i.l.WithError(err).Errorf("Deserializing instruction")
 		rw.WriteHeader(http.StatusBadRequest)
-		json.ToJSON(&GenericError{Message: err.Error()}, rw)
+		err := json.ToJSON(&GenericError{Message: err.Error()}, rw)
+		if err != nil {
+			i.l.WithError(err).Errorf("Unable to serialize error mesage")
+		}
 		return
 	}
 
@@ -44,8 +47,14 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	(*s).Announce(writer.WriteHint(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
-	(*s).Announce(writer.WriteEnableActions())
+	err = s.Announce(writer.WriteHint(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
+	if err != nil {
+		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+	}
+	err = s.Announce(writer.WriteEnableActions())
+	if err != nil {
+		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+	}
 
 	rw.WriteHeader(http.StatusNoContent)
 }

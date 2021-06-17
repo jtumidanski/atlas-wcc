@@ -20,8 +20,8 @@ var MonsterRegistry = func() *monsterRegistry {
 type monsterRegistry struct {
 }
 
-func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (*MonsterDataContainer, error) {
-	ar := &MonsterDataContainer{}
+func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(mapMonstersResource, worldId, channelId, mapId), ar)
 	if err != nil {
 		return nil, err
@@ -29,8 +29,8 @@ func (m *monsterRegistry) GetInMap(worldId byte, channelId byte, mapId uint32) (
 	return ar, nil
 }
 
-func (m *monsterRegistry) GetById(id uint32) (*MonsterDataContainer, error) {
-	ar := &MonsterDataContainer{}
+func (m *monsterRegistry) GetById(id uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(monsterResource, id), ar)
 	if err != nil {
 		return nil, err

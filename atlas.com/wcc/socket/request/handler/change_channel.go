@@ -28,9 +28,9 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 func ChangeChannelHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
-		if p.ChannelId() == (*s).ChannelId() {
-			l.Errorf("Character %s trying to change to the same channel.", (*s).CharacterId())
-			(*s).Disconnect()
+		if p.ChannelId() == s.ChannelId() {
+			l.Errorf("Character %s trying to change to the same channel.", s.CharacterId())
+			s.Disconnect()
 		}
 
 		//TODO further verification requests for ...
@@ -40,12 +40,15 @@ func ChangeChannelHandler() request2.MessageHandler {
 		// not being dead
 		// not being in a mini dungeon
 
-		channel, err := channel2.GetForWorld((*s).WorldId(), p.ChannelId())
+		channel, err := channel2.GetForWorld(s.WorldId(), p.ChannelId())
 		if err != nil {
-			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", (*s).WorldId(), p.ChannelId())
+			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
 			return
 		}
 
-		(*s).Announce(writer.WriteChangeChannel(channel.IpAddress(), channel.Port()))
+		err = s.Announce(writer.WriteChangeChannel(channel.IpAddress(), channel.Port()))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 	}
 }

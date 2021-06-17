@@ -17,7 +17,7 @@ func GetKeyMap(l logrus.FieldLogger) func(characterId uint32) ([]*Model, error) 
 		for _, data := range r.Data {
 			k, err := makeKey(data)
 			if err != nil {
-				l.WithError(err).Errorf("Unable to create keybinding for key %d.", data.Id)
+				l.WithError(err).Errorf("Unable to create keybinding for key %s.", data.Id)
 				return nil, err
 			}
 			keys = append(keys, k)

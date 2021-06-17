@@ -30,24 +30,33 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 
 func CharacterAliveValidator() request2.MessageValidator {
 	return func(l logrus.FieldLogger, s *session.Model) bool {
-		v := account.IsLoggedIn((*s).AccountId())
+		v := account.IsLoggedIn(s.AccountId())
 		if !v {
-			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", (*s).SessionId())
-			(*s).Announce(writer.WriteEnableActions())
+			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
+			err := s.Announce(writer.WriteEnableActions())
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
 			return false
 		}
 
-		ca, err := character.GetCharacterAttributesById((*s).CharacterId())
+		ca, err := character.GetCharacterAttributesById(s.CharacterId())
 		if err != nil {
-			l.WithError(err).Errorf("Unable to locate character %s speaking to npc.", (*s).CharacterId())
-			(*s).Announce(writer.WriteEnableActions())
+			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
+			err = s.Announce(writer.WriteEnableActions())
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
 			return false
 		}
 
 		if ca.Hp() > 0 {
 			return true
 		} else {
-			(*s).Announce(writer.WriteEnableActions())
+			err = s.Announce(writer.WriteEnableActions())
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
 			return false
 		}
 	}
@@ -57,9 +66,9 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
-		ca, err := character.GetCharacterAttributesById((*s).CharacterId())
+		ca, err := character.GetCharacterAttributesById(s.CharacterId())
 		if err != nil {
-			l.WithError(err).Errorf("Unable to locate character %s speaking to npc.", (*s).CharacterId())
+			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			return
 		}
 
@@ -81,7 +90,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 		}
 
 		if hasConversationScript(l)(npc.Id()) {
-			producers.StartConversation(l)((*s).WorldId(), (*s).ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
+			producers.StartConversation(l)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
 		if hasShop(l)(npc.Id()) {
@@ -90,9 +99,9 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
 			}
-			err = (*s).Announce(writer.WriteGetNPCShop(ns))
+			err = s.Announce(writer.WriteGetNPCShop(ns))
 			if err != nil {
-				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), (*s).CharacterId())
+				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}
 		}
 	}

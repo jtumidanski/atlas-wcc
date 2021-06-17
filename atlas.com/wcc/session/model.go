@@ -66,7 +66,7 @@ func (s *Model) announce(b []byte) error {
 }
 
 func (s *Model) WriteHello() {
-	s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
+	_ = s.announce(writer.WriteHello(version, s.send.IV(), s.recv.IV()))
 }
 
 func (s *Model) ReceiveAESOFB() *crypto.AESOFB {

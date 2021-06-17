@@ -13,8 +13,8 @@ const (
 	npcsInMapByObjectId                = mapsResource + "%d/npcs?objectId=%d"
 )
 
-func requestNPCsInMap(mapId uint32) (*NpcDataContainer, error) {
-	ar := &NpcDataContainer{}
+func requestNPCsInMap(mapId uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(npcsInMap, mapId), ar)
 	if err != nil {
 		return nil, err
@@ -22,8 +22,8 @@ func requestNPCsInMap(mapId uint32) (*NpcDataContainer, error) {
 	return ar, nil
 }
 
-func requestNPCsInMapByObjectId(mapId uint32, objectId uint32) (*NpcDataContainer, error) {
-	ar := &NpcDataContainer{}
+func requestNPCsInMapByObjectId(mapId uint32, objectId uint32) (*dataContainer, error) {
+	ar := &dataContainer{}
 	err := requests.Get(fmt.Sprintf(npcsInMapByObjectId, mapId, objectId), ar)
 	if err != nil {
 		return nil, err
