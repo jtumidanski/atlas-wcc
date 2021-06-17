@@ -45,7 +45,7 @@ func HandleRangeAttackEvent() ChannelEventProcessor {
 
 func writeRangeAttack(l logrus.FieldLogger) func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, projectile uint32) session.Operator {
 	return func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, projectile uint32) session.Operator {
-		b := writer.WriteRangeAttack(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, projectile)
+		b := writer.WriteRangeAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, projectile)
 		return func(s *session.Model) {
 			err := s.Announce(b)
 			if err != nil {

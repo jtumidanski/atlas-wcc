@@ -34,7 +34,7 @@ func HandleDropPickedUpEvent() ChannelEventProcessor {
 }
 
 func removeItem(l logrus.FieldLogger, event *dropPickedUpEvent) session.Operator {
-	b := writer.WriteRemoveItem(event.DropId, 2, event.CharacterId)
+	b := writer.WriteRemoveItem(l)(event.DropId, 2, event.CharacterId)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

@@ -36,7 +36,7 @@ func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 }
 
 func showChatText(l logrus.FieldLogger, event *characterMapMessageEvent) session.Operator {
-	b := writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show)
+	b := writer.WriteChatText(l)(event.CharacterId, event.Message, event.GM, event.Show)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

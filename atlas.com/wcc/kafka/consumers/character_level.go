@@ -32,7 +32,7 @@ func HandleCharacterLevelEvent() ChannelEventProcessor {
 }
 
 func showForeignEffect(l logrus.FieldLogger, event *characterLevelEvent) session.Operator {
-	b := writer.WriteShowForeignEffect(event.CharacterId, 0)
+	b := writer.WriteShowForeignEffect(l)(event.CharacterId, 0)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

@@ -74,7 +74,7 @@ func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryM
 			}
 			result.Modifications = append(result.Modifications, mi)
 		}
-		err := s.Announce(writer.WriteCharacterInventoryModification(result))
+		err := s.Announce(writer.WriteCharacterInventoryModification(l)(result))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write inventory modification for character %d", s.CharacterId())
 		}

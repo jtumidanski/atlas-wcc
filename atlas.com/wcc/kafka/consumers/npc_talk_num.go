@@ -39,7 +39,7 @@ func HandleNPCTalkNumCommand() ChannelEventProcessor {
 }
 
 func writeNpcTalkNum(l logrus.FieldLogger, event *npcTalkNumCommand) session.Operator {
-	b := writer.WriteNPCTalkNum(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)
+	b := writer.WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

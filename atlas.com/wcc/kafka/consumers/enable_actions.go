@@ -32,7 +32,7 @@ func HandleEnableActionsEvent() ChannelEventProcessor {
 }
 
 func enableActions(l logrus.FieldLogger, _ *enableActionsEvent) session.Operator {
-	b := writer.WriteEnableActions()
+	b := writer.WriteEnableActions(l)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

@@ -54,7 +54,7 @@ func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.Opera
 			return
 		}
 		l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = s.Announce(writer.WriteStopControlMonster(m))
+		err = s.Announce(writer.WriteStopControlMonster(l)(m))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to stop control of %d by %d", event.UniqueId, event.CharacterId)
 		}
@@ -69,7 +69,7 @@ func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.Oper
 			return
 		}
 		l.Infof("Starting control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = s.Announce(writer.WriteControlMonster(m, false, false))
+		err = s.Announce(writer.WriteControlMonster(l)(m, false, false))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to start control of %d by %d", event.UniqueId, event.CharacterId)
 		}

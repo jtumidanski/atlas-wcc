@@ -34,8 +34,8 @@ func HandleItemPickedUpEvent() ChannelEventProcessor {
 }
 
 func showItemGain(l logrus.FieldLogger, event *itemPickedUpEvent) session.Operator {
-	ig := writer.WriteShowItemGain(event.ItemId, event.Quantity)
-	ea := writer.WriteEnableActions()
+	ig := writer.WriteShowItemGain(l)(event.ItemId, event.Quantity)
+	ea := writer.WriteEnableActions(l)
 	return func(s *session.Model) {
 		err := s.Announce(ig)
 		if err != nil {

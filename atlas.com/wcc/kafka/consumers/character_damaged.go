@@ -44,7 +44,7 @@ func HandleCharacterDamagedEvent() ChannelEventProcessor {
 }
 
 func writeCharacterDamaged(l logrus.FieldLogger, event CharacterDamagedEvent) session.Operator {
-	b := writer.WriteCharacterDamaged(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)
+	b := writer.WriteCharacterDamaged(l)(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

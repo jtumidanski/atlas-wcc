@@ -45,7 +45,7 @@ func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.
 		for _, t := range event.Updates {
 			statUpdates = append(statUpdates, getStatUpdate(ca, t))
 		}
-		err = s.Announce(writer.WriteCharacterStatUpdate(statUpdates, true))
+		err = s.Announce(writer.WriteCharacterStatUpdate(l)(statUpdates, true))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write character stat update for %d", event.CharacterId)
 		}

@@ -67,7 +67,7 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 		for k, v := range cm {
 			if k != event.CharacterId {
 				as := *session.GetByCharacterId(k)
-				err = as.Announce(writer.WriteSpawnCharacter(*v, *cm[event.CharacterId], true))
+				err = as.Announce(writer.WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))
 				if err != nil {
 					l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
 				}
@@ -77,7 +77,7 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 		// Spawn other characters for incoming character.
 		for k, v := range cm {
 			if k != event.CharacterId {
-				err = s.Announce(writer.WriteSpawnCharacter(*cm[event.CharacterId], *v, false))
+				err = s.Announce(writer.WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))
 				if err != nil {
 					l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
 				}
@@ -104,7 +104,7 @@ func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.Opera
 			} else {
 				a = drop.Meso()
 			}
-			err := s.Announce(writer.WriteDropItemFromMapObject(drop.UniqueId(), drop.ItemId(), drop.Meso(), a,
+			err := s.Announce(writer.WriteDropItemFromMapObject(l)(drop.UniqueId(), drop.ItemId(), drop.Meso(), a,
 				drop.DropperUniqueId(), drop.DropType(), drop.OwnerId(), drop.OwnerPartyId(), s.CharacterId(),
 				0, drop.DropTime(), drop.DropX(), drop.DropY(), drop.DropperX(), drop.DropperY(),
 				drop.CharacterDrop(), drop.Mod()))
@@ -118,7 +118,7 @@ func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.Opera
 func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster.Operator {
 	return func(s *session.Model) monster.Operator {
 		return func(monster monster.Model) {
-			err := s.Announce(writer.WriteSpawnMonster(monster, false))
+			err := s.Announce(writer.WriteSpawnMonster(l)(monster, false))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to spawn monster %d for character %d", monster.MonsterId(), s.CharacterId())
 			}
@@ -129,11 +129,11 @@ func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster
 func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.Operator {
 	return func(s *session.Model) npc.Operator {
 		return func(npc npc.Model) {
-			err := s.Announce(writer.WriteSpawnNPC(npc))
+			err := s.Announce(writer.WriteSpawnNPC(l)(npc))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to spawn npc %d for character %d", npc.Id(), s.CharacterId())
 			}
-			err = s.Announce(writer.WriteSpawnNPCController(npc, true))
+			err = s.Announce(writer.WriteSpawnNPCController(l)(npc, true))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to spawn npc controller %d for character %d", npc.Id(), s.CharacterId())
 			}
@@ -144,7 +144,7 @@ func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.Operato
 func removeCharacterForSession(l logrus.FieldLogger) func(characterId uint32) session.Operator {
 	return func(characterId uint32) session.Operator {
 		return func(s *session.Model) {
-			err := s.Announce(writer.WriteRemoveCharacterFromMap(characterId))
+			err := s.Announce(writer.WriteRemoveCharacterFromMap(l)(characterId))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to remove character %d from view for character %d", characterId, s.CharacterId())
 			}

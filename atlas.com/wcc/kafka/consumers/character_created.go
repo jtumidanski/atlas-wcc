@@ -38,7 +38,7 @@ func HandleCharacterCreatedEvent() ChannelEventProcessor {
 
 func announceCharacterCreated(l logrus.FieldLogger) func(event *characterCreatedEvent) session.Operator {
 	return func(event *characterCreatedEvent) session.Operator {
-		b := writer.WriteYellowTip(fmt.Sprintf(characterCreatedFormat, event.Name))
+		b := writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))
 		return func(s *session.Model) {
 			err := s.Announce(b)
 			if err != nil {

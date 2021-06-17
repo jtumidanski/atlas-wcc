@@ -43,7 +43,7 @@ func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.Operato
 			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return
 		}
-		err = s.Announce(writer.WriteWarpToMap(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
+		err = s.Announce(writer.WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to warp character %d to map %d", event.CharacterId, event.MapId)
 		}

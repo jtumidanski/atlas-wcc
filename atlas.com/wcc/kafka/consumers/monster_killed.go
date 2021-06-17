@@ -46,7 +46,7 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 }
 
 func killMonster(l logrus.FieldLogger, event *MonsterKilledEvent) session.Operator {
-	b := writer.WriteKillMonster(event.UniqueId, true)
+	b := writer.WriteKillMonster(l)(event.UniqueId, true)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

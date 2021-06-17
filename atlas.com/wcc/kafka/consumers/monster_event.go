@@ -55,8 +55,8 @@ func HandleMonsterEvent() ChannelEventProcessor {
 }
 
 func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.Operator {
-	k1 := writer.WriteKillMonster(event.UniqueId, false)
-	k2 := writer.WriteKillMonster(event.UniqueId, true)
+	k1 := writer.WriteKillMonster(l)(event.UniqueId, false)
+	k2 := writer.WriteKillMonster(l)(event.UniqueId, true)
 	return func(s *session.Model) {
 		err := s.Announce(k1)
 		if err != nil {
@@ -70,7 +70,7 @@ func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.Operator 
 }
 
 func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.Operator {
-	sm := writer.WriteSpawnMonster(monster, false)
+	sm := writer.WriteSpawnMonster(l)(monster, false)
 	return func(s *session.Model) {
 		err := s.Announce(sm)
 		if err != nil {

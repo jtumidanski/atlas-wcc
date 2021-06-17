@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/inventory"
 	"atlas-wcc/socket/response"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const OpCodeInventoryOperation uint16 = 0x1D
@@ -33,49 +34,51 @@ type ModifyInventory struct {
 	Modifications []Modification
 }
 
-func WriteCharacterInventoryModification(input ModifyInventory) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeInventoryOperation)
-	w.WriteBool(input.UpdateTick)
-	w.WriteByte(byte(len(input.Modifications)))
-	addMovement := int8(-1)
-	for _, mod := range input.Modifications {
-		w.WriteByte(mod.Mode)
-		w.WriteInt8(mod.InventoryType)
-		if mod.Mode == 2 {
-			w.WriteInt16(mod.OldPosition)
-		} else {
-			w.WriteInt16(mod.Item.Slot())
-		}
-		switch mod.Mode {
-		case 0:
-			if mod.InventoryType == 1 {
-				if val, ok := mod.Item.(*inventory.EquippedItem); ok {
-					addEquipmentInfoZero(w, *val, true)
-				}
+func WriteCharacterInventoryModification(l logrus.FieldLogger) func(input ModifyInventory) []byte {
+	return func(input ModifyInventory) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeInventoryOperation)
+		w.WriteBool(input.UpdateTick)
+		w.WriteByte(byte(len(input.Modifications)))
+		addMovement := int8(-1)
+		for _, mod := range input.Modifications {
+			w.WriteByte(mod.Mode)
+			w.WriteInt8(mod.InventoryType)
+			if mod.Mode == 2 {
+				w.WriteInt16(mod.OldPosition)
 			} else {
-				if val, ok := mod.Item.(inventory.Item); ok {
-					addItemInfoZero(w, val, true)
-				}
+				w.WriteInt16(mod.Item.Slot())
 			}
-			break
-		case 1:
-			updateQuantity(w, mod)
-			break
-		case 2:
-			addMovement = moveItem(w, addMovement, mod)
-			break
-		case 3:
-			addMovement = removeItem(addMovement, mod)
-			break
-		default:
-			panic(fmt.Sprintf("unsupported inventory mode %d", mod.Mode))
+			switch mod.Mode {
+			case 0:
+				if mod.InventoryType == 1 {
+					if val, ok := mod.Item.(*inventory.EquippedItem); ok {
+						addEquipmentInfoZero(w, *val, true)
+					}
+				} else {
+					if val, ok := mod.Item.(inventory.Item); ok {
+						addItemInfoZero(w, val, true)
+					}
+				}
+				break
+			case 1:
+				updateQuantity(w, mod)
+				break
+			case 2:
+				addMovement = moveItem(w, addMovement, mod)
+				break
+			case 3:
+				addMovement = removeItem(addMovement, mod)
+				break
+			default:
+				panic(fmt.Sprintf("unsupported inventory mode %d", mod.Mode))
+			}
 		}
+		if addMovement > -1 {
+			w.WriteInt8(addMovement)
+		}
+		return w.Bytes()
 	}
-	if addMovement > -1 {
-		w.WriteInt8(addMovement)
-	}
-	return w.Bytes()
 }
 
 func removeItem(movement int8, mod Modification) int8 {

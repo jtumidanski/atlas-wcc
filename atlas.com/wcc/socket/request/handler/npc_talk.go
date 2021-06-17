@@ -33,7 +33,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 		v := account.IsLoggedIn(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
-			err := s.Announce(writer.WriteEnableActions())
+			err := s.Announce(writer.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -43,7 +43,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 		ca, err := character.GetCharacterAttributesById(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
-			err = s.Announce(writer.WriteEnableActions())
+			err = s.Announce(writer.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -53,7 +53,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 		if ca.Hp() > 0 {
 			return true
 		} else {
-			err = s.Announce(writer.WriteEnableActions())
+			err = s.Announce(writer.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -99,7 +99,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
 			}
-			err = s.Announce(writer.WriteGetNPCShop(ns))
+			err = s.Announce(writer.WriteGetNPCShop(l)(ns))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}

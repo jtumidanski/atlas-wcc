@@ -29,7 +29,7 @@ func HandleInventoryFullCommand() ChannelEventProcessor {
 
 func showInventoryFull(l logrus.FieldLogger) session.Operator {
 	return func(s *session.Model) {
-		err := s.Announce(writer.WriteShowInventoryFull())
+		err := s.Announce(writer.WriteShowInventoryFull(l))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show inventory is full for character %d.", s.CharacterId())
 		}

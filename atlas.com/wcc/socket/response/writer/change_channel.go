@@ -2,20 +2,23 @@ package writer
 
 import (
 	"atlas-wcc/socket/response"
+	"github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 )
 
 const OpCodeChangeChannel uint16 = 0x10
 
-func WriteChangeChannel(ipAddress string, port uint16) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeChangeChannel)
-	w.WriteByte(1)
-	ob := ipAsByteArray(ipAddress)
-	w.WriteByteArray(ob)
-	w.WriteShort(port)
-	return w.Bytes()
+func WriteChangeChannel(l logrus.FieldLogger) func(ipAddress string, port uint16) []byte {
+	return func(ipAddress string, port uint16) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeChangeChannel)
+		w.WriteByte(1)
+		ob := ipAsByteArray(ipAddress)
+		w.WriteByteArray(ob)
+		w.WriteShort(port)
+		return w.Bytes()
+	}
 }
 
 func ipAsByteArray(ipAddress string) []byte {

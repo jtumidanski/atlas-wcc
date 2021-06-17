@@ -54,12 +54,12 @@ func HandleNPCAction() request.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request2.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
-			err := s.Announce(writer.WriteNPCAnimation(val.ObjectId(), val.Second(), val.Third()))
+			err := s.Announce(writer.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
 		} else if val, ok := p.(*npcMoveRequest); ok {
-			err := s.Announce(writer.WriteNPCMove(val.Movement()))
+			err := s.Announce(writer.WriteNPCMove(l)(val.Movement()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}

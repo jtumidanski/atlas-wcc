@@ -47,11 +47,11 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	err = s.Announce(writer.WriteHint(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
+	err = s.Announce(writer.WriteHint(i.l)(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
 	if err != nil {
 		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 	}
-	err = s.Announce(writer.WriteEnableActions())
+	err = s.Announce(writer.WriteEnableActions(i.l))
 	if err != nil {
 		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 	}

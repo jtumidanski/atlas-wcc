@@ -2,6 +2,7 @@ package writer
 
 import (
 	"atlas-wcc/socket/response"
+	"github.com/sirupsen/logrus"
 	"sort"
 )
 
@@ -42,51 +43,53 @@ func NewStatUpdate(stat uint32, amount uint32) StatUpdate {
 	}
 }
 
-func WriteEnableActions() []byte {
-	w := response.NewWriter()
+func WriteEnableActions(l logrus.FieldLogger) []byte {
+	w := response.NewWriter(l)
 	w.WriteShort(OpCodeStatChanged)
 	w.WriteByte(1)
 	w.WriteInt(0)
 	return w.Bytes()
 }
 
-func WriteCharacterStatUpdate(updates []StatUpdate, enableActions bool) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeStatChanged)
-	if enableActions {
-		w.WriteByte(1)
-	} else {
-		w.WriteByte(0)
-	}
+func WriteCharacterStatUpdate(l logrus.FieldLogger) func(updates []StatUpdate, enableActions bool) []byte {
+	return func(updates []StatUpdate, enableActions bool) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeStatChanged)
+		if enableActions {
+			w.WriteByte(1)
+		} else {
+			w.WriteByte(0)
+		}
 
-	updateMask := uint32(0)
-	for _, u := range updates {
-		updateMask |= u.Stat
-	}
-	sortedUpdates := updates
-	sort.SliceStable(sortedUpdates, func(i, j int) bool {
-		return sortedUpdates[i].Stat < sortedUpdates[j].Stat
-	})
+		updateMask := uint32(0)
+		for _, u := range updates {
+			updateMask |= u.Stat
+		}
+		sortedUpdates := updates
+		sort.SliceStable(sortedUpdates, func(i, j int) bool {
+			return sortedUpdates[i].Stat < sortedUpdates[j].Stat
+		})
 
-	w.WriteInt(updateMask)
-	for _, u := range sortedUpdates {
-		if u.Stat >= 1 {
-			if u.Stat == 0x1 {
-				w.WriteByte(byte(u.Amount))
-			} else if u.Stat <= 0x4 {
-				w.WriteInt(u.Amount)
-			} else if u.Stat < 0x20 {
-				w.WriteByte(byte(u.Amount))
-			} else if u.Stat == 0x8000 {
-				w.WriteShort(uint16(u.Amount))
-			} else if u.Stat < 0xFFFF {
-				w.WriteShort(uint16(u.Amount))
-			} else if u.Stat == 0x20000 {
-				w.WriteShort(uint16(u.Amount))
-			} else {
-				w.WriteInt(u.Amount)
+		w.WriteInt(updateMask)
+		for _, u := range sortedUpdates {
+			if u.Stat >= 1 {
+				if u.Stat == 0x1 {
+					w.WriteByte(byte(u.Amount))
+				} else if u.Stat <= 0x4 {
+					w.WriteInt(u.Amount)
+				} else if u.Stat < 0x20 {
+					w.WriteByte(byte(u.Amount))
+				} else if u.Stat == 0x8000 {
+					w.WriteShort(uint16(u.Amount))
+				} else if u.Stat < 0xFFFF {
+					w.WriteShort(uint16(u.Amount))
+				} else if u.Stat == 0x20000 {
+					w.WriteShort(uint16(u.Amount))
+				} else {
+					w.WriteInt(u.Amount)
+				}
 			}
 		}
+		return w.Bytes()
 	}
-	return w.Bytes()
 }

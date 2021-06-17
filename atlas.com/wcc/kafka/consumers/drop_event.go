@@ -56,7 +56,7 @@ func dropItem(l logrus.FieldLogger, event *DropEvent) session.Operator {
 		} else {
 			a = event.Meso
 		}
-		err := s.Announce(writer.WriteDropItemFromMapObject(event.UniqueId, event.ItemId, event.Meso, a,
+		err := s.Announce(writer.WriteDropItemFromMapObject(l)(event.UniqueId, event.ItemId, event.Meso, a,
 			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0,
 			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
 		if err != nil {

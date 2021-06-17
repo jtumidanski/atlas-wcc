@@ -38,7 +38,7 @@ func HandleCharacterMovementEvent() ChannelEventProcessor {
 }
 
 func moveCharacter(l logrus.FieldLogger, event *characterMovementEvent) session.Operator {
-	b := writer.WriteMoveCharacter(event.CharacterId, event.RawMovement)
+	b := writer.WriteMoveCharacter(l)(event.CharacterId, event.RawMovement)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

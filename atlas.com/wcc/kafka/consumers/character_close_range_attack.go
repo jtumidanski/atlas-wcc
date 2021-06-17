@@ -43,7 +43,7 @@ func HandleCloseRangeAttackEvent() ChannelEventProcessor {
 }
 
 func writeCloseRangeAttack(l logrus.FieldLogger, characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) session.Operator {
-	b := writer.WriteCloseRangeAttack(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display)
+	b := writer.WriteCloseRangeAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

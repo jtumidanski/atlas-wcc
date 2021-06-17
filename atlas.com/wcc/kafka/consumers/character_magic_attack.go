@@ -45,7 +45,7 @@ func HandleMagicAttackEvent() ChannelEventProcessor {
 
 func writeMagicAttack(l logrus.FieldLogger) func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, charge int32) session.Operator {
 	return func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, charge int32) session.Operator {
-		b := writer.WriteMagicAttack(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, charge)
+		b := writer.WriteMagicAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, charge)
 		return func(s *session.Model) {
 			err := s.Announce(b)
 			if err != nil {

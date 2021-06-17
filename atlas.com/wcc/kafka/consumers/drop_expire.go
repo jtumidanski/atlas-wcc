@@ -35,7 +35,7 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 }
 
 func expireItem(l logrus.FieldLogger, event *DropExpireEvent) session.Operator {
-	b := writer.WriteRemoveItem(event.UniqueId, 0, 0)
+	b := writer.WriteRemoveItem(l)(event.UniqueId, 0, 0)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

@@ -34,7 +34,7 @@ func HandleCharacterExpressionChangedEvent() ChannelEventProcessor {
 }
 
 func writeCharacterExpression(l logrus.FieldLogger, event *characterExpressionChangedEvent) session.Operator {
-	b := writer.WriteCharacterExpression(event.CharacterId, event.Expression)
+	b := writer.WriteCharacterExpression(l)(event.CharacterId, event.Expression)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

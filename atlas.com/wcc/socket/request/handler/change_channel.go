@@ -46,7 +46,7 @@ func ChangeChannelHandler() request2.MessageHandler {
 			return
 		}
 
-		err = s.Announce(writer.WriteChangeChannel(channel.IpAddress(), channel.Port()))
+		err = s.Announce(writer.WriteChangeChannel(l)(channel.IpAddress(), channel.Port()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

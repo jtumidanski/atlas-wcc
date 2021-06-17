@@ -5,25 +5,28 @@ import (
 	"atlas-wcc/inventory"
 	"atlas-wcc/pet"
 	"atlas-wcc/socket/response"
+	"github.com/sirupsen/logrus"
 	"math/rand"
 	"time"
 )
 
 const OpCodeSetField uint16 = 0x7D
 
-func WriteGetCharacterInfo(channelId byte, character character.Model) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeSetField)
-	w.WriteInt(uint32(channelId - 1))
-	w.WriteByte(1)
-	w.WriteByte(1)
-	w.WriteShort(0)
-	for i := 0; i < 3; i++ {
-		w.WriteInt(rand.Uint32())
+func WriteGetCharacterInfo(l logrus.FieldLogger) func(channelId byte, character character.Model) []byte {
+	return func(channelId byte, character character.Model) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeSetField)
+		w.WriteInt(uint32(channelId - 1))
+		w.WriteByte(1)
+		w.WriteByte(1)
+		w.WriteShort(0)
+		for i := 0; i < 3; i++ {
+			w.WriteInt(rand.Uint32())
+		}
+		addCharacterInfo(w, character)
+		w.WriteInt64(getTime(timeNow()))
+		return w.Bytes()
 	}
-	addCharacterInfo(w, character)
-	w.WriteInt64(getTime(timeNow()))
-	return w.Bytes()
 }
 
 func addCharacterInfo(w *response.Writer, character character.Model) {
@@ -328,16 +331,18 @@ const (
 	Permanent   int64 = 150841440000000000
 )
 
-func WriteWarpToMap(channelId byte, mapId uint32, portalId uint32, hp uint16) []byte {
-	w := response.NewWriter()
-	w.WriteShort(OpCodeSetField)
-	w.WriteInt(uint32(channelId) - 1)
-	w.WriteInt(0)
-	w.WriteByte(0)
-	w.WriteInt(mapId)
-	w.WriteByte(byte(portalId))
-	w.WriteShort(hp)
-	w.WriteBool(false)
-	w.WriteLong(uint64(getTime(timeNow())))
-	return w.Bytes()
+func WriteWarpToMap(l logrus.FieldLogger) func(channelId byte, mapId uint32, portalId uint32, hp uint16) []byte {
+	return func(channelId byte, mapId uint32, portalId uint32, hp uint16) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeSetField)
+		w.WriteInt(uint32(channelId) - 1)
+		w.WriteInt(0)
+		w.WriteByte(0)
+		w.WriteInt(mapId)
+		w.WriteByte(byte(portalId))
+		w.WriteShort(hp)
+		w.WriteBool(false)
+		w.WriteLong(uint64(getTime(timeNow())))
+		return w.Bytes()
+	}
 }

@@ -45,7 +45,7 @@ func updateCharacterLook(l logrus.FieldLogger, characterId uint32) session.Opera
 			l.WithError(err).Errorf("Unable to retrieve character %d details.", characterId)
 			return
 		}
-		err = s.Announce(writer.WriteCharacterLookUpdated(*r, *c))
+		err = s.Announce(writer.WriteCharacterLookUpdated(l)(*r, *c))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to %d that character %d has changed their look.", s.CharacterId(), characterId)
 		}

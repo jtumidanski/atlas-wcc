@@ -46,7 +46,7 @@ func HandleMonsterMovementEvent() ChannelEventProcessor {
 }
 
 func moveMonster(l logrus.FieldLogger, event *monsterMovementEvent) session.Operator {
-	b := writer.WriteMoveMonster(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
+	b := writer.WriteMoveMonster(l)(event.UniqueId, event.SkillPossible, event.Skill, event.SkillId,
 		event.SkillLevel, event.Option, event.StartX, event.StartY, event.RawMovement)
 	return func(s *session.Model) {
 		err := s.Announce(b)

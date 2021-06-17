@@ -3,15 +3,16 @@ package response
 import (
    "bytes"
    "encoding/binary"
-   "log"
+   "github.com/sirupsen/logrus"
 )
 
 type Writer struct {
+   l logrus.FieldLogger
    o *bytes.Buffer
 }
 
-func NewWriter() *Writer {
-   return &Writer{new(bytes.Buffer)}
+func NewWriter(l logrus.FieldLogger) *Writer {
+   return &Writer{l, new(bytes.Buffer)}
 }
 
 // WriteInt8 -
@@ -29,28 +30,28 @@ func (w *Writer) WriteInt64(data int64) { w.WriteLong(uint64(data)) }
 func (w *Writer) WriteInt(val uint32) {
    err := binary.Write(w.o, binary.LittleEndian, val)
    if err != nil {
-      log.Fatal("[ERROR] writing int value")
+      w.l.WithError(err).Fatal("Writing int value")
    }
 }
 
 func (w *Writer) WriteShort(val uint16) {
    err := binary.Write(w.o, binary.LittleEndian, val)
    if err != nil {
-      log.Fatal("[ERROR] writing short value")
+      w.l.WithError(err).Fatal("Writing short value")
    }
 }
 
 func (w *Writer) WriteLong(val uint64) {
    err := binary.Write(w.o, binary.LittleEndian, val)
    if err != nil {
-      log.Fatal("[ERROR] writing long value")
+      w.l.WithError(err).Fatal("Writing long value")
    }
 }
 
 func (w *Writer) WriteByte(val byte) {
    err := binary.Write(w.o, binary.LittleEndian, val)
    if err != nil {
-      log.Fatal("[ERROR] writing byte value")
+      w.l.WithError(err).Fatal("Writing byte value")
    }
 }
 
@@ -58,7 +59,7 @@ func (w *Writer) WriteByteArray(vals []byte) {
    for i := 0; i < len(vals); i++ {
       err := binary.Write(w.o, binary.LittleEndian, vals[i])
       if err != nil {
-         log.Fatal("[ERROR] writing byte value")
+         w.l.WithError(err).Fatal("Writing byte value")
       }
    }
 }

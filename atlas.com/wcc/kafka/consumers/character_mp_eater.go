@@ -34,7 +34,7 @@ func HandleMPEaterEvent() ChannelEventProcessor {
 
 func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Operator {
 	return func(s *session.Model) {
-		err := s.Announce(writer.WriteShowOwnBuff(1, event.SkillId))
+		err := s.Announce(writer.WriteShowOwnBuff(l)(1, event.SkillId))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show MP Eater application for character %d.", event.CharacterId)
 		}
@@ -42,7 +42,7 @@ func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Operat
 }
 
 func showForeignMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Operator {
-	b := writer.WriteShowBuffEffect(event.CharacterId, 1, event.SkillId, 3)
+	b := writer.WriteShowBuffEffect(l)(event.CharacterId, 1, event.SkillId, 3)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

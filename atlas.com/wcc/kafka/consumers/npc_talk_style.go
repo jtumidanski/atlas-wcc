@@ -37,7 +37,7 @@ func HandleNPCTalkStyleCommand() ChannelEventProcessor {
 }
 
 func writeNpcTalkStyle(l logrus.FieldLogger, event *npcTalkStyleCommand) session.Operator {
-	b := writer.WriteNPCTalkStyle(event.NPCId, event.Message, event.Styles)
+	b := writer.WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

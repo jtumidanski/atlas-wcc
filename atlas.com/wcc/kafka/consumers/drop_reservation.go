@@ -38,7 +38,7 @@ func HandleDropReservationEvent() ChannelEventProcessor {
 }
 
 func cancelDropReservation(l logrus.FieldLogger, _ *dropReservationEvent) session.Operator {
-	b := writer.WriteEnableActions()
+	b := writer.WriteEnableActions(l)
 	return func(s *session.Model) {
 		err := s.Announce(b)
 		if err != nil {

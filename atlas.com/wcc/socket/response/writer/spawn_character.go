@@ -5,13 +5,15 @@ import (
 	"atlas-wcc/inventory"
 	"atlas-wcc/pet"
 	"atlas-wcc/socket/response"
+	"github.com/sirupsen/logrus"
 	"math/rand"
 )
 
 const OpCodeSpawnCharacter uint16 = 0xA0
 
-func WriteSpawnCharacter(target character.Model, character character.Model, enteringField bool) []byte {
-	w := response.NewWriter()
+func WriteSpawnCharacter(l logrus.FieldLogger) func(target character.Model, character character.Model, enteringField bool) []byte {
+	return func(target character.Model, character character.Model, enteringField bool) []byte {
+	w := response.NewWriter(l)
 	w.WriteShort(OpCodeSpawnCharacter)
 	w.WriteInt(character.Attributes().Id())
 	w.WriteByte(character.Attributes().Level())
@@ -106,6 +108,7 @@ func WriteSpawnCharacter(target character.Model, character character.Model, ente
 	w.WriteByte(0)
 
 	return w.Bytes()
+	}
 }
 
 func noOpWrite(_ *response.Writer) {

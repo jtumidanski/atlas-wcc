@@ -33,8 +33,8 @@ func HandleCharacterMesoEvent() ChannelEventProcessor {
 }
 
 func showMesoGain(l logrus.FieldLogger, event *characterMesoEvent) session.Operator {
-	mg := writer.WriteShowMesoGain(event.Gain, false)
-	ea := writer.WriteEnableActions()
+	mg := writer.WriteShowMesoGain(l)(event.Gain, false)
+	ea := writer.WriteEnableActions(l)
 	return func(s *session.Model) {
 		err := s.Announce(mg)
 		if err != nil {

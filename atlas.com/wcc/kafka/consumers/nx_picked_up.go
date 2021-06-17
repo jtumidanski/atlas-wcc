@@ -36,8 +36,8 @@ func HandleNXPickedUpEvent() ChannelEventProcessor {
 }
 
 func showNXGain(l logrus.FieldLogger, event *nxPickedUpEvent) session.Operator {
-	h := writer.WriteHint(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10)
-	ea := writer.WriteEnableActions()
+	h := writer.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10)
+	ea := writer.WriteEnableActions(l)
 	return func(s *session.Model) {
 		err := s.Announce(h)
 		if err != nil {
