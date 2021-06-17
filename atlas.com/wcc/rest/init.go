@@ -21,9 +21,8 @@ func ProduceRoutes(l logrus.FieldLogger) http.Handler {
 	sRouter := router.PathPrefix("/sessions").Subrouter()
 	sRouter.HandleFunc("", session.HandleGetSessions(l)).Methods(http.MethodGet)
 
-	i := resources.NewInstructionResource(l)
 	iRouter := router.PathPrefix("/characters/{characterId}/instructions").Subrouter()
-	iRouter.HandleFunc("", i.CreateInstruction).Methods(http.MethodPost)
+	iRouter.HandleFunc("", resources.HandleCreateInstruction(l)).Methods(http.MethodPost)
 
 	return router
 }

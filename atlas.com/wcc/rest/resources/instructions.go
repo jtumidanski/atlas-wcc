@@ -7,64 +7,59 @@ import (
 	"atlas-wcc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"log"
 	"net/http"
 	"strconv"
 )
-
-type InstructionResource struct {
-	l logrus.FieldLogger
-}
 
 // GenericError is a generic error message returned by a server
 type GenericError struct {
 	Message string `json:"message"`
 }
 
-func NewInstructionResource(l logrus.FieldLogger) *InstructionResource {
-	return &InstructionResource{l}
-}
+func HandleCreateInstruction(l logrus.FieldLogger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		characterId := getCharacterId(l)(r)
 
-func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.Request) {
-	characterId := getCharacterId(r)
-
-	cs := &attributes.InstructionInputDataContainer{}
-	err := json.FromJSON(cs, r.Body)
-	if err != nil {
-		i.l.WithError(err).Errorf("Deserializing instruction")
-		rw.WriteHeader(http.StatusBadRequest)
-		err := json.ToJSON(&GenericError{Message: err.Error()}, rw)
+		cs := &attributes.InstructionInputDataContainer{}
+		err := json.FromJSON(cs, r.Body)
 		if err != nil {
-			i.l.WithError(err).Errorf("Unable to serialize error mesage")
+			l.WithError(err).Errorf("Deserializing instruction")
+			w.WriteHeader(http.StatusBadRequest)
+			err := json.ToJSON(&GenericError{Message: err.Error()}, w)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to serialize error mesage")
+			}
+			return
 		}
-		return
-	}
 
-	s := session.GetByCharacterId(characterId)
-	if s == nil {
-		i.l.WithError(err).Errorf("Cannot locate session for instruction")
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
+		s := session.GetByCharacterId(characterId)
+		if s == nil {
+			l.WithError(err).Errorf("Cannot locate session for instruction")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
-	err = s.Announce(writer.WriteHint(i.l)(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
-	if err != nil {
-		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-	}
-	err = s.Announce(writer.WriteEnableActions(i.l))
-	if err != nil {
-		i.l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-	}
+		err = s.Announce(writer.WriteHint(l)(cs.Data.Attributes.Message, cs.Data.Attributes.Width, cs.Data.Attributes.Height))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
+		err = s.Announce(writer.WriteEnableActions(l))
+		if err != nil {
+			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
 
-	rw.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
+	}
 }
 
-func getCharacterId(r *http.Request) uint32 {
-	vars := mux.Vars(r)
-	value, err := strconv.Atoi(vars["characterId"])
-	if err != nil {
-		log.Println("Error parsing characterId as uint32")
-		return 0
+func getCharacterId(l logrus.FieldLogger) func(r *http.Request) uint32 {
+	return func(r *http.Request) uint32 {
+		vars := mux.Vars(r)
+		value, err := strconv.Atoi(vars["characterId"])
+		if err != nil {
+			l.Println("Error parsing characterId as uint32")
+			return 0
+		}
+		return uint32(value)
 	}
-	return uint32(value)
 }
