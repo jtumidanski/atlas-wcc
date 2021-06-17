@@ -40,7 +40,7 @@ func (i *InstructionResource) CreateInstruction(rw http.ResponseWriter, r *http.
 		return
 	}
 
-	s := session.GetSessionByCharacterId(characterId)
+	s := session.GetByCharacterId(characterId)
 	if s == nil {
 		i.l.WithError(err).Errorf("Cannot locate session for instruction")
 		rw.WriteHeader(http.StatusBadRequest)

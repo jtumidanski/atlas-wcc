@@ -24,7 +24,7 @@ func CharacterSkillUpdateEventCreator() handler.EmptyEventCreator {
 func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterSkillUpdateEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -35,7 +35,7 @@ func HandleCharacterSkillUpdateEvent() ChannelEventProcessor {
 	}
 }
 
-func updateSkill(l logrus.FieldLogger, event *CharacterSkillUpdateEvent) session.SessionOperator {
+func updateSkill(l logrus.FieldLogger, event *CharacterSkillUpdateEvent) session.Operator {
 	return func(s *session.Model) {
 		err := s.Announce(writer.WriteCharacterSkillUpdate(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
 		if err != nil {

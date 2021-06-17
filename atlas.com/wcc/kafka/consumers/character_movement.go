@@ -26,18 +26,18 @@ func CharacterMovementEventCreator() handler.EmptyEventCreator {
 func HandleCharacterMovementEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMovementEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
-			session.ForEachOtherSessionInMap(wid, cid, event.CharacterId, moveCharacter(l, event))
+			session.ForEachOtherInMap(wid, cid, event.CharacterId, moveCharacter(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func moveCharacter(l logrus.FieldLogger, event *characterMovementEvent) session.SessionOperator {
+func moveCharacter(l logrus.FieldLogger, event *characterMovementEvent) session.Operator {
 	b := writer.WriteMoveCharacter(event.CharacterId, event.RawMovement)
 	return func(s *session.Model) {
 		err := s.Announce(b)

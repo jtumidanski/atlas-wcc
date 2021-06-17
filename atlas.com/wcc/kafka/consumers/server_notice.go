@@ -33,7 +33,7 @@ func ServerNoticeEventCreator() handler.EmptyEventCreator {
 func HandleServerNoticeEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*ServerNoticeEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.RecipientId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.RecipientId); actingSession == nil {
 				return
 			}
 
@@ -44,7 +44,7 @@ func HandleServerNoticeEvent() ChannelEventProcessor {
 	}
 }
 
-func showServerNotice(l logrus.FieldLogger, event *ServerNoticeEvent) session.SessionOperator {
+func showServerNotice(l logrus.FieldLogger, event *ServerNoticeEvent) session.Operator {
 	return func(s *session.Model) {
 		err := s.Announce(writer.WriteServerNotice(s.ChannelId(), getServerNoticeByType(event.Type), event.Message, false, 0))
 		if err != nil {

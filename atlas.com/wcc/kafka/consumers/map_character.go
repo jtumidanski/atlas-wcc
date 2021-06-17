@@ -35,7 +35,7 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 			if event.Type == "ENTER" {
 				session.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
 			} else if event.Type == "EXIT" {
-				session.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
+				session.ForEachOtherInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
 			} else {
 				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
@@ -46,7 +46,7 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 	}
 }
 
-func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.SessionOperator {
+func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 	return func(s *session.Model) {
 		cIds, err := character.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
 		if err != nil {
@@ -66,7 +66,7 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.SessionOper
 		// Spawn new character for other character.
 		for k, v := range cm {
 			if k != event.CharacterId {
-				as := *session.GetSessionByCharacterId(k)
+				as := *session.GetByCharacterId(k)
 				err = as.Announce(writer.WriteSpawnCharacter(*v, *cm[event.CharacterId], true))
 				if err != nil {
 					l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
@@ -85,18 +85,18 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.SessionOper
 		}
 
 		// Spawn NPCs for incoming character.
-		npc.ForEachNPCInMap(event.MapId, spawnNPCForSession(l)(s))
+		npc.ForEachInMap(event.MapId, spawnNPCForSession(l)(s))
 
 		// Spawn monsters for incoming character.
-		monster.ForEachMonsterInMap(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
+		monster.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
 
 		// Spawn drops for incoming character.
-		drop.ForEachDropInMap(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
+		drop.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
 	}
 }
 
-func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.DropOperator {
-	return func(s *session.Model) drop.DropOperator {
+func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.Operator {
+	return func(s *session.Model) drop.Operator {
 		return func(drop drop.Model) {
 			var a = uint32(0)
 			if drop.ItemId() != 0 {
@@ -115,8 +115,8 @@ func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.DropO
 	}
 }
 
-func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster.MonsterOperator {
-	return func(s *session.Model) monster.MonsterOperator {
+func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster.Operator {
+	return func(s *session.Model) monster.Operator {
 		return func(monster monster.Model) {
 			err := s.Announce(writer.WriteSpawnMonster(monster, false))
 			if err != nil {
@@ -126,8 +126,8 @@ func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster
 	}
 }
 
-func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.NPCOperator {
-	return func(s *session.Model) npc.NPCOperator {
+func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.Operator {
+	return func(s *session.Model) npc.Operator {
 		return func(npc npc.Model) {
 			err := s.Announce(writer.WriteSpawnNPC(npc))
 			if err != nil {
@@ -141,8 +141,8 @@ func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.NPCOper
 	}
 }
 
-func removeCharacterForSession(l logrus.FieldLogger) func(characterId uint32) session.SessionOperator {
-	return func(characterId uint32) session.SessionOperator {
+func removeCharacterForSession(l logrus.FieldLogger) func(characterId uint32) session.Operator {
+	return func(characterId uint32) session.Operator {
 		return func(s *session.Model) {
 			err := s.Announce(writer.WriteRemoveCharacterFromMap(characterId))
 			if err != nil {

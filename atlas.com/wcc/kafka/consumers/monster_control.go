@@ -29,7 +29,7 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 				return
 			}
 
-			var h session.SessionOperator
+			var h session.Operator
 			if event.Type == "START" {
 				h = startControl(l, event)
 			} else if event.Type == "STOP" {
@@ -46,9 +46,9 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 	}
 }
 
-func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
+func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.Operator {
 	return func(s *session.Model) {
-		m, err := monster.GetMonster(event.UniqueId)
+		m, err := monster.GetById(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
@@ -61,9 +61,9 @@ func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.Sessi
 	}
 }
 
-func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.SessionOperator {
+func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.Operator {
 	return func(s *session.Model) {
-		m, err := monster.GetMonster(event.UniqueId)
+		m, err := monster.GetById(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return

@@ -31,13 +31,13 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			m, err := monster.GetMonster(event.UniqueId)
+			m, err := monster.GetById(event.UniqueId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
 			}
 
-			var h session.SessionOperator
+			var h session.Operator
 			if event.Type == "CREATED" {
 				h = createMonster(l, event, *m)
 			} else if event.Type == "DESTROYED" {
@@ -47,14 +47,14 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachSessionInMap(wid, cid, event.MapId, h)
+			session.ForEachInMap(wid, cid, event.MapId, h)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.SessionOperator {
+func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.Operator {
 	k1 := writer.WriteKillMonster(event.UniqueId, false)
 	k2 := writer.WriteKillMonster(event.UniqueId, true)
 	return func(s *session.Model) {
@@ -69,7 +69,7 @@ func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.SessionOp
 	}
 }
 
-func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.SessionOperator {
+func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.Operator {
 	sm := writer.WriteSpawnMonster(monster, false)
 	return func(s *session.Model) {
 		err := s.Announce(sm)

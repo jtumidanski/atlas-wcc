@@ -24,18 +24,18 @@ func CharacterMapMessageEventCreator() handler.EmptyEventCreator {
 func HandleCharacterMapMessageEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMapMessageEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
-			session.ForEachSessionInMap(wid, cid, event.MapId, showChatText(l, event))
+			session.ForEachInMap(wid, cid, event.MapId, showChatText(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showChatText(l logrus.FieldLogger, event *characterMapMessageEvent) session.SessionOperator {
+func showChatText(l logrus.FieldLogger, event *characterMapMessageEvent) session.Operator {
 	b := writer.WriteChatText(event.CharacterId, event.Message, event.GM, event.Show)
 	return func(s *session.Model) {
 		err := s.Announce(b)

@@ -25,7 +25,7 @@ func NPCTalkEventCreator() handler.EmptyEventCreator {
 func HandleNPCTalkEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*npcTalkEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -36,7 +36,7 @@ func HandleNPCTalkEvent() ChannelEventProcessor {
 	}
 }
 
-func writeNpcTalk(l logrus.FieldLogger, event *npcTalkEvent) session.SessionOperator {
+func writeNpcTalk(l logrus.FieldLogger, event *npcTalkEvent) session.Operator {
 	b := writer.WriteNPCTalk(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))
 	return func(s *session.Model) {
 		err := s.Announce(b)

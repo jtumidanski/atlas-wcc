@@ -27,7 +27,7 @@ func HandleInventoryFullCommand() ChannelEventProcessor {
 	}
 }
 
-func showInventoryFull(l logrus.FieldLogger) session.SessionOperator {
+func showInventoryFull(l logrus.FieldLogger) session.Operator {
 	return func(s *session.Model) {
 		err := s.Announce(writer.WriteShowInventoryFull())
 		if err != nil {

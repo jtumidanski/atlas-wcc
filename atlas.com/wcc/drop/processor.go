@@ -4,11 +4,11 @@ import (
 	"strconv"
 )
 
-type DropOperator func(Model)
+type Operator func(Model)
 
-type DropsOperator func([]Model)
+type SliceOperator func([]Model)
 
-func ExecuteForEachDrop(f DropOperator) DropsOperator {
+func ExecuteForEach(f Operator) SliceOperator {
 	return func(drops []Model) {
 		for _, drop := range drops {
 			f(drop)
@@ -16,19 +16,19 @@ func ExecuteForEachDrop(f DropOperator) DropsOperator {
 	}
 }
 
-func ForEachDropInMap(worldId byte, channelId byte, mapId uint32, f DropOperator) {
-	ForDropsInMap(worldId, channelId, mapId, ExecuteForEachDrop(f))
+func ForEachInMap(worldId byte, channelId byte, mapId uint32, f Operator) {
+	ForDropsInMap(worldId, channelId, mapId, ExecuteForEach(f))
 }
 
-func ForDropsInMap(worldId byte, channelId byte, mapId uint32, f DropsOperator) {
-	drops, err := GetDropsInMap(worldId, channelId, mapId)
+func ForDropsInMap(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+	drops, err := GetInMap(worldId, channelId, mapId)
 	if err != nil {
 		return
 	}
 	f(drops)
 }
 
-func GetDropsInMap(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+func GetInMap(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
 	resp, err := requestDropsInMap(worldId, channelId, mapId)
 	if err != nil {
 		return nil, err

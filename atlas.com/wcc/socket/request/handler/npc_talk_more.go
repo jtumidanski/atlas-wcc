@@ -86,18 +86,18 @@ func conversationInProgress(l logrus.FieldLogger) func(characterId uint32) bool 
 	}
 }
 
-func conversationDispose(characterId uint32) {
+func conversationDispose(_ uint32) {
 
 }
 
-func questDispose(characterId uint32) {
+func questDispose(_ uint32) {
 
 }
 
-func questInProcess(characterId uint32) bool {
+func questInProcess(_ uint32) bool {
 	return false
 }
 
-func continueQuestConversation(characterId uint32, p npcTalkMoreRequest) {
+func continueQuestConversation(_ uint32, _ npcTalkMoreRequest) {
 
 }

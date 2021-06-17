@@ -35,14 +35,14 @@ func HandleCloseRangeAttackEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachSessionInMap(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(l, event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
+			session.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(l, event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func writeCloseRangeAttack(l logrus.FieldLogger, characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) session.SessionOperator {
+func writeCloseRangeAttack(l logrus.FieldLogger, characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) session.Operator {
 	b := writer.WriteCloseRangeAttack(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display)
 	return func(s *session.Model) {
 		err := s.Announce(b)

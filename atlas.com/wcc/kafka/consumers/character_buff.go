@@ -37,7 +37,7 @@ func HandleCharacterBuffEvent() ChannelEventProcessor {
 	}
 }
 
-func showBuffEffect(l logrus.FieldLogger, event *characterBuffEvent) session.SessionOperator {
+func showBuffEffect(l logrus.FieldLogger, event *characterBuffEvent) session.Operator {
 	b := writer.WriteShowBuff(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)
 	return func(s *session.Model) {
 		err := s.Announce(b)
@@ -80,7 +80,7 @@ func HandleCharacterCancelBuffEvent() ChannelEventProcessor {
 	}
 }
 
-func cancelBuffEffect(l logrus.FieldLogger, event *characterCancelBuffEvent) session.SessionOperator {
+func cancelBuffEffect(l logrus.FieldLogger, event *characterCancelBuffEvent) session.Operator {
 	return func(s *session.Model) {
 		err := s.Announce(writer.WriteCancelBuff(makeBuffStats(event.Stats)))
 		if err != nil {

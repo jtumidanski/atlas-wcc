@@ -112,7 +112,7 @@ func MoveLifeHandler() request2.MessageHandler {
 			return
 		}
 
-		_, err := monster.GetMonster(p.ObjectId())
+		_, err := monster.GetById(p.ObjectId())
 		if err != nil {
 			l.WithError(err).Errorf("Received move life request for unknown monster %d", p.ObjectId())
 			return

@@ -33,7 +33,7 @@ func CharacterInventoryModificationEventCreator() handler.EmptyEventCreator {
 func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterInventoryModificationEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -44,7 +44,7 @@ func HandleCharacterInventoryModificationEvent() ChannelEventProcessor {
 	}
 }
 
-func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryModificationEvent) session.SessionOperator {
+func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryModificationEvent) session.Operator {
 	return func(s *session.Model) {
 		result := writer.ModifyInventory{}
 		result.UpdateTick = event.UpdateTick

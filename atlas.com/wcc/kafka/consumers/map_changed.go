@@ -36,7 +36,7 @@ func HandleChangeMapEvent() ChannelEventProcessor {
 	}
 }
 
-func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.SessionOperator {
+func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.Operator {
 	return func(s *session.Model) {
 		catt, err := requests.Character().GetCharacterAttributesById(event.CharacterId)
 		if err != nil {

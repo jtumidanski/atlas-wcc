@@ -72,7 +72,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 			return
 		}
 
-		npcs, err := npc2.GetNPCsInMapByObjectId(ca.MapId(), p.ObjectId())
+		npcs, err := npc2.GetInMapByObjectId(ca.MapId(), p.ObjectId())
 		if err != nil || len(npcs) != 1 {
 			l.WithError(err).Errorf("Unable to locate npc %d in map %d.", p.ObjectId(), ca.MapId())
 			return
@@ -94,7 +94,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 			return
 		}
 		if hasShop(l)(npc.Id()) {
-			ns, err := shop.GetShop(l)(npc.Id())
+			ns, err := shop.GetShop(npc.Id())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
@@ -119,10 +119,10 @@ func hasConversationScript(l logrus.FieldLogger) func(npcId uint32) bool {
 	}
 }
 
-func handleGachapon(s *session.Model) {
+func handleGachapon(_ *session.Model) {
 
 }
 
-func handleDuey(s *session.Model) {
+func handleDuey(_ *session.Model) {
 
 }

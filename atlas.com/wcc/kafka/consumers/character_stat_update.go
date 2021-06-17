@@ -22,7 +22,7 @@ func CharacterStatUpdateEventCreator() handler.EmptyEventCreator {
 func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*CharacterStatUpdateEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -33,7 +33,7 @@ func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 	}
 }
 
-func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.SessionOperator {
+func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.Operator {
 	return func(s *session.Model) {
 		ca, err := character.GetCharacterAttributesById(event.CharacterId)
 		if err != nil {

@@ -27,14 +27,14 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachSessionInMap(wid, cid, event.MapId, expireItem(l, event))
+			session.ForEachInMap(wid, cid, event.MapId, expireItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func expireItem(l logrus.FieldLogger, event *DropExpireEvent) session.SessionOperator {
+func expireItem(l logrus.FieldLogger, event *DropExpireEvent) session.Operator {
 	b := writer.WriteRemoveItem(event.UniqueId, 0, 0)
 	return func(s *session.Model) {
 		err := s.Announce(b)

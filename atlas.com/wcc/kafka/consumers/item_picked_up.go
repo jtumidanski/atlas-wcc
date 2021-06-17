@@ -22,7 +22,7 @@ func ItemPickedUpEventCreator() handler.EmptyEventCreator {
 func HandleItemPickedUpEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*itemPickedUpEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -33,7 +33,7 @@ func HandleItemPickedUpEvent() ChannelEventProcessor {
 	}
 }
 
-func showItemGain(l logrus.FieldLogger, event *itemPickedUpEvent) session.SessionOperator {
+func showItemGain(l logrus.FieldLogger, event *itemPickedUpEvent) session.Operator {
 	ig := writer.WriteShowItemGain(event.ItemId, event.Quantity)
 	ea := writer.WriteEnableActions()
 	return func(s *session.Model) {

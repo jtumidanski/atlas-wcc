@@ -25,14 +25,14 @@ func HandleMPEaterEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, c interface{}) {
 		if event, ok := c.(*mpEaterEvent); ok {
 			session.ForSessionByCharacterId(event.CharacterId, showMPEaterEffect(l, event))
-			session.ForEachOtherSessionInMap(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
+			session.ForEachOtherInMap(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.SessionOperator {
+func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Operator {
 	return func(s *session.Model) {
 		err := s.Announce(writer.WriteShowOwnBuff(1, event.SkillId))
 		if err != nil {
@@ -41,7 +41,7 @@ func showMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Sessio
 	}
 }
 
-func showForeignMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.SessionOperator {
+func showForeignMPEaterEffect(l logrus.FieldLogger, event *mpEaterEvent) session.Operator {
 	b := writer.WriteShowBuffEffect(event.CharacterId, 1, event.SkillId, 3)
 	return func(s *session.Model) {
 		err := s.Announce(b)

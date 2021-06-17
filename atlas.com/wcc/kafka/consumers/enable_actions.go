@@ -20,7 +20,7 @@ func EnableActionsEventCreator() handler.EmptyEventCreator {
 func HandleEnableActionsEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*enableActionsEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -31,7 +31,7 @@ func HandleEnableActionsEvent() ChannelEventProcessor {
 	}
 }
 
-func enableActions(l logrus.FieldLogger, _ *enableActionsEvent) session.SessionOperator {
+func enableActions(l logrus.FieldLogger, _ *enableActionsEvent) session.Operator {
 	b := writer.WriteEnableActions()
 	return func(s *session.Model) {
 		err := s.Announce(b)

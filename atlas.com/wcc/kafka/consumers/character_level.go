@@ -20,18 +20,18 @@ func CharacterLevelEventCreator() handler.EmptyEventCreator {
 func HandleCharacterLevelEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterLevelEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
-			session.ForEachOtherSessionInMap(wid, cid, event.CharacterId, showForeignEffect(l, event))
+			session.ForEachOtherInMap(wid, cid, event.CharacterId, showForeignEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func showForeignEffect(l logrus.FieldLogger, event *characterLevelEvent) session.SessionOperator {
+func showForeignEffect(l logrus.FieldLogger, event *characterLevelEvent) session.Operator {
 	b := writer.WriteShowForeignEffect(event.CharacterId, 0)
 	return func(s *session.Model) {
 		err := s.Announce(b)

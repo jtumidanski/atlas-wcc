@@ -4,11 +4,11 @@ import (
 	"strconv"
 )
 
-type MonsterOperator func(Model)
+type Operator func(Model)
 
-type MonstersOperator func([]Model)
+type SliceOperator func([]Model)
 
-func ExecuteForEachMonster(f MonsterOperator) MonstersOperator {
+func ExecuteForEach(f Operator) SliceOperator {
 	return func(monsters []Model) {
 		for _, monster := range monsters {
 			f(monster)
@@ -16,20 +16,20 @@ func ExecuteForEachMonster(f MonsterOperator) MonstersOperator {
 	}
 }
 
-func ForEachMonsterInMap(worldId byte, channelId byte, mapId uint32, f MonsterOperator) {
-	ForMonstersInMap(worldId, channelId, mapId, ExecuteForEachMonster(f))
+func ForEachInMap(worldId byte, channelId byte, mapId uint32, f Operator) {
+	ForInMap(worldId, channelId, mapId, ExecuteForEach(f))
 }
 
-func ForMonstersInMap(worldId byte, channelId byte, mapId uint32, f MonstersOperator) {
-	monsters, err := GetMonstersInMap(worldId, channelId, mapId)
+func ForInMap(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+	monsters, err := GetInMap(worldId, channelId, mapId)
 	if err != nil {
 		return
 	}
 	f(monsters)
 }
 
-func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-	resp, err := MonsterRegistry().GetInMap(worldId, channelId, mapId)
+func GetInMap(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+	resp, err := requestInMap(worldId, channelId, mapId)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func GetMonstersInMap(worldId byte, channelId byte, mapId uint32) ([]Model, erro
 	return ns, nil
 }
 
-func GetMonster(id uint32) (*Model, error) {
-	resp, err := MonsterRegistry().GetById(id)
+func GetById(id uint32) (*Model, error) {
+	resp, err := requestById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -60,4 +60,3 @@ func GetMonster(id uint32) (*Model, error) {
 func makeMonster(id uint32, att attributes) Model {
 	return NewMonster(id, att.ControlCharacterId, att.MonsterId, att.X, att.Y, att.Stance, att.FH, att.Team)
 }
-

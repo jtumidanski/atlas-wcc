@@ -4,11 +4,11 @@ import (
 	"strconv"
 )
 
-type NPCOperator func(Model)
+type Operator func(Model)
 
-type NPCsOperator func([]Model)
+type SliceOperator func([]Model)
 
-func ExecuteForEachNPC(f NPCOperator) NPCsOperator {
+func ExecuteForEach(f Operator) SliceOperator {
 	return func(npcs []Model) {
 		for _, npc := range npcs {
 			f(npc)
@@ -16,19 +16,19 @@ func ExecuteForEachNPC(f NPCOperator) NPCsOperator {
 	}
 }
 
-func ForEachNPCInMap(mapId uint32, f NPCOperator) {
-	ForNPCsInMap(mapId, ExecuteForEachNPC(f))
+func ForEachInMap(mapId uint32, f Operator) {
+	ForNPCsInMap(mapId, ExecuteForEach(f))
 }
 
-func ForNPCsInMap(mapId uint32, f NPCsOperator) {
-	npcs, err := GetNPCsInMap(mapId)
+func ForNPCsInMap(mapId uint32, f SliceOperator) {
+	npcs, err := GetInMap(mapId)
 	if err != nil {
 		return
 	}
 	f(npcs)
 }
 
-func GetNPCsInMap(mapId uint32) ([]Model, error) {
+func GetInMap(mapId uint32) ([]Model, error) {
 	resp, err := requestNPCsInMap(mapId)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func GetNPCsInMap(mapId uint32) ([]Model, error) {
 	return ns, nil
 }
 
-func GetNPCsInMapByObjectId(mapId uint32, objectId uint32) ([]Model, error) {
+func GetInMapByObjectId(mapId uint32, objectId uint32) ([]Model, error) {
 	resp, err := requestNPCsInMapByObjectId(mapId, objectId)
 	if err != nil {
 		return nil, err

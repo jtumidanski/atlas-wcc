@@ -22,7 +22,7 @@ func DropReservationEventCreator() handler.EmptyEventCreator {
 func HandleDropReservationEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*dropReservationEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -37,7 +37,7 @@ func HandleDropReservationEvent() ChannelEventProcessor {
 	}
 }
 
-func cancelDropReservation(l logrus.FieldLogger, _ *dropReservationEvent) session.SessionOperator {
+func cancelDropReservation(l logrus.FieldLogger, _ *dropReservationEvent) session.Operator {
 	b := writer.WriteEnableActions()
 	return func(s *session.Model) {
 		err := s.Announce(b)

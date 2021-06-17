@@ -7,7 +7,7 @@ import (
 
 const OpCodeDropItemFromMapObject uint16 = 0x10C
 
-func WriteDropItemFromMapObject(itemUniqueId uint32, itemId uint32, quantity uint32, meso uint32,
+func WriteDropItemFromMapObject(itemUniqueId uint32, itemId uint32, _ uint32, meso uint32,
    dropperUniqueId uint32, dropType byte, ownerId uint32, ownerPartyId uint32, observerId uint32,
    observerPartyId uint32, dropTime uint64, dropX int16, dropY int16, dropperX int16, dropperY int16,
    characterDrop bool, mod byte) []byte {

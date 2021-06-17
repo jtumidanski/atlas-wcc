@@ -38,14 +38,14 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 			}
 
 			l.Infof("Character %d killed %d.", event.UniqueId, event.KillerId)
-			session.ForEachSessionInMap(wid, cid, event.MapId, killMonster(l, event))
+			session.ForEachInMap(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func killMonster(l logrus.FieldLogger, event *MonsterKilledEvent) session.SessionOperator {
+func killMonster(l logrus.FieldLogger, event *MonsterKilledEvent) session.Operator {
 	b := writer.WriteKillMonster(event.UniqueId, true)
 	return func(s *session.Model) {
 		err := s.Announce(b)

@@ -269,7 +269,7 @@ func addCharacterStats(w *response.Writer, character character.Model) {
 	w.WriteInt(0)
 }
 
-func addRemainingSkillInfo(w *response.Writer, character character.Model) {
+func addRemainingSkillInfo(_ *response.Writer, _ character.Model) {
 
 }
 

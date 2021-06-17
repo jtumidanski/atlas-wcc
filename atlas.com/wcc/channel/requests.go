@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	ServicePrefix   string = "/ms/wrg/"
-	Service                = requests.BaseRequest + ServicePrefix
-	ChannelResource        = Service + "channelServers/"
-	ByWorld                = ChannelResource + "?world=%d"
+	ServicePrefix string = "/ms/wrg/"
+	Service              = requests.BaseRequest + ServicePrefix
+	Resource             = Service + "channelServers/"
+	ByWorld              = Resource + "?world=%d"
 )
 
 func requestChannelsForWorld(worldId byte) (*dataContainer, error) {

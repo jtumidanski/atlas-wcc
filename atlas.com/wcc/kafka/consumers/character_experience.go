@@ -25,7 +25,7 @@ func CharacterExperienceEventCreator() handler.EmptyEventCreator {
 func HandleCharacterExperienceEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterExperienceEvent); ok {
-			if actingSession := session.GetSessionByCharacterId(event.CharacterId); actingSession == nil {
+			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
@@ -37,7 +37,7 @@ func HandleCharacterExperienceEvent() ChannelEventProcessor {
 				return
 			}
 
-			as := session.GetSessionByCharacterId(event.CharacterId)
+			as := session.GetByCharacterId(event.CharacterId)
 			if as == nil {
 				l.Errorf("Unable to locate session for character %d.", event.CharacterId)
 				return

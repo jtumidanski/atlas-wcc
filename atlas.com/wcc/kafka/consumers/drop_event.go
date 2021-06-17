@@ -41,14 +41,14 @@ func HandleDropEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachSessionInMap(wid, cid, event.MapId, dropItem(l, event))
+			session.ForEachInMap(wid, cid, event.MapId, dropItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func dropItem(l logrus.FieldLogger, event *DropEvent) session.SessionOperator {
+func dropItem(l logrus.FieldLogger, event *DropEvent) session.Operator {
 	return func(s *session.Model) {
 		a := uint32(0)
 		if event.ItemId != 0 {
