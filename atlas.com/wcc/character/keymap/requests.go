@@ -3,6 +3,7 @@ package keymap
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -11,11 +12,13 @@ const (
 	keymapResource             = keymapService + "characters/%d/keymap"
 )
 
-func getKeyMap(characterId uint32) (*DataListContainer, error) {
-	ar := &DataListContainer{}
-	err := requests.Get(fmt.Sprintf(keymapResource, characterId), ar)
-	if err != nil {
-		return nil, err
+func getKeyMap(l logrus.FieldLogger) func(characterId uint32) (*DataListContainer, error) {
+	return func(characterId uint32) (*DataListContainer, error) {
+		ar := &DataListContainer{}
+		err := requests.Get(l)(fmt.Sprintf(keymapResource, characterId), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }

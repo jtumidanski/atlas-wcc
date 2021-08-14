@@ -41,7 +41,7 @@ func HandleDropEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(wid, cid, event.MapId, dropItem(l, event))
+			session.ForEachInMap(l)(wid, cid, event.MapId, dropItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

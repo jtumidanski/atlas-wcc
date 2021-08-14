@@ -51,13 +51,13 @@ func ChangeMapHandler() request2.MessageHandler {
 		if p.CashShop() {
 
 		} else {
-			ca, err := character.GetCharacterAttributesById(s.CharacterId())
+			ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
 			if err != nil {
 				l.WithError(err).Errorf("Cannot handle [ChangeMapRequest] because the acting character %d cannot be located.", s.CharacterId())
 				return
 			}
 
-			portal, err := portal2.GetPortalByName(ca.MapId(), p.StartWarp())
+			portal, err := portal2.GetPortalByName(l)(ca.MapId(), p.StartWarp())
 			if err != nil {
 				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), s.CharacterId())
 				return

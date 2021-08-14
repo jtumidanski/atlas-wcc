@@ -30,7 +30,7 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 
 func CharacterAliveValidator() request2.MessageValidator {
 	return func(l logrus.FieldLogger, s *session.Model) bool {
-		v := account.IsLoggedIn(s.AccountId())
+		v := account.IsLoggedIn(l)(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
 			err := s.Announce(writer.WriteEnableActions(l))
@@ -40,7 +40,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 			return false
 		}
 
-		ca, err := character.GetCharacterAttributesById(s.CharacterId())
+		ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			err = s.Announce(writer.WriteEnableActions(l))
@@ -66,13 +66,13 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
-		ca, err := character.GetCharacterAttributesById(s.CharacterId())
+		ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			return
 		}
 
-		npcs, err := npc2.GetInMapByObjectId(ca.MapId(), p.ObjectId())
+		npcs, err := npc2.GetInMapByObjectId(l)(ca.MapId(), p.ObjectId())
 		if err != nil || len(npcs) != 1 {
 			l.WithError(err).Errorf("Unable to locate npc %d in map %d.", p.ObjectId(), ca.MapId())
 			return
@@ -94,7 +94,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 			return
 		}
 		if hasShop(l)(npc.Id()) {
-			ns, err := shop.GetShop(npc.Id())
+			ns, err := shop.GetShop(l)(npc.Id())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return

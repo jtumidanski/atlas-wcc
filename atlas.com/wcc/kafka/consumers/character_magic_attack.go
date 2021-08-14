@@ -36,7 +36,7 @@ func HandleMagicAttackEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, writeMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge))
+			session.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, writeMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

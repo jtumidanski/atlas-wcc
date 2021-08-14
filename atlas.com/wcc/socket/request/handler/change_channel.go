@@ -40,7 +40,7 @@ func ChangeChannelHandler() request2.MessageHandler {
 		// not being dead
 		// not being in a mini dungeon
 
-		channel, err := channel2.GetForWorld(s.WorldId(), p.ChannelId())
+		channel, err := channel2.GetForWorld(l)(s.WorldId(), p.ChannelId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
 			return

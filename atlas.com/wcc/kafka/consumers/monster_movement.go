@@ -38,7 +38,7 @@ func HandleMonsterMovementEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachOtherInMap(wid, cid, event.ObserverId, moveMonster(l, event))
+			session.ForEachOtherInMap(l)(wid, cid, event.ObserverId, moveMonster(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

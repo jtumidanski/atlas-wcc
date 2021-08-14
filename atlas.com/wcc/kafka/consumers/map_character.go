@@ -35,7 +35,7 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 			if event.Type == "ENTER" {
 				session.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
 			} else if event.Type == "EXIT" {
-				session.ForEachOtherInMap(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
+				session.ForEachOtherInMap(l)(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
 			} else {
 				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
@@ -48,14 +48,14 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 
 func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 	return func(s *session.Model) {
-		cIds, err := character.GetCharacterIdsInMap(event.WorldId, event.ChannelId, event.MapId)
+		cIds, err := character.GetCharacterIdsInMap(l)(event.WorldId, event.ChannelId, event.MapId)
 		if err != nil {
 			return
 		}
 
 		cm := make(map[uint32]*character.Model)
 		for _, cId := range cIds {
-			c, err := character.GetCharacterById(cId)
+			c, err := character.GetCharacterById(l)(cId)
 			if err != nil {
 				//log something
 			} else {
@@ -85,13 +85,13 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 		}
 
 		// Spawn NPCs for incoming character.
-		npc.ForEachInMap(event.MapId, spawnNPCForSession(l)(s))
+		npc.ForEachInMap(l)(event.MapId, spawnNPCForSession(l)(s))
 
 		// Spawn monsters for incoming character.
-		monster.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
+		monster.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
 
 		// Spawn drops for incoming character.
-		drop.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
+		drop.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
 	}
 }
 

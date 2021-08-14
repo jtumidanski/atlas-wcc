@@ -24,7 +24,7 @@ func HandleCharacterLevelEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachOtherInMap(wid, cid, event.CharacterId, showForeignEffect(l, event))
+			session.ForEachOtherInMap(l)(wid, cid, event.CharacterId, showForeignEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

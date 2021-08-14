@@ -29,7 +29,7 @@ func readCharacterLoggedInRequest(reader *request.RequestReader) characterLogged
 func CharacterLoggedInHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readCharacterLoggedInRequest(r)
-		c, err := character.GetCharacterById(p.CharacterId())
+		c, err := character.GetCharacterById(l)(p.CharacterId())
 		if err != nil {
 			return
 		}

@@ -33,7 +33,7 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 func GeneralChatHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
-		ca, err := character.GetCharacterAttributesById(s.CharacterId())
+		ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", s.CharacterId())
 			return

@@ -2,21 +2,24 @@ package channel
 
 import (
 	"errors"
+	"github.com/sirupsen/logrus"
 )
 
-func GetForWorld(worldId byte, channelId byte) (*Model, error) {
-	r, err := requestChannelsForWorld(worldId)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, x := range r.DataList() {
-		w := makeChannel(x)
-		if w.ChannelId() == channelId {
-			return &w, nil
+func GetForWorld(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
+	return func(worldId byte, channelId byte) (*Model, error) {
+		r, err := requestChannelsForWorld(l)(worldId)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, x := range r.DataList() {
+			w := makeChannel(x)
+			if w.ChannelId() == channelId {
+				return &w, nil
+			}
+		}
+		return nil, errors.New("unable to locate channel for world")
 	}
-	return nil, errors.New("unable to locate channel for world")
 }
 
 func makeChannel(data dataBody) Model {

@@ -35,7 +35,7 @@ func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 
 func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.Operator {
 	return func(s *session.Model) {
-		ca, err := character.GetCharacterAttributesById(event.CharacterId)
+		ca, err := character.GetCharacterAttributesById(l)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
 			return

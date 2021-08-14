@@ -31,7 +31,7 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			m, err := monster.GetById(event.UniqueId)
+			m, err := monster.GetById(l)(event.UniqueId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
@@ -47,7 +47,7 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(wid, cid, event.MapId, h)
+			session.ForEachInMap(l)(wid, cid, event.MapId, h)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

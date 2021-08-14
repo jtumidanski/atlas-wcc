@@ -25,7 +25,7 @@ func HandleMPEaterEvent() ChannelEventProcessor {
 	return func(l logrus.FieldLogger, wid byte, cid byte, c interface{}) {
 		if event, ok := c.(*mpEaterEvent); ok {
 			session.ForSessionByCharacterId(event.CharacterId, showMPEaterEffect(l, event))
-			session.ForEachOtherInMap(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
+			session.ForEachOtherInMap(l)(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

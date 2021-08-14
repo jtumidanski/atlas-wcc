@@ -3,6 +3,7 @@ package npc
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -13,20 +14,24 @@ const (
 	npcsInMapByObjectId                = mapsResource + "%d/npcs?objectId=%d"
 )
 
-func requestNPCsInMap(mapId uint32) (*dataContainer, error) {
-	ar := &dataContainer{}
-	err := requests.Get(fmt.Sprintf(npcsInMap, mapId), ar)
-	if err != nil {
-		return nil, err
+func requestNPCsInMap(l logrus.FieldLogger) func(mapId uint32) (*dataContainer, error) {
+	return func(mapId uint32) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(npcsInMap, mapId), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }
 
-func requestNPCsInMapByObjectId(mapId uint32, objectId uint32) (*dataContainer, error) {
-	ar := &dataContainer{}
-	err := requests.Get(fmt.Sprintf(npcsInMapByObjectId, mapId, objectId), ar)
-	if err != nil {
-		return nil, err
+func requestNPCsInMapByObjectId(l logrus.FieldLogger) func(mapId uint32, objectId uint32) (*dataContainer, error) {
+	return func(mapId uint32, objectId uint32) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l)(fmt.Sprintf(npcsInMapByObjectId, mapId, objectId), ar)
+		if err != nil {
+			return nil, err
+		}
+		return ar, nil
 	}
-	return ar, nil
 }

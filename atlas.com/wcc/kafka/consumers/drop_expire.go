@@ -27,7 +27,7 @@ func HandleDropExpireEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(wid, cid, event.MapId, expireItem(l, event))
+			session.ForEachInMap(l)(wid, cid, event.MapId, expireItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

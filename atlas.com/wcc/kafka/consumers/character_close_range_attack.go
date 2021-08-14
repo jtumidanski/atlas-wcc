@@ -35,7 +35,7 @@ func HandleCloseRangeAttackEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(l, event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
+			session.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, writeCloseRangeAttack(l, event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

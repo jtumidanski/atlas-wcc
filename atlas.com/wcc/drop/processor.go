@@ -1,6 +1,7 @@
 package drop
 
 import (
+	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
@@ -16,34 +17,40 @@ func ExecuteForEach(f Operator) SliceOperator {
 	}
 }
 
-func ForEachInMap(worldId byte, channelId byte, mapId uint32, f Operator) {
-	ForDropsInMap(worldId, channelId, mapId, ExecuteForEach(f))
+func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
+		ForDropsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+	}
 }
 
-func ForDropsInMap(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-	drops, err := GetInMap(worldId, channelId, mapId)
-	if err != nil {
-		return
-	}
-	f(drops)
-}
-
-func GetInMap(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-	resp, err := requestDropsInMap(worldId, channelId, mapId)
-	if err != nil {
-		return nil, err
-	}
-
-	ns := make([]Model, 0)
-	for _, d := range resp.DataList() {
-		id, err := strconv.ParseUint(d.Id, 10, 32)
+func ForDropsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+		drops, err := GetInMap(l)(worldId, channelId, mapId)
 		if err != nil {
-			break
+			return
 		}
-		n := makeDrop(uint32(id), d.Attributes)
-		ns = append(ns, n)
+		f(drops)
 	}
-	return ns, nil
+}
+
+func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+		resp, err := requestDropsInMap(l)(worldId, channelId, mapId)
+		if err != nil {
+			return nil, err
+		}
+
+		ns := make([]Model, 0)
+		for _, d := range resp.DataList() {
+			id, err := strconv.ParseUint(d.Id, 10, 32)
+			if err != nil {
+				break
+			}
+			n := makeDrop(uint32(id), d.Attributes)
+			ns = append(ns, n)
+		}
+		return ns, nil
+	}
 }
 
 func makeDrop(id uint32, att attributes) Model {

@@ -24,14 +24,16 @@ func HasShop(l logrus.FieldLogger) func(npcId uint32) bool {
 	}
 }
 
-func GetShop(npcId uint32) (*Model, error) {
+func GetShop(l logrus.FieldLogger) func(npcId uint32) (*Model, error) {
+	return func(npcId uint32) (*Model, error) {
 		d := &dataContainer{}
-		err := requests.Get(fmt.Sprintf(npcShopResource, npcId), d)
+		err := requests.Get(l)(fmt.Sprintf(npcShopResource, npcId), d)
 		if err != nil {
 			return nil, err
 		}
 
 		return makeShop(d)
+	}
 }
 
 func makeShop(d *dataContainer) (*Model, error) {

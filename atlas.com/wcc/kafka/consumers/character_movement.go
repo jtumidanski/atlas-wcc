@@ -30,7 +30,7 @@ func HandleCharacterMovementEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachOtherInMap(wid, cid, event.CharacterId, moveCharacter(l, event))
+			session.ForEachOtherInMap(l)(wid, cid, event.CharacterId, moveCharacter(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

@@ -55,7 +55,7 @@ func writeInventoryModification(l logrus.FieldLogger, event *characterInventoryM
 					// create dummy item for removal.
 					item = inventory.NewItem(m.ItemId, m.Position, 1)
 				} else {
-					e, err := character.GetEquipItemForCharacter(event.CharacterId, m.Position)
+					e, err := character.GetEquipItemForCharacter(l)(event.CharacterId, m.Position)
 					if err != nil {
 						l.WithError(err).Errorf("Retrieving equipment in position %d for character %d.", m.Position, event.CharacterId)
 						continue

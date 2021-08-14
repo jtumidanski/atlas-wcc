@@ -95,7 +95,7 @@ func (p attackPacket) Y() int16 {
    return p.y
 }
 
-func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged bool, magic bool) attackPacket {
+func readAttackPacket(l logrus.FieldLogger, reader *request.RequestReader, characterId uint32, ranged bool, magic bool) attackPacket {
    reader.ReadByte()
    numberAttackedAndDamaged := reader.ReadByte()
    numberAttacked := numberAttackedAndDamaged >> 4 & 0xF
@@ -120,7 +120,7 @@ func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged 
       speed = reader.ReadByte()
       reader.Skip(4)
    }
-   calculatedMaximumDamage := character.GetCharacterWeaponDamage(characterId)
+   calculatedMaximumDamage := character.GetCharacterWeaponDamage(l)(characterId)
    bonusDamageBuff := uint32(100)
    if bonusDamageBuff != 100 {
       damageBuff := bonusDamageBuff / 100
@@ -174,9 +174,9 @@ func readAttackPacket(reader *request.RequestReader, characterId uint32, ranged 
 
 func CharacterCloseRangeAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
-      p := readAttackPacket(r, s.CharacterId(), false, false)
+      p := readAttackPacket(l, r, s.CharacterId(), false, false)
 
-      catt, err := character.GetCharacterAttributesById(s.CharacterId())
+      catt, err := character.GetCharacterAttributesById(l)(s.CharacterId())
       if err != nil {
          l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", s.CharacterId())
          return

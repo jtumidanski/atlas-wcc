@@ -38,7 +38,7 @@ func HandleChangeMapEvent() ChannelEventProcessor {
 
 func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.Operator {
 	return func(s *session.Model) {
-		catt, err := requests.Character().GetCharacterAttributesById(event.CharacterId)
+		catt, err := requests.GetCharacterAttributesById(l)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return

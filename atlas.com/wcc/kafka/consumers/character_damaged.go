@@ -36,7 +36,7 @@ func HandleCharacterDamagedEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(wid, cid, event.MapId, writeCharacterDamaged(l, *event))
+			session.ForEachInMap(l)(wid, cid, event.MapId, writeCharacterDamaged(l, *event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

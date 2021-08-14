@@ -14,7 +14,7 @@ func NoOpValidator(_ logrus.FieldLogger, _ *session.Model) bool {
 }
 
 func LoggedInValidator(l logrus.FieldLogger, s *session.Model) bool {
-	v := account.IsLoggedIn(s.AccountId())
+	v := account.IsLoggedIn(l)(s.AccountId())
 	if !v {
 		l.Errorf("Attempting to process a request when the account %d is not logged in.", s.SessionId())
 	}

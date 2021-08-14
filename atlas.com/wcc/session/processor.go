@@ -2,6 +2,7 @@ package session
 
 import (
 	"atlas-wcc/character"
+	"github.com/sirupsen/logrus"
 )
 
 // Operator function which performs an operation on a single session
@@ -45,16 +46,18 @@ func ForSessionByCharacterId(characterId uint32, f Operator) {
 }
 
 // GetOtherInMap a Getter which will retrieve all sessions for characters in the given map, not identified by the supplied characterId
-func GetOtherInMap(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
-	return func() []*Model {
-		cs, err := character.GetCharacterIdsInMap(worldId, channelId, mapId)
-		if err != nil {
-			return nil
+func GetOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
+	return func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
+		return func() []*Model {
+			cs, err := character.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			if err != nil {
+				return nil
+			}
+			if len(cs) <= 0 {
+				return nil
+			}
+			return getAllFiltered(CharacterIdInFilter(cs), CharacterIdNotFilter(characterId))
 		}
-		if len(cs) <= 0 {
-			return nil
-		}
-		return getAllFiltered(CharacterIdInFilter(cs), CharacterIdNotFilter(characterId))
 	}
 }
 
@@ -79,42 +82,52 @@ func CharacterIdInFilter(validIds []uint32) Filter {
 	}
 }
 
-// GetInMap a Getter which which retrieve all sessions which reside in the identified map
-func GetInMap(worldId byte, channelId byte, mapId uint32) Getter {
-	return func() []*Model {
-		cs, err := character.GetCharacterIdsInMap(worldId, channelId, mapId)
-		if err != nil {
-			return nil
+// GetInMap a Getter which retrieve all sessions which reside in the identified map
+func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) Getter {
+	return func(worldId byte, channelId byte, mapId uint32) Getter {
+		return func() []*Model {
+			cs, err := character.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			if err != nil {
+				return nil
+			}
+			if len(cs) <= 0 {
+				return nil
+			}
+			return getAllFiltered(CharacterIdInFilter(cs))
 		}
-		if len(cs) <= 0 {
-			return nil
-		}
-		return getAllFiltered(CharacterIdInFilter(cs))
 	}
 }
 
 // ForEachOtherInMap executes a Operator for all sessions in the identified map, aside from the session of the provided characterId
-func ForEachOtherInMap(worldId byte, channelId byte, characterId uint32, f Operator) {
-	ForOtherInMap(worldId, channelId, characterId, ExecuteForEach(f))
+func ForEachOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, f Operator) {
+	return func(worldId byte, channelId byte, characterId uint32, f Operator) {
+	ForOtherInMap(l)(worldId, channelId, characterId, ExecuteForEach(f))
+	}
 }
 
 // ForOtherInMap executes a SliceOperator for all sessions in the identified map, aside from the session of the provided characterId
-func ForOtherInMap(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
-	c, err := character.GetCharacterAttributesById(characterId)
-	if err != nil {
-		return
+func ForOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
+	return func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
+		c, err := character.GetCharacterAttributesById(l)(characterId)
+		if err != nil {
+			return
+		}
+		forSessions(GetOtherInMap(l)(worldId, channelId, c.MapId(), characterId), f)
 	}
-	forSessions(GetOtherInMap(worldId, channelId, c.MapId(), characterId), f)
 }
 
 // ForEachInMap executes a Operator for all sessions in the identified map
-func ForEachInMap(worldId byte, channelId byte, mapId uint32, f Operator) {
-	ForSessionsInMap(worldId, channelId, mapId, ExecuteForEach(f))
+func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
+		ForSessionsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+	}
 }
 
 // ForSessionsInMap executes a SliceOperator for all sessions in the identified map
-func ForSessionsInMap(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-	forSessions(GetInMap(worldId, channelId, mapId), f)
+func ForSessionsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+		forSessions(GetInMap(l)(worldId, channelId, mapId), f)
+	}
 }
 
 // ForEachGM executes a Operator for all sessions which correspond to GMs

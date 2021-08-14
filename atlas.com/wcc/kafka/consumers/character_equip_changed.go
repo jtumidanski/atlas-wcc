@@ -26,7 +26,7 @@ func HandleCharacterEquipChangedEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachOtherInMap(wid, cid, event.CharacterId, updateCharacterLook(l, event.CharacterId))
+			session.ForEachOtherInMap(l)(wid, cid, event.CharacterId, updateCharacterLook(l, event.CharacterId))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
@@ -35,12 +35,12 @@ func HandleCharacterEquipChangedEvent() ChannelEventProcessor {
 
 func updateCharacterLook(l logrus.FieldLogger, characterId uint32) session.Operator {
 	return func(s *session.Model) {
-		r, err := character.GetCharacterById(s.CharacterId())
+		r, err := character.GetCharacterById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d details.", s.CharacterId())
 			return
 		}
-		c, err := character.GetCharacterById(characterId)
+		c, err := character.GetCharacterById(l)(characterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d details.", characterId)
 			return

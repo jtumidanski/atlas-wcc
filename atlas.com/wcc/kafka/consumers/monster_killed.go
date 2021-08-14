@@ -38,7 +38,7 @@ func HandleMonsterKilledEvent() ChannelEventProcessor {
 			}
 
 			l.Infof("Character %d killed %d.", event.UniqueId, event.KillerId)
-			session.ForEachInMap(wid, cid, event.MapId, killMonster(l, event))
+			session.ForEachInMap(l)(wid, cid, event.MapId, killMonster(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

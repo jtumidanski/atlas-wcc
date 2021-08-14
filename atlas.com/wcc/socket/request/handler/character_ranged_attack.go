@@ -13,9 +13,9 @@ const OpCharacterRangedAttack uint16 = 0x2D
 
 func CharacterRangedAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
-      p := readAttackPacket(r, s.CharacterId(), true, false)
+      p := readAttackPacket(l, r, s.CharacterId(), true, false)
 
-      catt, err := character.GetCharacterAttributesById(s.CharacterId())
+      catt, err := character.GetCharacterAttributesById(l)(s.CharacterId())
       if err != nil {
          l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", s.CharacterId())
          return
