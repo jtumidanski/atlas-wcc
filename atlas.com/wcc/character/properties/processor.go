@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-func GetById(l logrus.FieldLogger) func(characterId uint32) (*Properties, error) {
-	return func(characterId uint32) (*Properties, error) {
+func GetById(l logrus.FieldLogger) func(characterId uint32) (*Model, error) {
+	return func(characterId uint32) (*Model, error) {
 		cs, err := requestPropertiesById(l)(characterId)
 		if err != nil {
 			return nil, err
@@ -20,13 +20,13 @@ func GetById(l logrus.FieldLogger) func(characterId uint32) (*Properties, error)
 	}
 }
 
-func makeProperties(ca *DataBody) *Properties {
+func makeProperties(ca *DataBody) *Model {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
 		return nil
 	}
 	att := ca.Attributes
-	r := NewPropertiesBuilder().
+	r := NewBuilder().
 		SetId(uint32(cid)).
 		SetAccountId(att.AccountId).
 		SetWorldId(att.WorldId).

@@ -8,14 +8,14 @@ import (
 )
 
 type Model struct {
-	attributes properties.Properties
+	attributes properties.Model
 	equipment  []inventory2.EquippedItem
 	inventory  inventory2.Inventory
 	skills     []skill.Model
 	pets       []pet.Model
 }
 
-func (c Model) Attributes() properties.Properties {
+func (c Model) Attributes() properties.Model {
 	return c.attributes
 }
 
@@ -39,6 +39,6 @@ func (c Model) SetInventory(i inventory2.Inventory) Model {
 	return Model{c.attributes, c.equipment, i, c.skills, c.pets}
 }
 
-func NewCharacter(attributes properties.Properties, equipment []inventory2.EquippedItem, skills []skill.Model, pets []pet.Model) Model {
+func NewCharacter(attributes properties.Model, equipment []inventory2.EquippedItem, skills []skill.Model, pets []pet.Model) Model {
 	return Model{attributes, equipment, inventory2.EmptyInventory(), skills, pets}
 }

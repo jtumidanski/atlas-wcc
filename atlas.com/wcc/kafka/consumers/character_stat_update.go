@@ -52,7 +52,7 @@ func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.
 	}
 }
 
-func getStatUpdate(ca *properties.Properties, stat string) writer.StatUpdate {
+func getStatUpdate(ca *properties.Model, stat string) writer.StatUpdate {
 	switch stat {
 	case "EXPERIENCE":
 		return writer.NewStatUpdate(writer.StatUpdateExperience, ca.Experience())

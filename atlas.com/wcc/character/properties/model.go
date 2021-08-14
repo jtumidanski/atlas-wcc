@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type Properties struct {
+type Model struct {
 	id                 uint32
 	accountId          uint32
 	worldId            byte
@@ -43,99 +43,99 @@ type Properties struct {
 	stance             byte
 }
 
-func (a Properties) Gm() bool {
+func (a Model) Gm() bool {
 	return a.gm
 }
 
-func (a Properties) GmJob() bool {
+func (a Model) GmJob() bool {
 	return a.gmJob
 }
 
-func (a Properties) Rank() int {
+func (a Model) Rank() int {
 	return a.rank
 }
 
-func (a Properties) RankMove() int {
+func (a Model) RankMove() int {
 	return a.rankMove
 }
 
-func (a Properties) JobRank() int {
+func (a Model) JobRank() int {
 	return a.jobRank
 }
 
-func (a Properties) JobRankMove() int {
+func (a Model) JobRankMove() int {
 	return a.jobRankMove
 }
 
-func (a Properties) Id() uint32 {
+func (a Model) Id() uint32 {
 	return a.id
 }
 
-func (a Properties) Name() string {
+func (a Model) Name() string {
 	return a.name
 }
 
-func (a Properties) Gender() byte {
+func (a Model) Gender() byte {
 	return a.gender
 }
 
-func (a Properties) SkinColor() byte {
+func (a Model) SkinColor() byte {
 	return a.skinColor
 }
 
-func (a Properties) Face() uint32 {
+func (a Model) Face() uint32 {
 	return a.face
 }
 
-func (a Properties) Hair() uint32 {
+func (a Model) Hair() uint32 {
 	return a.hair
 }
 
-func (a Properties) Level() byte {
+func (a Model) Level() byte {
 	return a.level
 }
 
-func (a Properties) JobId() uint16 {
+func (a Model) JobId() uint16 {
 	return a.jobId
 }
 
-func (a Properties) Strength() uint16 {
+func (a Model) Strength() uint16 {
 	return a.strength
 }
 
-func (a Properties) Dexterity() uint16 {
+func (a Model) Dexterity() uint16 {
 	return a.dexterity
 }
 
-func (a Properties) Intelligence() uint16 {
+func (a Model) Intelligence() uint16 {
 	return a.intelligence
 }
 
-func (a Properties) Luck() uint16 {
+func (a Model) Luck() uint16 {
 	return a.luck
 }
 
-func (a Properties) Hp() uint16 {
+func (a Model) Hp() uint16 {
 	return a.hp
 }
 
-func (a Properties) MaxHp() uint16 {
+func (a Model) MaxHp() uint16 {
 	return a.maxHp
 }
 
-func (a Properties) Mp() uint16 {
+func (a Model) Mp() uint16 {
 	return a.mp
 }
 
-func (a Properties) MaxMp() uint16 {
+func (a Model) MaxMp() uint16 {
 	return a.maxMp
 }
 
-func (a Properties) Ap() uint16 {
+func (a Model) Ap() uint16 {
 	return a.ap
 }
 
-func (a Properties) HasSPTable() bool {
+func (a Model) HasSPTable() bool {
 	switch a.jobId {
 	case 2001:
 		return true
@@ -164,7 +164,7 @@ func (a Properties) HasSPTable() bool {
 	}
 }
 
-func (a Properties) Sp() []uint16 {
+func (a Model) Sp() []uint16 {
 	s := strings.Split(a.sp, ",")
 	var sps = make([]uint16, 0)
 	for _, x := range s {
@@ -176,64 +176,64 @@ func (a Properties) Sp() []uint16 {
 	return sps
 }
 
-func (a Properties) RemainingSp() uint16 {
+func (a Model) RemainingSp() uint16 {
 	return a.Sp()[a.skillBook()]
 
 }
 
-func (a Properties) skillBook() uint16 {
+func (a Model) skillBook() uint16 {
 	if a.jobId >= 2210 && a.jobId <= 2218 {
 		return a.jobId - 2209
 	}
 	return 0
 }
 
-func (a Properties) Experience() uint32 {
+func (a Model) Experience() uint32 {
 	return a.experience
 }
 
-func (a Properties) Fame() int16 {
+func (a Model) Fame() int16 {
 	return a.fame
 }
 
-func (a Properties) GachaponExperience() uint32 {
+func (a Model) GachaponExperience() uint32 {
 	return a.gachaponExperience
 }
 
-func (a Properties) SpawnPoint() byte {
+func (a Model) SpawnPoint() byte {
 	return a.spawnPoint
 }
 
-func (a Properties) WorldId() byte {
+func (a Model) WorldId() byte {
 	return a.worldId
 }
 
-func (a Properties) MapId() uint32 {
+func (a Model) MapId() uint32 {
 	return a.mapId
 }
 
-func (a Properties) AccountId() uint32 {
+func (a Model) AccountId() uint32 {
 	return a.accountId
 }
 
-func (a Properties) Meso() uint32 {
+func (a Model) Meso() uint32 {
 	return a.meso
 }
 
-func (a Properties) X() int16 {
+func (a Model) X() int16 {
 	return a.x
 }
 
-func (a Properties) Y() int16 {
+func (a Model) Y() int16 {
 	return a.y
 }
 
-func (a Properties) Stance() byte {
+func (a Model) Stance() byte {
 	return a.stance
 }
 
 
-type propertiesBuilder struct {
+type builder struct {
 	id                 uint32
 	accountId          uint32
 	worldId            byte
@@ -271,187 +271,187 @@ type propertiesBuilder struct {
 	stance             byte
 }
 
-func NewPropertiesBuilder() *propertiesBuilder {
-	return &propertiesBuilder{}
+func NewBuilder() *builder {
+	return &builder{}
 }
 
-func (c *propertiesBuilder) SetId(id uint32) *propertiesBuilder {
+func (c *builder) SetId(id uint32) *builder {
 	c.id = id
 	return c
 }
 
-func (c *propertiesBuilder) SetAccountId(accountId uint32) *propertiesBuilder {
+func (c *builder) SetAccountId(accountId uint32) *builder {
 	c.accountId = accountId
 	return c
 }
 
-func (c *propertiesBuilder) SetWorldId(worldId byte) *propertiesBuilder {
+func (c *builder) SetWorldId(worldId byte) *builder {
 	c.worldId = worldId
 	return c
 }
 
-func (c *propertiesBuilder) SetName(name string) *propertiesBuilder {
+func (c *builder) SetName(name string) *builder {
 	c.name = name
 	return c
 }
 
-func (c *propertiesBuilder) SetGender(gender byte) *propertiesBuilder {
+func (c *builder) SetGender(gender byte) *builder {
 	c.gender = gender
 	return c
 }
 
-func (c *propertiesBuilder) SetSkinColor(skinColor byte) *propertiesBuilder {
+func (c *builder) SetSkinColor(skinColor byte) *builder {
 	c.skinColor = skinColor
 	return c
 }
 
-func (c *propertiesBuilder) SetFace(face uint32) *propertiesBuilder {
+func (c *builder) SetFace(face uint32) *builder {
 	c.face = face
 	return c
 }
 
-func (c *propertiesBuilder) SetHair(hair uint32) *propertiesBuilder {
+func (c *builder) SetHair(hair uint32) *builder {
 	c.hair = hair
 	return c
 }
 
-func (c *propertiesBuilder) SetLevel(level byte) *propertiesBuilder {
+func (c *builder) SetLevel(level byte) *builder {
 	c.level = level
 	return c
 }
 
-func (c *propertiesBuilder) SetJobId(jobId uint16) *propertiesBuilder {
+func (c *builder) SetJobId(jobId uint16) *builder {
 	c.jobId = jobId
 	return c
 }
 
-func (c *propertiesBuilder) SetStrength(strength uint16) *propertiesBuilder {
+func (c *builder) SetStrength(strength uint16) *builder {
 	c.strength = strength
 	return c
 }
 
-func (c *propertiesBuilder) SetDexterity(dexterity uint16) *propertiesBuilder {
+func (c *builder) SetDexterity(dexterity uint16) *builder {
 	c.dexterity = dexterity
 	return c
 }
 
-func (c *propertiesBuilder) SetIntelligence(intelligence uint16) *propertiesBuilder {
+func (c *builder) SetIntelligence(intelligence uint16) *builder {
 	c.intelligence = intelligence
 	return c
 }
 
-func (c *propertiesBuilder) SetLuck(luck uint16) *propertiesBuilder {
+func (c *builder) SetLuck(luck uint16) *builder {
 	c.luck = luck
 	return c
 }
 
-func (c *propertiesBuilder) SetHp(hp uint16) *propertiesBuilder {
+func (c *builder) SetHp(hp uint16) *builder {
 	c.hp = hp
 	return c
 }
 
-func (c *propertiesBuilder) SetMaxHp(maxHp uint16) *propertiesBuilder {
+func (c *builder) SetMaxHp(maxHp uint16) *builder {
 	c.maxHp = maxHp
 	return c
 }
 
-func (c *propertiesBuilder) SetMp(mp uint16) *propertiesBuilder {
+func (c *builder) SetMp(mp uint16) *builder {
 	c.mp = mp
 	return c
 }
 
-func (c *propertiesBuilder) SetMaxMp(maxMp uint16) *propertiesBuilder {
+func (c *builder) SetMaxMp(maxMp uint16) *builder {
 	c.maxMp = maxMp
 	return c
 }
 
-func (c *propertiesBuilder) SetAp(ap uint16) *propertiesBuilder {
+func (c *builder) SetAp(ap uint16) *builder {
 	c.ap = ap
 	return c
 }
 
-func (c *propertiesBuilder) SetSp(sp string) *propertiesBuilder {
+func (c *builder) SetSp(sp string) *builder {
 	c.sp = sp
 	return c
 }
 
-func (c *propertiesBuilder) SetExperience(experience uint32) *propertiesBuilder {
+func (c *builder) SetExperience(experience uint32) *builder {
 	c.experience = experience
 	return c
 }
 
-func (c *propertiesBuilder) SetFame(fame int16) *propertiesBuilder {
+func (c *builder) SetFame(fame int16) *builder {
 	c.fame = fame
 	return c
 }
 
-func (c *propertiesBuilder) SetGachaponExperience(gachaponExperience uint32) *propertiesBuilder {
+func (c *builder) SetGachaponExperience(gachaponExperience uint32) *builder {
 	c.gachaponExperience = gachaponExperience
 	return c
 }
 
-func (c *propertiesBuilder) SetMapId(mapId uint32) *propertiesBuilder {
+func (c *builder) SetMapId(mapId uint32) *builder {
 	c.mapId = mapId
 	return c
 }
 
-func (c *propertiesBuilder) SetSpawnPoint(spawnPoint byte) *propertiesBuilder {
+func (c *builder) SetSpawnPoint(spawnPoint byte) *builder {
 	c.spawnPoint = spawnPoint
 	return c
 }
 
-func (c *propertiesBuilder) SetGm(gm bool) *propertiesBuilder {
+func (c *builder) SetGm(gm bool) *builder {
 	c.gm = gm
 	return c
 }
 
-func (c *propertiesBuilder) SetGmJob(gmJob bool) *propertiesBuilder {
+func (c *builder) SetGmJob(gmJob bool) *builder {
 	c.gmJob = gmJob
 	return c
 }
 
-func (c *propertiesBuilder) SetRank(rank int) *propertiesBuilder {
+func (c *builder) SetRank(rank int) *builder {
 	c.rank = rank
 	return c
 }
 
-func (c *propertiesBuilder) SetRankMove(rankMove int) *propertiesBuilder {
+func (c *builder) SetRankMove(rankMove int) *builder {
 	c.rankMove = rankMove
 	return c
 }
 
-func (c *propertiesBuilder) SetJobRank(jobRank int) *propertiesBuilder {
+func (c *builder) SetJobRank(jobRank int) *builder {
 	c.jobRank = jobRank
 	return c
 }
 
-func (c *propertiesBuilder) SetJobRankMove(jobRankMove int) *propertiesBuilder {
+func (c *builder) SetJobRankMove(jobRankMove int) *builder {
 	c.jobRankMove = jobRankMove
 	return c
 }
 
-func (c *propertiesBuilder) SetMeso(meso uint32) *propertiesBuilder {
+func (c *builder) SetMeso(meso uint32) *builder {
 	c.meso = meso
 	return c
 }
 
-func (c *propertiesBuilder) SetX(x int16) *propertiesBuilder {
+func (c *builder) SetX(x int16) *builder {
 	c.x = x
 	return c
 }
 
-func (c *propertiesBuilder) SetY(y int16) *propertiesBuilder {
+func (c *builder) SetY(y int16) *builder {
 	c.y = y
 	return c
 }
 
-func (c *propertiesBuilder) SetStance(stance byte) *propertiesBuilder {
+func (c *builder) SetStance(stance byte) *builder {
 	c.stance = stance
 	return c
 }
 
-func (c *propertiesBuilder) Build() Properties {
-	return Properties{
+func (c *builder) Build() Model {
+	return Model{
 		id:                 c.id,
 		accountId:          c.accountId,
 		worldId:            c.worldId,

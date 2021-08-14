@@ -28,8 +28,8 @@ func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, er
 	}
 }
 
-func getCharacterForAttributes(l logrus.FieldLogger) func(data *properties.Properties) (*Model, error) {
-	return func(data *properties.Properties) (*Model, error) {
+func getCharacterForAttributes(l logrus.FieldLogger) func(data *properties.Model) (*Model, error) {
+	return func(data *properties.Model) (*Model, error) {
 		eq, err := getEquippedItemsForCharacter(l)(data.Id())
 		if err != nil {
 			return nil, err
