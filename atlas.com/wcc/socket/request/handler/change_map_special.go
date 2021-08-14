@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/producers"
 	portal2 "atlas-wcc/portal"
 	"atlas-wcc/session"
@@ -30,7 +30,7 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 func ChangeMapSpecialHandler() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
-		c, err := character.GetCharacterAttributesById(l)(s.CharacterId())
+		c, err := properties.GetById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot handle [ChangeMapSpecialRequest] because the acting character %d cannot be located.", s.CharacterId())
 			return

@@ -1,8 +1,8 @@
 package consumers
 
 import (
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/handler"
-	"atlas-wcc/rest/requests"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
@@ -38,12 +38,12 @@ func HandleChangeMapEvent() ChannelEventProcessor {
 
 func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.Operator {
 	return func(s *session.Model) {
-		catt, err := requests.GetCharacterAttributesById(l)(event.CharacterId)
+		catt, err := properties.GetById(l)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return
 		}
-		err = s.Announce(writer.WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Data().Attributes.Hp))
+		err = s.Announce(writer.WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Hp()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to warp character %d to map %d", event.CharacterId, event.MapId)
 		}

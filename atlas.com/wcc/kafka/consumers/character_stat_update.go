@@ -1,7 +1,7 @@
 package consumers
 
 import (
-	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
@@ -35,7 +35,7 @@ func HandleCharacterStatUpdateEvent() ChannelEventProcessor {
 
 func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.Operator {
 	return func(s *session.Model) {
-		ca, err := character.GetCharacterAttributesById(l)(event.CharacterId)
+		ca, err := properties.GetById(l)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
 			return
@@ -52,7 +52,7 @@ func updateStats(l logrus.FieldLogger, event *CharacterStatUpdateEvent) session.
 	}
 }
 
-func getStatUpdate(ca *character.Properties, stat string) writer.StatUpdate {
+func getStatUpdate(ca *properties.Properties, stat string) writer.StatUpdate {
 	switch stat {
 	case "EXPERIENCE":
 		return writer.NewStatUpdate(writer.StatUpdateExperience, ca.Experience())

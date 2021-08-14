@@ -1,6 +1,7 @@
 package character
 
 import (
+	"atlas-wcc/character/properties"
 	"atlas-wcc/character/skill"
 	"atlas-wcc/inventory"
 	"atlas-wcc/map"
@@ -12,54 +13,14 @@ import (
 	"strconv"
 )
 
-func makeCharacterAttributes(ca *attributes.CharacterAttributesData) *Properties {
-	cid, err := strconv.ParseUint(ca.Id, 10, 32)
-	if err != nil {
-		return nil
-	}
-	att := ca.Attributes
-	r := NewCharacterAttributeBuilder().
-		SetId(uint32(cid)).
-		SetAccountId(att.AccountId).
-		SetWorldId(att.WorldId).
-		SetName(att.Name).
-		SetGender(att.Gender).
-		SetSkinColor(att.SkinColor).
-		SetFace(att.Face).
-		SetHair(att.Hair).
-		SetLevel(att.Level).
-		SetJobId(att.JobId).
-		SetStrength(att.Strength).
-		SetDexterity(att.Dexterity).
-		SetIntelligence(att.Intelligence).
-		SetLuck(att.Luck).
-		SetHp(att.Hp).
-		SetMaxHp(att.MaxHp).
-		SetMp(att.Mp).
-		SetMaxMp(att.MaxMp).
-		SetAp(att.Ap).
-		SetSp(att.Sp).
-		SetExperience(att.Experience).
-		SetFame(att.Fame).
-		SetGachaponExperience(att.GachaponExperience).
-		SetMapId(att.MapId).
-		SetSpawnPoint(att.SpawnPoint).
-		SetMeso(att.Meso).
-		SetX(att.X).
-		SetY(att.Y).
-		SetStance(att.Stance).
-		Build()
-	return &r
-}
-
 func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, error) {
 	return func(characterId uint32) (*Model, error) {
-		cs, err := requests.GetCharacterAttributesById(l)(characterId)
+		cs, err := properties.GetById(l)(characterId)
 		if err != nil {
 			return nil, err
 		}
 
-		c, err := getCharacterForAttributes(l)(cs.Data())
+		c, err := getCharacterForAttributes(l)(cs)
 		if err != nil {
 			return nil, err
 		}
@@ -67,28 +28,9 @@ func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, er
 	}
 }
 
-func GetCharacterAttributesById(l logrus.FieldLogger) func(characterId uint32) (*Properties, error) {
-	return func(characterId uint32) (*Properties, error) {
-		cs, err := requests.GetCharacterAttributesById(l)(characterId)
-		if err != nil {
-			return nil, err
-		}
-		ca := makeCharacterAttributes(cs.Data())
-		if ca == nil {
-			return nil, errors.New("unable to make character attributes")
-		}
-		return ca, nil
-	}
-}
-
-func getCharacterForAttributes(l logrus.FieldLogger) func(data *attributes.CharacterAttributesData) (*Model, error) {
-	return func(data *attributes.CharacterAttributesData) (*Model, error) {
-		ca := makeCharacterAttributes(data)
-		if ca == nil {
-			return nil, errors.New("unable to make character attributes")
-		}
-
-		eq, err := getEquippedItemsForCharacter(l)(ca.Id())
+func getCharacterForAttributes(l logrus.FieldLogger) func(data *properties.Properties) (*Model, error) {
+	return func(data *properties.Properties) (*Model, error) {
+		eq, err := getEquippedItemsForCharacter(l)(data.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -98,30 +40,30 @@ func getCharacterForAttributes(l logrus.FieldLogger) func(data *attributes.Chara
 			return nil, err
 		}
 
-		ss, err := skill.GetForCharacter(l)(ca.Id())
+		ss, err := skill.GetForCharacter(l)(data.Id())
 		if err != nil {
 			return nil, err
 		}
 
-		c := NewCharacter(*ca, eq, ss, ps)
+		c := NewCharacter(*data, eq, ss, ps)
 
-		ei, err := getEquipInventoryForCharacter(l)(ca.Id())
+		ei, err := getEquipInventoryForCharacter(l)(data.Id())
 		if err != nil {
 			return nil, err
 		}
-		ui, err := getItemInventoryForCharacter(l)(ca.Id(), "use")
+		ui, err := getItemInventoryForCharacter(l)(data.Id(), "use")
 		if err != nil {
 			return nil, err
 		}
-		si, err := getItemInventoryForCharacter(l)(ca.Id(), "setup")
+		si, err := getItemInventoryForCharacter(l)(data.Id(), "setup")
 		if err != nil {
 			return nil, err
 		}
-		etc, err := getItemInventoryForCharacter(l)(ca.Id(), "etc")
+		etc, err := getItemInventoryForCharacter(l)(data.Id(), "etc")
 		if err != nil {
 			return nil, err
 		}
-		ci, err := getItemInventoryForCharacter(l)(ca.Id(), "cash")
+		ci, err := getItemInventoryForCharacter(l)(data.Id(), "cash")
 		if err != nil {
 			return nil, err
 		}

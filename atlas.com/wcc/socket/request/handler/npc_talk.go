@@ -2,7 +2,7 @@ package handler
 
 import (
 	"atlas-wcc/account"
-	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/producers"
 	npc2 "atlas-wcc/npc"
 	"atlas-wcc/npc/conversation"
@@ -40,7 +40,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 			return false
 		}
 
-		ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
+		ca, err := properties.GetById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			err = s.Announce(writer.WriteEnableActions(l))
@@ -66,7 +66,7 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
-		ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
+		ca, err := properties.GetById(l)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			return

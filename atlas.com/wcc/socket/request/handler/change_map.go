@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/producers"
 	portal2 "atlas-wcc/portal"
 	"atlas-wcc/session"
@@ -51,7 +51,7 @@ func ChangeMapHandler() request2.MessageHandler {
 		if p.CashShop() {
 
 		} else {
-			ca, err := character.GetCharacterAttributesById(l)(s.CharacterId())
+			ca, err := properties.GetById(l)(s.CharacterId())
 			if err != nil {
 				l.WithError(err).Errorf("Cannot handle [ChangeMapRequest] because the acting character %d cannot be located.", s.CharacterId())
 				return

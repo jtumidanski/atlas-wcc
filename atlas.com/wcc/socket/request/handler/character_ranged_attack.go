@@ -1,7 +1,7 @@
 package handler
 
 import (
-   "atlas-wcc/character"
+   "atlas-wcc/character/properties"
    "atlas-wcc/kafka/producers"
    "atlas-wcc/session"
    request2 "atlas-wcc/socket/request"
@@ -15,7 +15,7 @@ func CharacterRangedAttackHandler() request2.MessageHandler {
    return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
       p := readAttackPacket(l, r, s.CharacterId(), true, false)
 
-      catt, err := character.GetCharacterAttributesById(l)(s.CharacterId())
+      catt, err := properties.GetById(l)(s.CharacterId())
       if err != nil {
          l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", s.CharacterId())
          return

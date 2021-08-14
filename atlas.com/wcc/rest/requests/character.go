@@ -17,17 +17,6 @@ const (
 	characterWeaponDamage              = charactersResource + "%d/damage/weapon"
 )
 
-func GetCharacterAttributesById(l logrus.FieldLogger) func(characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
-	return func(characterId uint32) (*attributes.CharacterAttributesDataContainer, error) {
-		ar := &attributes.CharacterAttributesDataContainer{}
-		err := Get(l)(fmt.Sprintf(charactersById, characterId), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
-}
-
 func GetItemsForCharacter(l logrus.FieldLogger) func(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 	return func(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 		ar := &attributes.InventoryDataContainer{}

@@ -2,6 +2,7 @@ package session
 
 import (
 	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"github.com/sirupsen/logrus"
 )
 
@@ -108,7 +109,7 @@ func ForEachOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, 
 // ForOtherInMap executes a SliceOperator for all sessions in the identified map, aside from the session of the provided characterId
 func ForOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
-		c, err := character.GetCharacterAttributesById(l)(characterId)
+		c, err := properties.GetById(l)(characterId)
 		if err != nil {
 			return
 		}
