@@ -13,25 +13,27 @@ import (
 
 func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGroup) func(worldId byte, channelId byte, port int) {
 	return func(worldId byte, channelId byte, port int) {
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
 		go func() {
-			wg.Add(1)
-			defer wg.Done()
-			err := socket.Run(l, handlerProducer(l),
-				socket.SetPort(port),
-				socket.SetSessionCreator(session.Create(l, session.GetRegistry())(worldId, channelId)),
-				socket.SetSessionMessageDecryptor(session.Decrypt(l, session.GetRegistry())),
-				socket.SetSessionDestroyer(session.DestroyById(l, session.GetRegistry())),
-			)
-			if err != nil {
-				l.WithError(err).Errorf("Socket service encountered error")
-			}
-		}()
+			ctx, cancel := context.WithCancel(ctx)
+			defer cancel()
 
-		<-ctx.Done()
-		l.Infof("Shutting down server on port 8484")
+			go func() {
+				wg.Add(1)
+				defer wg.Done()
+				err := socket.Run(l, handlerProducer(l),
+					socket.SetPort(port),
+					socket.SetSessionCreator(session.Create(l, session.GetRegistry())(worldId, channelId)),
+					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.GetRegistry())),
+					socket.SetSessionDestroyer(session.DestroyById(l, session.GetRegistry())),
+				)
+				if err != nil {
+					l.WithError(err).Errorf("Socket service encountered error")
+				}
+			}()
+
+			<-ctx.Done()
+			l.Infof("Shutting down server on port 8484")
+		}()
 	}
 }
 
