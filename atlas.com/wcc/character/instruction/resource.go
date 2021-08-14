@@ -1,8 +1,7 @@
-package resources
+package instruction
 
 import (
 	"atlas-wcc/json"
-	"atlas-wcc/rest/attributes"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/gorilla/mux"
@@ -20,7 +19,7 @@ func HandleCreateInstruction(l logrus.FieldLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		characterId := getCharacterId(l)(r)
 
-		cs := &attributes.InstructionInputDataContainer{}
+		cs := &InputDataContainer{}
 		err := json.FromJSON(cs, r.Body)
 		if err != nil {
 			l.WithError(err).Errorf("Deserializing instruction")
