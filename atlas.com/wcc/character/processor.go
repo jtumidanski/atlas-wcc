@@ -98,7 +98,7 @@ func getCharacterForAttributes(l logrus.FieldLogger) func(data *attributes.Chara
 			return nil, err
 		}
 
-		ss, err := getSkillsForCharacter(l)(ca.Id())
+		ss, err := skill.GetForCharacter(l)(ca.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -128,26 +128,6 @@ func getCharacterForAttributes(l logrus.FieldLogger) func(data *attributes.Chara
 		i := c.Inventory().SetEquipInventory(*ei).SetUseInventory(*ui).SetSetupInventory(*si).SetEtcInventory(*etc).SetCashInventory(*ci)
 		c = c.SetInventory(i)
 		return &c, nil
-	}
-}
-
-func getSkillsForCharacter(l logrus.FieldLogger) func(characterId uint32) ([]skill.Model, error) {
-	return func(characterId uint32) ([]skill.Model, error) {
-		r, err := requests.GetForCharacter(l)(characterId)
-		if err != nil {
-			return nil, err
-		}
-
-		ss := make([]skill.Model, 0)
-		for _, s := range r.DataList() {
-			sid, err := strconv.ParseUint(s.Id, 10, 32)
-			if err != nil {
-				break
-			}
-			sr := skill.NewSkill(uint32(sid), s.Attributes.Level, s.Attributes.MasterLevel, s.Attributes.Expiration, false, false)
-			ss = append(ss, sr)
-		}
-		return ss, nil
 	}
 }
 
