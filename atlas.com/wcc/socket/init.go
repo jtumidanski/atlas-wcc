@@ -68,6 +68,7 @@ func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
 	hr(handler.OpQuestAction, request.LoggedInValidator, handler.HandleQuestAction())
 	hr(handler.OpInnerPortal, request.LoggedInValidator, handler.HandleInnerPortal())
 	hr(handler.OpChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler())
+	hr(handler.OpReactorHit, request.LoggedInValidator, handler.HandleReactorHit())
 
 	return func() map[uint16]request2.Handler {
 		return handlers
