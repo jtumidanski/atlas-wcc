@@ -7,7 +7,7 @@ import (
 
 func GetKeyMap(l logrus.FieldLogger) func(characterId uint32) ([]*Model, error) {
 	return func(characterId uint32) ([]*Model, error) {
-		r, err := getKeyMap(l)(characterId)
+		r, err := requestKeyMap(l)(characterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve keymap for character.")
 			return nil, err

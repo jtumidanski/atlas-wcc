@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/character"
 	"atlas-wcc/drop"
 	"atlas-wcc/kafka/handler"
+	_map "atlas-wcc/map"
 	"atlas-wcc/monster"
 	"atlas-wcc/npc"
 	"atlas-wcc/session"
@@ -48,7 +49,7 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 
 func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 	return func(s *session.Model) {
-		cIds, err := character.GetCharacterIdsInMap(l)(event.WorldId, event.ChannelId, event.MapId)
+		cIds, err := _map.GetCharacterIdsInMap(l)(event.WorldId, event.ChannelId, event.MapId)
 		if err != nil {
 			return
 		}

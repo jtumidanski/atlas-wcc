@@ -1,7 +1,6 @@
 package _map
 
 import (
-	"atlas-wcc/map/character"
 	"atlas-wcc/rest/requests"
 	"fmt"
 	"github.com/sirupsen/logrus"
@@ -14,9 +13,9 @@ const (
 	mapCharactersResource           = mapResource + "/characters/"
 )
 
-func GetCharactersInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) (*character.MapCharacterDataContainer, error) {
-	return func(worldId byte, channelId byte, mapId uint32) (*character.MapCharacterDataContainer, error) {
-		ar := &character.MapCharacterDataContainer{}
+func requestCharactersInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) (*CharacterDataContainer, error) {
+	return func(worldId byte, channelId byte, mapId uint32) (*CharacterDataContainer, error) {
+		ar := &CharacterDataContainer{}
 		err := requests.Get(l)(fmt.Sprintf(mapCharactersResource, worldId, channelId, mapId), ar)
 		if err != nil {
 			return nil, err

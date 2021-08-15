@@ -1,8 +1,8 @@
 package session
 
 import (
-	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
+	_map "atlas-wcc/map"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +50,7 @@ func ForSessionByCharacterId(characterId uint32, f Operator) {
 func GetOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
 		return func() []*Model {
-			cs, err := character.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			cs, err := _map.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
 			if err != nil {
 				return nil
 			}
@@ -87,7 +87,7 @@ func CharacterIdInFilter(validIds []uint32) Filter {
 func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) Getter {
 	return func(worldId byte, channelId byte, mapId uint32) Getter {
 		return func() []*Model {
-			cs, err := character.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			cs, err := _map.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
 			if err != nil {
 				return nil
 			}

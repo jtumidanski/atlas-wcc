@@ -4,13 +4,11 @@ import (
 	"atlas-wcc/character/properties"
 	"atlas-wcc/character/skill"
 	"atlas-wcc/inventory"
-	"atlas-wcc/map"
 	"atlas-wcc/pet"
 	"atlas-wcc/rest/attributes"
 	"atlas-wcc/rest/requests"
 	"errors"
 	"github.com/sirupsen/logrus"
-	"strconv"
 )
 
 func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, error) {
@@ -225,24 +223,5 @@ func GetCharacterWeaponDamage(l logrus.FieldLogger) func(characterId uint32) uin
 			return 1
 		}
 		return r.Data().Attributes.Maximum
-	}
-}
-
-func GetCharacterIdsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-	return func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-		resp, err := _map.GetCharactersInMap(l)(worldId, channelId, mapId)
-		if err != nil {
-			return nil, err
-		}
-
-		cIds := make([]uint32, 0)
-		for _, d := range resp.DataList() {
-			cId, err := strconv.ParseUint(d.Id, 10, 32)
-			if err != nil {
-				break
-			}
-			cIds = append(cIds, uint32(cId))
-		}
-		return cIds, nil
 	}
 }

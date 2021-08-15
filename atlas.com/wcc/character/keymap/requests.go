@@ -12,7 +12,7 @@ const (
 	keymapResource             = keymapService + "characters/%d/keymap"
 )
 
-func getKeyMap(l logrus.FieldLogger) func(characterId uint32) (*DataListContainer, error) {
+func requestKeyMap(l logrus.FieldLogger) func(characterId uint32) (*DataListContainer, error) {
 	return func(characterId uint32) (*DataListContainer, error) {
 		ar := &DataListContainer{}
 		err := requests.Get(l)(fmt.Sprintf(keymapResource, characterId), ar)
