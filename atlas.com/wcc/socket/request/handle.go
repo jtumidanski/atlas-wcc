@@ -25,7 +25,7 @@ type MessageHandler func(l logrus.FieldLogger, s *session.Model, r *request.Requ
 
 func AdaptHandler(l logrus.FieldLogger, v MessageValidator, h MessageHandler) request.Handler {
 	return func(sessionId uint32, r request.RequestReader) {
-		s := session.GetRegistry().Get(sessionId)
+		s := session.Get().Get(sessionId)
 		if s != nil {
 			if v(l, s) {
 				h(l, s, &r)

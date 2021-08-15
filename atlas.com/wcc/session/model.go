@@ -65,8 +65,8 @@ func (s *Model) announce(b []byte) error {
 	return err
 }
 
-func (s *Model) WriteHello() {
-	_ = s.announce(writer.WriteHello(nil)(version, s.send.IV(), s.recv.IV()))
+func (s *Model) WriteHello() error {
+	return s.announce(writer.WriteHello(nil)(version, s.send.IV(), s.recv.IV()))
 }
 
 func (s *Model) ReceiveAESOFB() *crypto.AESOFB {
@@ -101,8 +101,8 @@ func (s *Model) LastRequest() time.Time {
 	return s.lastPacket
 }
 
-func (s *Model) Disconnect() {
-	_ = s.con.Close()
+func (s *Model) Disconnect() error {
+	return s.con.Close()
 }
 
 func (s *Model) CharacterId() uint32 {

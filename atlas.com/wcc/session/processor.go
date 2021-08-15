@@ -160,7 +160,7 @@ func OnlyGMs() Filter {
 
 // retrieves all sessions which pass the provided Filter slice.
 func getAllFiltered(filters ...Filter) []*Model {
-	sessions := GetRegistry().GetAll()
+	sessions := Get().GetAll()
 
 	var results []*Model
 	for _, session := range sessions {

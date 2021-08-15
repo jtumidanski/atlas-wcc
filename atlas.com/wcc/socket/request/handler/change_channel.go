@@ -1,7 +1,8 @@
 package handler
 
 import (
-	channel2 "atlas-wcc/channel"
+	"atlas-wcc/channel"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/session"
 	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
@@ -30,25 +31,43 @@ func ChangeChannelHandler() request2.MessageHandler {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == s.ChannelId() {
 			l.Errorf("Character %s trying to change to the same channel.", s.CharacterId())
-			s.Disconnect()
+			disconnect(l)(s)
 		}
 
 		//TODO further verification requests for ...
 		// not being in cash shop
 		// not being in mini game
 		// not having a player shop open
-		// not being dead
 		// not being in a mini dungeon
 
-		channel, err := channel2.GetForWorld(l)(s.WorldId(), p.ChannelId())
+		char, err := properties.GetById(l)(s.CharacterId())
+		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve character %d changing channels.", s.CharacterId())
+			disconnect(l)(s)
+		}
+		if char.Hp() <= 0 {
+			l.Debugf("Character %d trying to change channel when dead.", s.CharacterId())
+			return
+		}
+
+		ch, err := channel.GetForWorld(l)(s.WorldId(), p.ChannelId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
 			return
 		}
 
-		err = s.Announce(writer.WriteChangeChannel(l)(channel.IpAddress(), channel.Port()))
+		err = s.Announce(writer.WriteChangeChannel(l)(ch.IpAddress(), ch.Port()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+		}
+	}
+}
+
+func disconnect(l logrus.FieldLogger) func(s *session.Model) {
+	return func(s *session.Model) {
+		err := s.Disconnect()
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue disconnect to session %d.", s.SessionId())
 		}
 	}
 }

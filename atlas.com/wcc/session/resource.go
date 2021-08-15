@@ -9,7 +9,7 @@ import (
 
 func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		ss := GetRegistry().GetAll()
+		ss := Get().GetAll()
 
 		var response DataListContainer
 		response.Data = make([]DataBody, 0)

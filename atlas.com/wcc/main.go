@@ -64,7 +64,7 @@ func main() {
 	wg.Wait()
 
 	producers.ShutdownChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
-	session.DestroyAll(l, session.GetRegistry())
+	session.DestroyAll(l, session.Get())
 
 	l.Infoln("Service shutdown.")
 }

@@ -10,11 +10,18 @@ func Create(l logrus.FieldLogger, r *Registry) func(worldId byte, channelId byte
 	return func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
 		return func(sessionId uint32, conn net.Conn) {
 			l.Debugf("Creating session %d.", sessionId)
+
 			s := NewSession(sessionId, conn)
+
 			s.SetWorldId(worldId)
 			s.SetChannelId(channelId)
+
 			r.Add(s)
-			s.WriteHello()
+
+			err := s.WriteHello()
+			if err != nil {
+				l.WithError(err).Errorf("Unable to write hello packet to session %d.", sessionId)
+			}
 		}
 	}
 }
@@ -51,8 +58,14 @@ func DestroyById(l logrus.FieldLogger, r *Registry) func(sessionId uint32) {
 func Destroy(l logrus.FieldLogger, r *Registry) func(session *Model) {
 	return func(s *Model) {
 		l.Debugf("Destroying session %d.", s.SessionId())
+
 		r.Remove(s.SessionId())
-		s.Disconnect()
+
+		err := s.Disconnect()
+		if err != nil {
+			l.WithError(err).Errorf("Unable to issue disconnect to session %d.", s.SessionId())
+		}
+
 		producers.Logout(l)(s.WorldId(), s.ChannelId(), s.AccountId(), s.CharacterId())
 	}
 }

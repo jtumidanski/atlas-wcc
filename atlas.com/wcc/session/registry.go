@@ -9,15 +9,15 @@ type Registry struct {
 	sessionRegistry map[uint32]*Model
 }
 
-var sessionRegistryOnce sync.Once
-var sessionRegistry *Registry
+var once sync.Once
+var registry *Registry
 
-func GetRegistry() *Registry {
-	sessionRegistryOnce.Do(func() {
-		sessionRegistry = &Registry{}
-		sessionRegistry.sessionRegistry = make(map[uint32]*Model)
+func Get() *Registry {
+	once.Do(func() {
+		registry = &Registry{}
+		registry.sessionRegistry = make(map[uint32]*Model)
 	})
-	return sessionRegistry
+	return registry
 }
 
 func (r *Registry) Add(s *Model) {
