@@ -73,16 +73,10 @@ func HandleNPCTalkMoreRequest() request2.MessageHandler {
 		} else {
 			if questInProcess(s.CharacterId()) {
 				continueQuestConversation(s.CharacterId(), p)
-			} else if conversationInProgress(l)(s.CharacterId()) {
+			} else if conversation.InProgress(l)(s.CharacterId()) {
 				producers.ContinueConversation(l)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
-	}
-}
-
-func conversationInProgress(l logrus.FieldLogger) func(characterId uint32) bool {
-	return func(characterId uint32) bool {
-		return conversation.InConversation(l)(characterId)
 	}
 }
 

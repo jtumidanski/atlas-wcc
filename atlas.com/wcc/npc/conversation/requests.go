@@ -14,7 +14,7 @@ const (
 	characterConversationResource        = npcConversationService + "conversation/%d"
 )
 
-func HasScript(l logrus.FieldLogger) func(npcId uint32) bool {
+func hasScript(l logrus.FieldLogger) func(npcId uint32) bool {
 	return func(npcId uint32) bool {
 		r, err := http.Get(fmt.Sprintf(npcConversationResource, npcId))
 		if err != nil {
@@ -25,7 +25,7 @@ func HasScript(l logrus.FieldLogger) func(npcId uint32) bool {
 	}
 }
 
-func InConversation(l logrus.FieldLogger) func(characterId uint32) bool {
+func inConversation(l logrus.FieldLogger) func(characterId uint32) bool {
 	return func(characterId uint32) bool {
 		r, err := http.Get(fmt.Sprintf(characterConversationResource, characterId))
 		if err != nil {

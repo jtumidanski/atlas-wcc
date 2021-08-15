@@ -13,7 +13,7 @@ const (
 	npcShopResource             = npcShopService + "npcs/%d/shop"
 )
 
-func HasShop(l logrus.FieldLogger) func(npcId uint32) bool {
+func hasShop(l logrus.FieldLogger) func(npcId uint32) bool {
 	return func(npcId uint32) bool {
 		r, err := http.Get(fmt.Sprintf(npcShopResource, npcId))
 		if err != nil {
@@ -24,28 +24,13 @@ func HasShop(l logrus.FieldLogger) func(npcId uint32) bool {
 	}
 }
 
-func GetShop(l logrus.FieldLogger) func(npcId uint32) (*Model, error) {
-	return func(npcId uint32) (*Model, error) {
+func requestShop(l logrus.FieldLogger) func(npcId uint32) (*dataContainer, error) {
+	return func(npcId uint32) (*dataContainer, error) {
 		d := &dataContainer{}
 		err := requests.Get(l)(fmt.Sprintf(npcShopResource, npcId), d)
 		if err != nil {
 			return nil, err
 		}
-
-		return makeShop(d)
+		return d, nil
 	}
-}
-
-func makeShop(d *dataContainer) (*Model, error) {
-	items := make([]Item, 0)
-	for _, i := range d.Data.Attributes.Items {
-		items = append(items, Item{
-			itemId:   i.ItemId,
-			price:    i.Price,
-			pitch:    i.Pitch,
-			position: i.Position,
-		})
-	}
-
-	return &Model{shopId: d.Data.Attributes.NPC, items: items}, nil
 }

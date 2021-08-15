@@ -89,11 +89,11 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 			return
 		}
 
-		if hasConversationScript(l)(npc.Id()) {
+		if conversation.HasScript(l)(npc.Id()) {
 			producers.StartConversation(l)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
-		if hasShop(l)(npc.Id()) {
+		if shop.HasShop(l)(npc.Id()) {
 			ns, err := shop.GetShop(l)(npc.Id())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
@@ -104,18 +104,6 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}
 		}
-	}
-}
-
-func hasShop(l logrus.FieldLogger) func(npcId uint32) bool {
-	return func(npcId uint32) bool {
-		return shop.HasShop(l)(npcId)
-	}
-}
-
-func hasConversationScript(l logrus.FieldLogger) func(npcId uint32) bool {
-	return func(npcId uint32) bool {
-		return conversation.HasScript(l)(npcId)
 	}
 }
 
