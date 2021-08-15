@@ -31,9 +31,45 @@ func HandleReactorStatusEvent() ChannelEventProcessor {
 			}
 			if event.Status == "CREATED" {
 				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorCreation(l)(event.Id, event.Stance))
+			} else if event.Status == "TRIGGERED" {
+				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorHit(l)(event.Id, event.Stance))
+			} else if event.Status == "DESTROYED" {
+				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorDestroy(l)(event.Id))
 			}
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
+		}
+	}
+}
+
+func handleReactorDestroy(l logrus.FieldLogger) func(reactorId uint32) session.Operator {
+	return func(reactorId uint32) session.Operator {
+		return func(session *session.Model) {
+			r, err := reactor.GetById(l)(reactorId)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
+				return
+			}
+			err = session.Announce(writer.WriteReactorDestroyed(l)(r.Id(), r.State(), r.X(), r.Y()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d destroyed to session %d.", r.Id(), session.SessionId())
+			}
+		}
+	}
+}
+
+func handleReactorHit(l logrus.FieldLogger) func(reactorId uint32, stance uint16) session.Operator {
+	return func(reactorId uint32, stance uint16) session.Operator {
+		return func(session *session.Model) {
+			r, err := reactor.GetById(l)(reactorId)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
+				return
+			}
+			err = session.Announce(writer.WriteReactorTrigger(l)(r.Id(), r.State(), r.X(), r.Y(), byte(stance)))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d trigger to session %d.", r.Id(), session.SessionId())
+			}
 		}
 	}
 }

@@ -7,6 +7,7 @@ import (
 	_map "atlas-wcc/map"
 	"atlas-wcc/monster"
 	"atlas-wcc/npc"
+	"atlas-wcc/reactor"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"github.com/sirupsen/logrus"
@@ -93,6 +94,20 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 
 		// Spawn drops for incoming character.
 		drop.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
+
+		// Spawn reactors for incoming character.
+		reactor.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnReactorForSession(l)(s))
+	}
+}
+
+func spawnReactorForSession(l logrus.FieldLogger) func(s *session.Model) reactor.Operator {
+	return func(s *session.Model) reactor.Operator {
+		return func(r reactor.Model) {
+			err := s.Announce(writer.WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())
+			}
+		}
 	}
 }
 

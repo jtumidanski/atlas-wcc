@@ -1,5 +1,9 @@
 package reactor
 
+type DataListContainer struct {
+	Data []DataBody `json:"data"`
+}
+
 type DataContainer struct {
 	Data DataBody `json:"data"`
 }
