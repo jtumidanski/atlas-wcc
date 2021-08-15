@@ -96,7 +96,7 @@ func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
 		drop.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
 
 		// Spawn reactors for incoming character.
-		reactor.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnReactorForSession(l)(s))
+		reactor.ForEachAliveInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnReactorForSession(l)(s))
 	}
 }
 

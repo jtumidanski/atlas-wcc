@@ -50,7 +50,7 @@ func HandleReactorHit() request.MessageHandler {
 		if val, ok := p.(*reactorHitRequest); ok {
 			c, err := properties.GetById(l)(s.CharacterId())
 			if err != nil {
-				l.WithError(err).Errorf("Unable to retrieve character %d for session %d.", s.CharacterId(), s.SetCharacterId)
+				l.WithError(err).Errorf("Unable to retrieve character %d for session %d.", s.CharacterId(), s.SessionId())
 				return
 			}
 

@@ -27,4 +27,5 @@ type Attributes struct {
 	Y               int16  `json:"y"`
 	Delay           uint32 `json:"delay"`
 	FacingDirection byte   `json:"facing_direction"`
+	Alive           bool   `json:"alive"`
 }

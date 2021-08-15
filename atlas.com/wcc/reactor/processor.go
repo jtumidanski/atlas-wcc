@@ -5,7 +5,6 @@ import (
 	"strconv"
 )
 
-
 type Operator func(Model)
 
 type SliceOperator func([]Model)
@@ -24,9 +23,25 @@ func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId
 	}
 }
 
+func ForEachAliveInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
+		ForAliveReactorsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+	}
+}
+
 func ForReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 		reactors, err := GetInMap(l)(worldId, channelId, mapId)
+		if err != nil {
+			return
+		}
+		f(reactors)
+	}
+}
+
+func ForAliveReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+		reactors, err := GetInMap(l)(worldId, channelId, mapId, AliveFilter())
 		if err != nil {
 			return
 		}
@@ -50,8 +65,16 @@ func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
 	}
 }
 
-func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+type Filter func(*Model) bool
+
+func AliveFilter() Filter {
+	return func(m *Model) bool {
+		return m.Alive()
+	}
+}
+
+func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
+	return func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
 		resp, err := requestInMap(l)(worldId, channelId, mapId)
 		if err != nil {
 			return nil, err
@@ -63,7 +86,16 @@ func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uin
 			if err != nil {
 				l.WithError(err).Errorf("Unable to make reactor %d model.", d.Attributes.Classification)
 			} else {
-				reactors = append(reactors, *r)
+				ok := true
+				for _, filter := range filters {
+					if !filter(r) {
+						ok = false
+						break
+					}
+				}
+				if ok {
+					reactors = append(reactors, *r)
+				}
 			}
 		}
 		return reactors, nil
@@ -86,5 +118,6 @@ func makeReactor(data DataBody) (*Model, error) {
 		direction:      attr.FacingDirection,
 		x:              attr.X,
 		y:              attr.Y,
+		alive:          attr.Alive,
 	}, nil
 }
