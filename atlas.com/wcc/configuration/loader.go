@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-func (c *Registry) loadConfiguration() error {
+func (c *Registry) load() error {
 	yamlFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		return err

@@ -12,7 +12,7 @@ const (
 	dropResource                     = dropRegistryService + "worlds/%d/channels/%d/maps/%d/drops"
 )
 
-func requestDropsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) (*dataContainer, error) {
+func requestInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) (*dataContainer, error) {
 	return func(worldId byte, channelId byte, mapId uint32) (*dataContainer, error) {
 		ar := &dataContainer{}
 		err := requests.Get(l)(fmt.Sprintf(dropResource, worldId, channelId, mapId), ar)

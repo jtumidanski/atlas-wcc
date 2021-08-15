@@ -7,7 +7,7 @@ import (
 
 func GetForWorld(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
 	return func(worldId byte, channelId byte) (*Model, error) {
-		r, err := requestChannelsForWorld(l)(worldId)
+		r, err := requestForWorld(l)(worldId)
 		if err != nil {
 			return nil, err
 		}

@@ -13,7 +13,7 @@ const (
 	accountsById                 = accountsResource + "%d"
 )
 
-func requestAccountById(l logrus.FieldLogger) func(id uint32) (*dataContainer, error) {
+func requestById(l logrus.FieldLogger) func(id uint32) (*dataContainer, error) {
 	return func(id uint32) (*dataContainer, error) {
 		ar := &dataContainer{}
 		err := requests.Get(l)(fmt.Sprintf(accountsById, id), ar)

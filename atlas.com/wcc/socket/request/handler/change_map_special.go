@@ -36,7 +36,7 @@ func ChangeMapSpecialHandler() request2.MessageHandler {
 			return
 		}
 
-		portal, err := portal2.GetPortalByName(l)(c.MapId(), p.StartWarp())
+		portal, err := portal2.GetByName(l)(c.MapId(), p.StartWarp())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), s.CharacterId())
 			return

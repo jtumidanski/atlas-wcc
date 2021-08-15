@@ -23,7 +23,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	_, err := configuration.GetConfiguration()
+	_, err := configuration.Get()
 	if err != nil {
 		l.WithError(err).Fatalf("Unable to successfully load configuration.")
 	}

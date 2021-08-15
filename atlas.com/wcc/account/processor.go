@@ -7,7 +7,7 @@ import (
 
 func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		resp, err := requestAccountById(l)(id)
+		resp, err := requestById(l)(id)
 		if err != nil {
 			return nil, err
 		}

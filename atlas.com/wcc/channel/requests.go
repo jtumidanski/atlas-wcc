@@ -13,7 +13,7 @@ const (
 	ByWorld              = Resource + "?world=%d"
 )
 
-func requestChannelsForWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
+func requestForWorld(l logrus.FieldLogger) func(worldId byte) (*dataContainer, error) {
 	return func(worldId byte) (*dataContainer, error) {
 		r := &dataContainer{}
 		err := requests.Get(l)(fmt.Sprintf(ByWorld, worldId), r)

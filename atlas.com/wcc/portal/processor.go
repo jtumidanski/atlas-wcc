@@ -5,9 +5,9 @@ import (
 	"strconv"
 )
 
-func GetPortalByName(l logrus.FieldLogger) func(mapId uint32, portalName string) (*Model, error) {
+func GetByName(l logrus.FieldLogger) func(mapId uint32, portalName string) (*Model, error) {
 	return func(mapId uint32, portalName string) (*Model, error) {
-		resp, err := requestPortalByName(l)(mapId, portalName)
+		resp, err := requestByName(l)(mapId, portalName)
 		if err != nil {
 			return nil, err
 		}

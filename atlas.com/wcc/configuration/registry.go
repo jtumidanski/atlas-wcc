@@ -9,14 +9,14 @@ type Registry struct {
 	e error
 }
 
-var configurationRegistryOnce sync.Once
-var configurationRegistry *Registry
+var once sync.Once
+var registry *Registry
 
-func GetConfiguration() (*Model, error) {
-	configurationRegistryOnce.Do(func() {
-		configurationRegistry = &Registry{}
-		err := configurationRegistry.loadConfiguration()
-		configurationRegistry.e = err
+func Get() (*Model, error) {
+	once.Do(func() {
+		registry = &Registry{}
+		err := registry.load()
+		registry.e = err
 	})
-	return configurationRegistry.c, configurationRegistry.e
+	return registry.c, registry.e
 }

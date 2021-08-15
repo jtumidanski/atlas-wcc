@@ -35,7 +35,7 @@ func ForDropsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapI
 
 func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
 	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-		resp, err := requestDropsInMap(l)(worldId, channelId, mapId)
+		resp, err := requestInMap(l)(worldId, channelId, mapId)
 		if err != nil {
 			return nil, err
 		}

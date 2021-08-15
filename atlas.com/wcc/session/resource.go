@@ -2,7 +2,6 @@ package session
 
 import (
 	"atlas-wcc/json"
-	"atlas-wcc/rest/attributes"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -12,8 +11,8 @@ func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		ss := GetRegistry().GetAll()
 
-		var response attributes.SessionListDataContainer
-		response.Data = make([]attributes.SessionData, 0)
+		var response DataListContainer
+		response.Data = make([]DataBody, 0)
 		for _, x := range ss {
 			response.Data = append(response.Data, getSessionObject(x))
 		}
@@ -26,11 +25,11 @@ func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 	}
 }
 
-func getSessionObject(x *Model) attributes.SessionData {
-	return attributes.SessionData{
+func getSessionObject(x *Model) DataBody {
+	return DataBody{
 		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",
-		Attributes: attributes.SessionAttributes{
+		Attributes: Attributes{
 			AccountId:   x.AccountId(),
 			WorldId:     x.WorldId(),
 			ChannelId:   x.ChannelId(),
