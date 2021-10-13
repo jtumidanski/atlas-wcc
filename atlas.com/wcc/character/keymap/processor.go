@@ -6,28 +6,42 @@ import (
 	"strconv"
 )
 
-func GetKeyMap(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]*Model, error) {
-	return func(characterId uint32) ([]*Model, error) {
-		r, err := requestKeyMap(l, span)(characterId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve keymap for character.")
-			return nil, err
-		}
+type ModelListProvider func() ([]*Model, error)
 
-		keys := make([]*Model, 0)
-		for _, data := range r.Data {
-			k, err := makeKey(data)
+func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelListProvider {
+	return func(r Request) ModelListProvider {
+		return func() ([]*Model, error) {
+			resp, err := r(l, span)
 			if err != nil {
-				l.WithError(err).Errorf("Unable to create keybinding for key %s.", data.Id)
 				return nil, err
 			}
-			keys = append(keys, k)
+
+			ms := make([]*Model, 0)
+			for _, v := range resp.DataList() {
+				m, err := makeModel(&v)
+				if err != nil {
+					return nil, err
+				}
+				ms = append(ms, m)
+			}
+			return ms, nil
 		}
-		return keys, nil
 	}
 }
 
-func makeKey(k DataBody) (*Model, error) {
+func ByCharacterIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ModelListProvider {
+	return func(characterId uint32) ModelListProvider {
+		return requestModelListProvider(l, span)(requestKeyMap(characterId))
+	}
+}
+
+func GetByCharacterId(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]*Model, error) {
+	return func(characterId uint32) ([]*Model, error) {
+		return ByCharacterIdModelProvider(l, span)(characterId)()
+	}
+}
+
+func makeModel(k *dataBody) (*Model, error) {
 	id, err := strconv.Atoi(k.Id)
 	if err != nil {
 		return nil, err

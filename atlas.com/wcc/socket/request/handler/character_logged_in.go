@@ -44,7 +44,7 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
 
-		keys, err := keymap.GetKeyMap(l, span)(c.Attributes().Id())
+		keys, err := keymap.GetByCharacterId(l, span)(c.Attributes().Id())
 		if err != nil || len(keys) == 0 {
 			l.WithError(err).Warnf("Unable to send keybinding to character %d.", c.Attributes().Id())
 		} else {
