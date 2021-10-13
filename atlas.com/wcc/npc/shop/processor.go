@@ -5,26 +5,52 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func HasShop(l logrus.FieldLogger) func(npcId uint32) bool {
-	return func(npcId uint32) bool {
-		return hasShop(l)(npcId)
-	}
-}
+type ModelProvider func() (*Model, error)
 
-func GetShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) (*Model, error) {
-	return func(npcId uint32) (*Model, error) {
-		d, err := requestShop(l, span)(npcId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve shop for %d.", npcId)
-			return nil, err
+type ModelListProvider func() ([]*Model, error)
+
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
+	return func(r Request) ModelProvider {
+		return func() (*Model, error) {
+			resp, err := r(l, span)
+			if err != nil {
+				return nil, err
+			}
+
+			p, err := makeModel(resp.Data())
+			if err != nil {
+				return nil, err
+			}
+			return p, nil
 		}
-		return makeShop(d)
 	}
 }
 
-func makeShop(d *dataContainer) (*Model, error) {
+func HasShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) bool {
+	return func(npcId uint32) bool {
+		m, err := ByNpcIdModelProvider(l, span)(npcId)()
+		if err != nil {
+			return false
+		}
+		return m != nil
+	}
+}
+
+func ByNpcIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) ModelProvider {
+	return func(npcId uint32) ModelProvider {
+		return requestModelProvider(l, span)(requestShop(npcId))
+	}
+}
+
+func GetByNpcId(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) (*Model, error) {
+	return func(npcId uint32) (*Model, error) {
+		return ByNpcIdModelProvider(l, span)(npcId)()
+	}
+}
+
+func makeModel(d *dataBody) (*Model, error) {
 	items := make([]Item, 0)
-	for _, i := range d.Data.Attributes.Items {
+	for _, i := range d.Attributes.Items {
 		items = append(items, Item{
 			itemId:   i.ItemId,
 			price:    i.Price,
@@ -33,5 +59,5 @@ func makeShop(d *dataContainer) (*Model, error) {
 		})
 	}
 
-	return &Model{shopId: d.Data.Attributes.NPC, items: items}, nil
+	return &Model{shopId: d.Attributes.NPC, items: items}, nil
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 const (
@@ -14,24 +13,19 @@ const (
 	npcShopResource             = npcShopService + "npcs/%d/shop"
 )
 
-func hasShop(l logrus.FieldLogger) func(npcId uint32) bool {
-	return func(npcId uint32) bool {
-		r, err := http.Get(fmt.Sprintf(npcShopResource, npcId))
-		if err != nil {
-			l.WithError(err).Errorf("Unable to identify if npc %d has a shop. Assuming not.", npcId)
-			return false
-		}
-		return r.StatusCode == http.StatusOK
-	}
-}
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
 
-func requestShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) (*dataContainer, error) {
-	return func(npcId uint32) (*dataContainer, error) {
-		d := &dataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(npcShopResource, npcId), d)
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}
-		return d, nil
+		return ar, nil
 	}
+}
+
+func requestShop(npcId uint32) Request {
+	return makeRequest(fmt.Sprintf(npcShopResource, npcId))
 }
