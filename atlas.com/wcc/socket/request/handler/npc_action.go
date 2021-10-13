@@ -50,7 +50,7 @@ func readNPCAction(reader *request.RequestReader) interface{} {
 	return nil
 }
 
-func HandleNPCAction(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+func HandleNPCAction(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, r *request.RequestReader) {
 	return func(s *session.Model, r *request.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {

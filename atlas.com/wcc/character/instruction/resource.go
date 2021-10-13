@@ -66,7 +66,7 @@ func ParseInput(l logrus.FieldLogger, next InputHandler) http.HandlerFunc {
 			}
 			return
 		}
-		next(i)
+		next(i)(w, r)
 	}
 }
 

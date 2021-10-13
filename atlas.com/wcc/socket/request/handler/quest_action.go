@@ -74,7 +74,7 @@ func readQuestAction(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleQuestAction(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+func HandleQuestAction(l logrus.FieldLogger, _ opentracing.Span) func(s *session.Model, r *request.RequestReader) {
 	return func(s *session.Model, r *request.RequestReader) {
 		p := readQuestAction(r)
 		if val, ok := p.(*questActionRequest); ok {
