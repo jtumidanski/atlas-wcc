@@ -29,10 +29,7 @@ func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Re
 func HasShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) bool {
 	return func(npcId uint32) bool {
 		m, err := ByNpcIdModelProvider(l, span)(npcId)()
-		if err != nil {
-			return false
-		}
-		return m != nil
+		return err == nil && m != nil
 	}
 }
 

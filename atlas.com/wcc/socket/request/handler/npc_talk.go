@@ -93,7 +93,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *s
 			producers.StartConversation(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
-		if shop.HasShop(l)(npc.Id()) {
+		if shop.HasShop(l, span)(npc.Id()) {
 			ns, err := shop.GetByNpcId(l, span)(npc.Id())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())

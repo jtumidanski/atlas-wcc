@@ -6,24 +6,43 @@ import (
 	"strconv"
 )
 
-func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (*Model, error) {
-	return func(mapId uint32, portalName string) (*Model, error) {
-		resp, err := requestByName(l, span)(mapId, portalName)
-		if err != nil {
-			return nil, err
-		}
+type ModelProvider func() (*Model, error)
 
-		d := resp.Data()
-		aid, err := strconv.ParseUint(d.Id, 10, 32)
-		if err != nil {
-			return nil, err
-		}
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
+	return func(r Request) ModelProvider {
+		return func() (*Model, error) {
+			resp, err := r(l, span)
+			if err != nil {
+				return nil, err
+			}
 
-		a := makePortal(uint32(aid), mapId, d.Attributes)
-		return &a, nil
+			p, err := makeModel(resp.Data())
+			if err != nil {
+				return nil, err
+			}
+			return p, nil
+		}
 	}
 }
 
-func makePortal(id uint32, mapId uint32, attr attributes) Model {
-	return NewPortal(id, mapId, attr.Name, attr.Target, attr.TargetMapId, attr.Type, attr.X, attr.Y, attr.ScriptName)
+func ByNameModelProvider(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) ModelProvider {
+	return func(mapId uint32, portalName string) ModelProvider {
+		return requestModelProvider(l, span)(requestByName(mapId, portalName))
+	}
+}
+
+func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (*Model, error) {
+	return func(mapId uint32, portalName string) (*Model, error) {
+		return ByNameModelProvider(l, span)(mapId, portalName)()
+	}
+}
+
+func makeModel(body *dataBody) (*Model, error) {
+	id, err := strconv.ParseUint(body.Id, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	attr := body.Attributes
+	m := NewPortal(uint32(id), attr.Name, attr.Target, attr.TargetMapId, attr.Type, attr.X, attr.Y, attr.ScriptName)
+	return &m, nil
 }

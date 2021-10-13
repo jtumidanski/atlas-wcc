@@ -15,13 +15,19 @@ const (
 	portalsByName                      = portalsResource + "?name=%s"
 )
 
-func requestByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (*dataContainer, error) {
-	return func(mapId uint32, portalName string) (*dataContainer, error) {
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
+
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(portalsByName, mapId, portalName), ar)
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}
 		return ar, nil
 	}
+}
+
+func requestByName(mapId uint32, portalName string) Request {
+	return makeRequest(fmt.Sprintf(portalsByName, mapId, portalName))
 }
