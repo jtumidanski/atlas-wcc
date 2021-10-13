@@ -28,7 +28,7 @@ func (c Model) Port() uint16 {
 	return c.port
 }
 
-type channelBuilder struct {
+type builder struct {
 	worldId   byte
 	channelId byte
 	capacity  int
@@ -36,36 +36,36 @@ type channelBuilder struct {
 	port      uint16
 }
 
-func NewChannelBuilder() *channelBuilder {
-	return &channelBuilder{}
+func NewBuilder() *builder {
+	return &builder{}
 }
 
-func (c *channelBuilder) SetWorldId(worldId byte) *channelBuilder {
+func (c *builder) SetWorldId(worldId byte) *builder {
 	c.worldId = worldId
 	return c
 }
 
-func (c *channelBuilder) SetChannelId(channelId byte) *channelBuilder {
+func (c *builder) SetChannelId(channelId byte) *builder {
 	c.channelId = channelId
 	return c
 }
 
-func (c *channelBuilder) SetCapacity(capacity int) *channelBuilder {
+func (c *builder) SetCapacity(capacity int) *builder {
 	c.capacity = capacity
 	return c
 }
 
-func (c *channelBuilder) SetIpAddress(ipAddress string) *channelBuilder {
+func (c *builder) SetIpAddress(ipAddress string) *builder {
 	c.ipAddress = ipAddress
 	return c
 }
 
-func (c *channelBuilder) SetPort(port uint16) *channelBuilder {
+func (c *builder) SetPort(port uint16) *builder {
 	c.port = port
 	return c
 }
 
-func (c *channelBuilder) Build() Model {
+func (c *builder) Build() Model {
 	return Model{
 		worldId:   c.worldId,
 		channelId: c.channelId,

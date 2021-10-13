@@ -14,13 +14,19 @@ const (
 	ByWorld              = Resource + "?world=%d"
 )
 
-func requestForWorld(l logrus.FieldLogger, span opentracing.Span) func(worldId byte) (*dataContainer, error) {
-	return func(worldId byte) (*dataContainer, error) {
-		r := &dataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(ByWorld, worldId), r)
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
+
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}
-		return r, nil
+		return ar, nil
 	}
+}
+
+func requestForWorld(worldId byte) Request {
+	return makeRequest(fmt.Sprintf(ByWorld, worldId))
 }

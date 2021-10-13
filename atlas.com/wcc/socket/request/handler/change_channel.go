@@ -50,7 +50,7 @@ func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s *s
 			return
 		}
 
-		ch, err := channel.GetForWorld(l, span)(s.WorldId(), p.ChannelId())
+		ch, err := channel.GetByWorldId(l, span)(s.WorldId(), p.ChannelId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
 			return
