@@ -6,21 +6,34 @@ import (
 	"strconv"
 )
 
+type ModelProvider func() (*Model, error)
+
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
+	return func(r Request) ModelProvider {
+		return func() (*Model, error) {
+			resp, err := r(l, span)
+			if err != nil {
+				return nil, err
+			}
+
+			p, err := makeModel(resp.Data())
+			if err != nil {
+				return nil, err
+			}
+			return p, nil
+		}
+	}
+}
+
+func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) ModelProvider {
+	return func(id uint32) ModelProvider {
+		return requestModelProvider(l, span)(requestAccountById(id))
+	}
+}
+
 func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		resp, err := requestById(l, span)(id)
-		if err != nil {
-			return nil, err
-		}
-
-		d := resp.Data()
-		aid, err := strconv.ParseUint(d.Id, 10, 32)
-		if err != nil {
-			return nil, err
-		}
-
-		a := makeAccount(uint32(aid), d.Attributes)
-		return &a, nil
+		return ByIdModelProvider(l, span)(id)()
 	}
 }
 
@@ -37,9 +50,14 @@ func IsLoggedIn(l logrus.FieldLogger, span opentracing.Span) func(id uint32) boo
 	}
 }
 
-func makeAccount(id uint32, att attributes) Model {
-	return NewAccountBuilder().
-		SetId(id).
+func makeModel(body *dataBody) (*Model, error) {
+	id, err := strconv.ParseUint(body.Id, 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	att := body.Attributes
+	m := NewBuilder().
+		SetId(uint32(id)).
 		SetPassword(att.Password).
 		SetPin(att.Pin).
 		SetPic(att.Pic).
@@ -52,4 +70,5 @@ func makeAccount(id uint32, att attributes) Model {
 		SetCountry(att.Country).
 		SetCharacterSlots(att.CharacterSlots).
 		Build()
+	return &m, nil
 }

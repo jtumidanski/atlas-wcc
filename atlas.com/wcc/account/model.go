@@ -40,7 +40,7 @@ func (a Model) LoggedIn() int {
 	return a.loggedIn
 }
 
-type accountBuilder struct {
+type builder struct {
 	id             uint32
 	name           string
 	password       string
@@ -56,76 +56,76 @@ type accountBuilder struct {
 	characterSlots int16
 }
 
-func NewAccountBuilder() *accountBuilder {
-	return &accountBuilder{}
+func NewBuilder() *builder {
+	return &builder{}
 }
 
-func (a *accountBuilder) SetId(id uint32) *accountBuilder {
+func (a *builder) SetId(id uint32) *builder {
 	a.id = id
 	return a
 }
 
-func (a *accountBuilder) SetName(name string) *accountBuilder {
+func (a *builder) SetName(name string) *builder {
 	a.name = name
 	return a
 }
 
-func (a *accountBuilder) SetPassword(password string) *accountBuilder {
+func (a *builder) SetPassword(password string) *builder {
 	a.password = password
 	return a
 }
 
-func (a *accountBuilder) SetPin(pin string) *accountBuilder {
+func (a *builder) SetPin(pin string) *builder {
 	a.pic = pin
 	return a
 }
 
-func (a *accountBuilder) SetPic(pic string) *accountBuilder {
+func (a *builder) SetPic(pic string) *builder {
 	a.pin = pic
 	return a
 }
 
-func (a *accountBuilder) SetLoggedIn(loggedIn int) *accountBuilder {
+func (a *builder) SetLoggedIn(loggedIn int) *builder {
 	a.loggedIn = loggedIn
 	return a
 }
 
-func (a *accountBuilder) SetLastLogin(lastLogin uint64) *accountBuilder {
+func (a *builder) SetLastLogin(lastLogin uint64) *builder {
 	a.lastLogin = lastLogin
 	return a
 }
 
-func (a *accountBuilder) SetGender(gender byte) *accountBuilder {
+func (a *builder) SetGender(gender byte) *builder {
 	a.gender = gender
 	return a
 }
 
-func (a *accountBuilder) SetBanned(banned bool) *accountBuilder {
+func (a *builder) SetBanned(banned bool) *builder {
 	a.banned = banned
 	return a
 }
 
-func (a *accountBuilder) SetTos(tos bool) *accountBuilder {
+func (a *builder) SetTos(tos bool) *builder {
 	a.tos = tos
 	return a
 }
 
-func (a *accountBuilder) SetLanguage(language string) *accountBuilder {
+func (a *builder) SetLanguage(language string) *builder {
 	a.language = language
 	return a
 }
 
-func (a *accountBuilder) SetCountry(country string) *accountBuilder {
+func (a *builder) SetCountry(country string) *builder {
 	a.country = country
 	return a
 }
 
-func (a *accountBuilder) SetCharacterSlots(characterSlots int16) *accountBuilder {
+func (a *builder) SetCharacterSlots(characterSlots int16) *builder {
 	a.characterSlots = characterSlots
 	return a
 }
 
-func (a *accountBuilder) Build() Model {
+func (a *builder) Build() Model {
 	return Model{
 		id:             a.id,
 		name:           a.name,

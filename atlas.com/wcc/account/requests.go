@@ -14,13 +14,19 @@ const (
 	accountsById                 = accountsResource + "%d"
 )
 
-func requestById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*dataContainer, error) {
-	return func(id uint32) (*dataContainer, error) {
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
+
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(accountsById, id), ar)
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}
 		return ar, nil
 	}
+}
+
+func requestAccountById(id uint32) Request {
+	return makeRequest(fmt.Sprintf(accountsById, id))
 }
