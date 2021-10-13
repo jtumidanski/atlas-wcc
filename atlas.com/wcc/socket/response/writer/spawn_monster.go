@@ -8,14 +8,14 @@ import (
 
 const OpCodeSpawnMonster uint16 = 0xEC
 
-func WriteSpawnMonster(l logrus.FieldLogger) func(m monster.Model, newSpawn bool) []byte {
-	return func(m monster.Model, newSpawn bool) []byte {
+func WriteSpawnMonster(l logrus.FieldLogger) func(m *monster.Model, newSpawn bool) []byte {
+	return func(m *monster.Model, newSpawn bool) []byte {
 		return WriteSpawnMonsterWithEffect(l)(m, newSpawn, 0)
 	}
 }
 
-func WriteSpawnMonsterWithEffect(l logrus.FieldLogger) func(m monster.Model, newSpawn bool, effect byte) []byte {
-	return func(m monster.Model, newSpawn bool, effect byte) []byte {
+func WriteSpawnMonsterWithEffect(l logrus.FieldLogger) func(m *monster.Model, newSpawn bool, effect byte) []byte {
+	return func(m *monster.Model, newSpawn bool, effect byte) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnMonster)
 		w.WriteInt(m.UniqueId())

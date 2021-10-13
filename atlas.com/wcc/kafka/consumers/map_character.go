@@ -135,9 +135,9 @@ func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.Opera
 	}
 }
 
-func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster.Operator {
-	return func(s *session.Model) monster.Operator {
-		return func(monster monster.Model) {
+func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster.ModelOperator {
+	return func(s *session.Model) monster.ModelOperator {
+		return func(monster *monster.Model) {
 			err := s.Announce(writer.WriteSpawnMonster(l)(monster, false))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to spawn monster %d for character %d", monster.MonsterId(), s.CharacterId())

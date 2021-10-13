@@ -40,7 +40,7 @@ func HandleMonsterEvent() ChannelEventProcessor {
 
 			var h session.Operator
 			if event.Type == "CREATED" {
-				h = createMonster(l, event, *m)
+				h = createMonster(l, event, m)
 			} else if event.Type == "DESTROYED" {
 				h = destroyMonster(l, event)
 			} else {
@@ -70,7 +70,7 @@ func destroyMonster(l logrus.FieldLogger, event *monsterEvent) session.Operator 
 	}
 }
 
-func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster monster.Model) session.Operator {
+func createMonster(l logrus.FieldLogger, _ *monsterEvent, monster *monster.Model) session.Operator {
 	sm := writer.WriteSpawnMonster(l)(monster, false)
 	return func(s *session.Model) {
 		err := s.Announce(sm)
