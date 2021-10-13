@@ -1,20 +1,18 @@
 package reactor
 
-type DataListContainer struct {
-	Data []DataBody `json:"data"`
+import "atlas-wcc/rest/response"
+
+type dataContainer struct {
+	data response.DataSegment
 }
 
-type DataContainer struct {
-	Data DataBody `json:"data"`
-}
-
-type DataBody struct {
+type dataBody struct {
 	Id         string     `json:"id"`
 	Type       string     `json:"type"`
-	Attributes Attributes `json:"attributes"`
+	Attributes attributes `json:"attributes"`
 }
 
-type Attributes struct {
+type attributes struct {
 	WorldId         byte   `json:"world_id"`
 	ChannelId       byte   `json:"channel_id"`
 	MapId           uint32 `json:"map_id"`
@@ -28,4 +26,32 @@ type Attributes struct {
 	Delay           uint32 `json:"delay"`
 	FacingDirection byte   `json:"facing_direction"`
 	Alive           bool   `json:"alive"`
+}
+
+func (c *dataContainer) UnmarshalJSON(data []byte) error {
+	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyData))
+	if err != nil {
+		return err
+	}
+	c.data = d
+	return nil
+}
+
+func (c *dataContainer) Data() *dataBody {
+	if len(c.data) >= 1 {
+		return c.data[0].(*dataBody)
+	}
+	return nil
+}
+
+func (c *dataContainer) DataList() []dataBody {
+	var r = make([]dataBody, 0)
+	for _, x := range c.data {
+		r = append(r, *x.(*dataBody))
+	}
+	return r
+}
+
+func EmptyData() interface{} {
+	return &dataBody{}
 }

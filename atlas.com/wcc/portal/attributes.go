@@ -24,7 +24,7 @@ type attributes struct {
 }
 
 func (a *dataContainer) UnmarshalJSON(data []byte) error {
-	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyPortalData))
+	d, i, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyData))
 	if err != nil {
 		return err
 	}
@@ -49,6 +49,6 @@ func (a *dataContainer) DataList() []dataBody {
 	return r
 }
 
-func EmptyPortalData() interface{} {
+func EmptyData() interface{} {
 	return &dataBody{}
 }

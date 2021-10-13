@@ -104,9 +104,9 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 	}
 }
 
-func spawnReactorForSession(l logrus.FieldLogger) func(s *session.Model) reactor.Operator {
-	return func(s *session.Model) reactor.Operator {
-		return func(r reactor.Model) {
+func spawnReactorForSession(l logrus.FieldLogger) func(s *session.Model) reactor.ModelOperator {
+	return func(s *session.Model) reactor.ModelOperator {
+		return func(r *reactor.Model) {
 			err := s.Announce(writer.WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())

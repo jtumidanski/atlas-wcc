@@ -15,24 +15,23 @@ const (
 	mapReactorsResource         = reactorService + "worlds/%d/channels/%d/maps/%d/reactors"
 )
 
-func requestById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*DataContainer, error) {
-	return func(id uint32) (*DataContainer, error) {
-		dc := &DataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(reactorById, id), dc)
+type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
+
+func makeRequest(url string) Request {
+	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
+		ar := &dataContainer{}
+		err := requests.Get(l, span)(url, ar)
 		if err != nil {
 			return nil, err
 		}
-		return dc, nil
+		return ar, nil
 	}
 }
 
-func requestInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) (*DataListContainer, error) {
-	return func(worldId byte, channelId byte, mapId uint32) (*DataListContainer, error) {
-		dc := &DataListContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(mapReactorsResource, worldId, channelId, mapId), dc)
-		if err != nil {
-			return nil, err
-		}
-		return dc, nil
-	}
+func requestInMap(worldId byte, channelId byte, mapId uint32) Request {
+	return makeRequest(fmt.Sprintf(mapReactorsResource, worldId, channelId, mapId))
+}
+
+func requestById(id uint32) Request {
+	return makeRequest(fmt.Sprintf(reactorById, id))
 }

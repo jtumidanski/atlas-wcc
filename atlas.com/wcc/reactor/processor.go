@@ -6,32 +6,83 @@ import (
 	"strconv"
 )
 
-type Operator func(Model)
+type ModelOperator func(*Model)
 
-type SliceOperator func([]Model)
+type ModelListOperator func([]*Model)
 
-func ExecuteForEach(f Operator) SliceOperator {
-	return func(drops []Model) {
+type ModelProvider func() (*Model, error)
+
+type ModelListProvider func() ([]*Model, error)
+
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
+	return func(r Request) ModelProvider {
+		return func() (*Model, error) {
+			resp, err := r(l, span)
+			if err != nil {
+				return nil, err
+			}
+
+			p, err := makeModel(resp.Data())
+			if err != nil {
+				return nil, err
+			}
+			return p, nil
+		}
+	}
+}
+
+func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request, filters ...Filter) ModelListProvider {
+	return func(r Request, filters ...Filter) ModelListProvider {
+		return func() ([]*Model, error) {
+			resp, err := r(l, span)
+			if err != nil {
+				return nil, err
+			}
+
+			ms := make([]*Model, 0)
+			for _, v := range resp.DataList() {
+				m, err := makeModel(&v)
+				if err != nil {
+					return nil, err
+				}
+				ok := true
+				for _, filter := range filters {
+					if !filter(m) {
+						ok = false
+						break
+					}
+				}
+				if ok {
+					ms = append(ms, m)
+				}
+			}
+			return ms, nil
+		}
+	}
+}
+
+func ExecuteForEach(f ModelOperator) ModelListOperator {
+	return func(drops []*Model) {
 		for _, drop := range drops {
 			f(drop)
 		}
 	}
 }
 
-func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
-	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f ModelOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f ModelOperator) {
 		ForReactorsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
-func ForEachAliveInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
-	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachAliveInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f ModelOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f ModelOperator) {
 		ForAliveReactorsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
-func ForReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f ModelListOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f ModelListOperator) {
 		reactors, err := GetInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return
@@ -40,8 +91,8 @@ func ForReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId 
 	}
 }
 
-func ForAliveReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForAliveReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f ModelListOperator) {
+	return func(worldId byte, channelId byte, mapId uint32, f ModelListOperator) {
 		reactors, err := GetInMap(l, span)(worldId, channelId, mapId, AliveFilter())
 		if err != nil {
 			return
@@ -50,19 +101,27 @@ func ForAliveReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(wor
 	}
 }
 
+func InMapModelProvider(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ModelListProvider {
+	return func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ModelListProvider {
+		return requestModelListProvider(l, span)(requestInMap(worldId, channelId, mapId), filters...)
+	}
+}
+
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]*Model, error) {
+	return func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]*Model, error) {
+		return InMapModelProvider(l, span)(worldId, channelId, mapId, filters...)()
+	}
+}
+
+func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) ModelProvider {
+	return func(id uint32) ModelProvider {
+		return requestModelProvider(l, span)(requestById(id))
+	}
+}
+
 func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		data, err := requestById(l, span)(id)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve reactor by id %d.", id)
-			return nil, err
-		}
-
-		r, err := makeReactor(data.Data)
-		if err != nil {
-			return nil, err
-		}
-		return r, nil
+		return ByIdModelProvider(l, span)(id)()
 	}
 }
 
@@ -74,36 +133,7 @@ func AliveFilter() Filter {
 	}
 }
 
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
-	return func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
-		resp, err := requestInMap(l, span)(worldId, channelId, mapId)
-		if err != nil {
-			return nil, err
-		}
-
-		reactors := make([]Model, 0)
-		for _, d := range resp.Data {
-			r, err := makeReactor(d)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to make reactor %d model.", d.Attributes.Classification)
-			} else {
-				ok := true
-				for _, filter := range filters {
-					if !filter(r) {
-						ok = false
-						break
-					}
-				}
-				if ok {
-					reactors = append(reactors, *r)
-				}
-			}
-		}
-		return reactors, nil
-	}
-}
-
-func makeReactor(data DataBody) (*Model, error) {
+func makeModel(data *dataBody) (*Model, error) {
 	id, err := strconv.ParseUint(data.Id, 10, 32)
 	if err != nil {
 		return nil, err
