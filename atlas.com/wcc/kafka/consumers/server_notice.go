@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,7 +32,7 @@ func ServerNoticeEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleServerNoticeEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*ServerNoticeEvent); ok {
 			if actingSession := session.GetByCharacterId(event.RecipientId); actingSession == nil {
 				return

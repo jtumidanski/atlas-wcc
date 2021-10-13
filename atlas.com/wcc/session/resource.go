@@ -2,10 +2,16 @@ package session
 
 import (
 	"atlas-wcc/json"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 )
+
+func InitResource(router *mux.Router, l logrus.FieldLogger) {
+	sRouter := router.PathPrefix("/sessions").Subrouter()
+	sRouter.HandleFunc("", HandleGetSessions(l)).Methods(http.MethodGet)
+}
 
 func HandleGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {

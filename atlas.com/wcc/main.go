@@ -1,6 +1,7 @@
 package main
 
 import (
+	"atlas-wcc/character/instruction"
 	"atlas-wcc/configuration"
 	"atlas-wcc/kafka/consumers"
 	"atlas-wcc/kafka/producers"
@@ -8,13 +9,18 @@ import (
 	"atlas-wcc/rest"
 	"atlas-wcc/session"
 	"atlas-wcc/socket"
+	"atlas-wcc/tracing"
 	"context"
+	"github.com/opentracing/opentracing-go"
+	"io"
 	"os"
 	"os/signal"
 	"strconv"
 	"sync"
 	"syscall"
 )
+
+const serviceName = "atlas-wcc"
 
 func main() {
 	l := logger.CreateLogger()
@@ -23,7 +29,18 @@ func main() {
 	wg := &sync.WaitGroup{}
 	ctx, cancel := context.WithCancel(context.Background())
 
-	_, err := configuration.Get()
+	tc, err := tracing.InitTracer(l)(serviceName)
+	if err != nil {
+		l.WithError(err).Fatal("Unable to initialize tracer.")
+	}
+	defer func(tc io.Closer) {
+		err := tc.Close()
+		if err != nil {
+			l.WithError(err).Errorf("Unable to close tracer.")
+		}
+	}(tc)
+
+	_, err = configuration.Get()
 	if err != nil {
 		l.WithError(err).Fatalf("Unable to successfully load configuration.")
 	}
@@ -49,9 +66,11 @@ func main() {
 
 	socket.CreateSocketService(l, ctx, wg)(byte(wid), byte(cid), int(port))
 
-	rest.CreateRestService(l, ctx, wg)
+	rest.CreateService(l, ctx, wg, "/ms/csrv/worlds/{worldId}/channels/{channelId}", session.InitResource, instruction.InitResource)
 
-	producers.StartChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
+	span := opentracing.StartSpan("startup")
+	producers.StartChannelServer(l, span)(byte(wid), byte(cid), ha, uint32(port))
+	span.Finish()
 
 	// trap sigterm or interrupt and gracefully shutdown the server
 	c := make(chan os.Signal, 1)
@@ -63,8 +82,10 @@ func main() {
 	cancel()
 	wg.Wait()
 
-	producers.ShutdownChannelServer(l)(byte(wid), byte(cid), ha, uint32(port))
-	session.DestroyAll(l, session.Get())
+	span = opentracing.StartSpan("shutdown")
+	producers.ShutdownChannelServer(l, span)(byte(wid), byte(cid), ha, uint32(port))
+	session.DestroyAll(l, span, session.Get())
+	span.Finish()
 
 	l.Infoln("Service shutdown.")
 }

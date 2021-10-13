@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/reactor"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,17 +25,17 @@ func EmptyReactorStatusEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleReactorStatusEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*reactorStatusEvent); ok {
 			if event.WorldId != wid || event.ChannelId != cid {
 				return
 			}
 			if event.Status == "CREATED" {
-				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorCreation(l)(event.Id, event.Stance))
+				session.ForEachInMap(l, span)(wid, cid, event.MapId, handleReactorCreation(l, span)(event.Id, event.Stance))
 			} else if event.Status == "TRIGGERED" {
-				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorHit(l)(event.Id, event.Stance))
+				session.ForEachInMap(l, span)(wid, cid, event.MapId, handleReactorHit(l, span)(event.Id, event.Stance))
 			} else if event.Status == "DESTROYED" {
-				session.ForEachInMap(l)(wid, cid, event.MapId, handleReactorDestroy(l)(event.Id))
+				session.ForEachInMap(l, span)(wid, cid, event.MapId, handleReactorDestroy(l, span)(event.Id))
 			}
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
@@ -42,10 +43,10 @@ func HandleReactorStatusEvent() ChannelEventProcessor {
 	}
 }
 
-func handleReactorDestroy(l logrus.FieldLogger) func(reactorId uint32) session.Operator {
+func handleReactorDestroy(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32) session.Operator {
 	return func(reactorId uint32) session.Operator {
 		return func(session *session.Model) {
-			r, err := reactor.GetById(l)(reactorId)
+			r, err := reactor.GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 				return
@@ -58,10 +59,10 @@ func handleReactorDestroy(l logrus.FieldLogger) func(reactorId uint32) session.O
 	}
 }
 
-func handleReactorHit(l logrus.FieldLogger) func(reactorId uint32, stance uint16) session.Operator {
+func handleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) session.Operator {
 	return func(reactorId uint32, stance uint16) session.Operator {
 		return func(session *session.Model) {
-			r, err := reactor.GetById(l)(reactorId)
+			r, err := reactor.GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 				return
@@ -74,10 +75,10 @@ func handleReactorHit(l logrus.FieldLogger) func(reactorId uint32, stance uint16
 	}
 }
 
-func handleReactorCreation(l logrus.FieldLogger) func(reactorId uint32, stance uint16) session.Operator {
+func handleReactorCreation(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) session.Operator {
 	return func(reactorId uint32, stance uint16) session.Operator {
 		return func(session *session.Model) {
-			r, err := reactor.GetById(l)(reactorId)
+			r, err := reactor.GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 				return

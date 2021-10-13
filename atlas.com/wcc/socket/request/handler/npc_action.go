@@ -2,9 +2,9 @@ package handler
 
 import (
 	"atlas-wcc/session"
-	"atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
-	request2 "github.com/jtumidanski/atlas-socket/request"
+	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,7 +36,7 @@ func (r npcMoveRequest) Movement() []byte {
 	return r.movement
 }
 
-func readNPCAction(reader *request2.RequestReader) interface{} {
+func readNPCAction(reader *request.RequestReader) interface{} {
 	length := len(reader.GetRestAsBytes())
 	if length == 6 {
 		first := reader.ReadUint32()
@@ -50,8 +50,8 @@ func readNPCAction(reader *request2.RequestReader) interface{} {
 	return nil
 }
 
-func HandleNPCAction() request.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request2.RequestReader) {
+func HandleNPCAction(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
 			err := s.Announce(writer.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))

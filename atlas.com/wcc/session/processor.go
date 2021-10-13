@@ -3,6 +3,7 @@ package session
 import (
 	"atlas-wcc/character/properties"
 	_map "atlas-wcc/map"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -47,10 +48,10 @@ func ForSessionByCharacterId(characterId uint32, f Operator) {
 }
 
 // GetOtherInMap a Getter which will retrieve all sessions for characters in the given map, not identified by the supplied characterId
-func GetOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
+func GetOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
 		return func() []*Model {
-			cs, err := _map.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			cs, err := _map.GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
 			if err != nil {
 				return nil
 			}
@@ -84,10 +85,10 @@ func CharacterIdInFilter(validIds []uint32) Filter {
 }
 
 // GetInMap a Getter which retrieve all sessions which reside in the identified map
-func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) Getter {
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) Getter {
 	return func(worldId byte, channelId byte, mapId uint32) Getter {
 		return func() []*Model {
-			cs, err := _map.GetCharacterIdsInMap(l)(worldId, channelId, mapId)
+			cs, err := _map.GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
 			if err != nil {
 				return nil
 			}
@@ -100,34 +101,34 @@ func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uin
 }
 
 // ForEachOtherInMap executes a Operator for all sessions in the identified map, aside from the session of the provided characterId
-func ForEachOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, f Operator) {
+func ForEachOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, f Operator) {
 	return func(worldId byte, channelId byte, characterId uint32, f Operator) {
-	ForOtherInMap(l)(worldId, channelId, characterId, ExecuteForEach(f))
+	ForOtherInMap(l, span)(worldId, channelId, characterId, ExecuteForEach(f))
 	}
 }
 
 // ForOtherInMap executes a SliceOperator for all sessions in the identified map, aside from the session of the provided characterId
-func ForOtherInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
+func ForOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
-		c, err := properties.GetById(l)(characterId)
+		c, err := properties.GetById(l, span)(characterId)
 		if err != nil {
 			return
 		}
-		forSessions(GetOtherInMap(l)(worldId, channelId, c.MapId(), characterId), f)
+		forSessions(GetOtherInMap(l, span)(worldId, channelId, c.MapId(), characterId), f)
 	}
 }
 
 // ForEachInMap executes a Operator for all sessions in the identified map
-func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
 	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
-		ForSessionsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+		ForSessionsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
 // ForSessionsInMap executes a SliceOperator for all sessions in the identified map
-func ForSessionsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-		forSessions(GetInMap(l)(worldId, channelId, mapId), f)
+		forSessions(GetInMap(l, span)(worldId, channelId, mapId), f)
 	}
 }
 

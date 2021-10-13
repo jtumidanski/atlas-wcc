@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/monster"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,13 +26,13 @@ func MonsterEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleMonsterEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			m, err := monster.GetById(l)(event.UniqueId)
+			m, err := monster.GetById(l, span)(event.UniqueId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to monster %d to create.", event.UniqueId)
 				return
@@ -47,7 +48,7 @@ func HandleMonsterEvent() ChannelEventProcessor {
 				return
 			}
 
-			session.ForEachInMap(l)(wid, cid, event.MapId, h)
+			session.ForEachInMap(l, span)(wid, cid, event.MapId, h)
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

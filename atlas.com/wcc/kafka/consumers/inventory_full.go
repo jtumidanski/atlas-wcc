@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -18,7 +19,7 @@ func InventoryFullCommandCreator() handler.EmptyEventCreator {
 }
 
 func HandleInventoryFullCommand() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if command, ok := e.(*inventoryFullCommand); ok {
 			session.ForSessionByCharacterId(command.CharacterId, showInventoryFull(l))
 		} else {

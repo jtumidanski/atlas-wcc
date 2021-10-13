@@ -2,12 +2,13 @@ package channel
 
 import (
 	"errors"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
-func GetForWorld(l logrus.FieldLogger) func(worldId byte, channelId byte) (*Model, error) {
+func GetForWorld(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) (*Model, error) {
 	return func(worldId byte, channelId byte) (*Model, error) {
-		r, err := requestForWorld(l)(worldId)
+		r, err := requestForWorld(l, span)(worldId)
 		if err != nil {
 			return nil, err
 		}

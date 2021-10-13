@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,8 +13,8 @@ type portalEnterCommand struct {
 	CharacterId uint32 `json:"characterId"`
 }
 
-func PortalEnter(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
-	producer := ProduceEvent(l, "TOPIC_ENTER_PORTAL")
+func PortalEnter(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_ENTER_PORTAL")
 	return func(worldId byte, channelId byte, mapId uint32, portalId uint32, characterId uint32) {
 		e := &portalEnterCommand{
 			WorldId:     worldId,

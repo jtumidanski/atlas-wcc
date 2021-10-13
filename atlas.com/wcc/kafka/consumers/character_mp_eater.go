@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,10 +23,10 @@ func EmptyMPEaterEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleMPEaterEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, c interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, c interface{}) {
 		if event, ok := c.(*mpEaterEvent); ok {
 			session.ForSessionByCharacterId(event.CharacterId, showMPEaterEffect(l, event))
-			session.ForEachOtherInMap(l)(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
+			session.ForEachOtherInMap(l, span)(event.WorldId, event.ChannelId, event.CharacterId, showForeignMPEaterEffect(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,15 +13,15 @@ type channelServerEvent struct {
 	Status    string `json:"status"`
 }
 
-func StartChannelServer(l logrus.FieldLogger) func(worldId byte, channelId byte, ipAddress string, port uint32) {
-	producer := ProduceEvent(l, "TOPIC_CHANNEL_SERVICE")
+func StartChannelServer(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, ipAddress string, port uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_CHANNEL_SERVICE")
 	return func(worldId byte, channelId byte, ipAddress string, port uint32) {
 		emitChannelServer(producer, worldId, channelId, ipAddress, port, "STARTED")
 	}
 }
 
-func ShutdownChannelServer(l logrus.FieldLogger) func(worldId byte, channelId byte, ipAddress string, port uint32) {
-	producer := ProduceEvent(l, "TOPIC_CHANNEL_SERVICE")
+func ShutdownChannelServer(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, ipAddress string, port uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_CHANNEL_SERVICE")
 	return func(worldId byte, channelId byte, ipAddress string, port uint32) {
 		emitChannelServer(producer, worldId, channelId, ipAddress, port, "SHUTDOWN")
 	}

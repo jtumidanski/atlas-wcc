@@ -3,6 +3,7 @@ package requests
 import (
 	"atlas-wcc/rest/attributes"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,10 +18,10 @@ const (
 	characterWeaponDamage              = charactersResource + "%d/damage/weapon"
 )
 
-func GetItemsForCharacter(l logrus.FieldLogger) func(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
+func GetItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 	return func(characterId uint32, inventoryType string) (*attributes.InventoryDataContainer, error) {
 		ar := &attributes.InventoryDataContainer{}
-		err := Get(l)(fmt.Sprintf(characterItems, characterId, inventoryType), ar)
+		err := Get(l, span)(fmt.Sprintf(characterItems, characterId, inventoryType), ar)
 		if err != nil {
 			return nil, err
 		}
@@ -28,10 +29,10 @@ func GetItemsForCharacter(l logrus.FieldLogger) func(characterId uint32, invento
 	}
 }
 
-func GetItemForCharacter(l logrus.FieldLogger) func(characterId uint32, inventoryType string, slot int16) (*attributes.InventoryDataContainer, error) {
+func GetItemForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, inventoryType string, slot int16) (*attributes.InventoryDataContainer, error) {
 	return func(characterId uint32, inventoryType string, slot int16) (*attributes.InventoryDataContainer, error) {
 		ar := &attributes.InventoryDataContainer{}
-		err := Get(l)(fmt.Sprintf(characterItem, characterId, inventoryType, slot), ar)
+		err := Get(l, span)(fmt.Sprintf(characterItem, characterId, inventoryType, slot), ar)
 		if err != nil {
 			return nil, err
 		}
@@ -39,22 +40,22 @@ func GetItemForCharacter(l logrus.FieldLogger) func(characterId uint32, inventor
 	}
 }
 
-func GetEquippedItemsForCharacter(l logrus.FieldLogger) func(characterId uint32) (*attributes.InventoryDataContainer, error) {
+func GetEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*attributes.InventoryDataContainer, error) {
 	return func(characterId uint32) (*attributes.InventoryDataContainer, error) {
-		return GetItemsForCharacter(l)(characterId, "equip")
+		return GetItemsForCharacter(l, span)(characterId, "equip")
 	}
 }
 
-func GetEquippedItemForCharacter(l logrus.FieldLogger) func(characterId uint32, slot int16) (*attributes.InventoryDataContainer, error) {
+func GetEquippedItemForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, slot int16) (*attributes.InventoryDataContainer, error) {
 	return func(characterId uint32, slot int16) (*attributes.InventoryDataContainer, error) {
-		return GetItemForCharacter(l)(characterId, "equip", slot)
+		return GetItemForCharacter(l, span)(characterId, "equip", slot)
 	}
 }
 
-func GetCharacterWeaponDamage(l logrus.FieldLogger) func(characterId uint32) (*attributes.DamageDataContainer, error) {
+func GetCharacterWeaponDamage(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*attributes.DamageDataContainer, error) {
 	return func(characterId uint32) (*attributes.DamageDataContainer, error) {
 		ar := &attributes.DamageDataContainer{}
-		err := Get(l)(fmt.Sprintf(characterWeaponDamage, characterId), ar)
+		err := Get(l, span)(fmt.Sprintf(characterWeaponDamage, characterId), ar)
 		if err != nil {
 			return nil, err
 		}

@@ -8,9 +8,9 @@ import (
 	"atlas-wcc/npc/conversation"
 	"atlas-wcc/npc/shop"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,9 +28,9 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 	return npcTalkRequest{reader.ReadUint32()}
 }
 
-func CharacterAliveValidator() request2.MessageValidator {
-	return func(l logrus.FieldLogger, s *session.Model) bool {
-		v := account.IsLoggedIn(l)(s.AccountId())
+func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model) bool {
+	return func(s *session.Model) bool {
+		v := account.IsLoggedIn(l, span)(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
 			err := s.Announce(writer.WriteEnableActions(l))
@@ -40,7 +40,7 @@ func CharacterAliveValidator() request2.MessageValidator {
 			return false
 		}
 
-		ca, err := properties.GetById(l)(s.CharacterId())
+		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			err = s.Announce(writer.WriteEnableActions(l))
@@ -62,17 +62,17 @@ func CharacterAliveValidator() request2.MessageValidator {
 	}
 }
 
-func HandleNPCTalkRequest() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
-		ca, err := properties.GetById(l)(s.CharacterId())
+		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
 			return
 		}
 
-		npcs, err := npc2.GetInMapByObjectId(l)(ca.MapId(), p.ObjectId())
+		npcs, err := npc2.GetInMapByObjectId(l, span)(ca.MapId(), p.ObjectId())
 		if err != nil || len(npcs) != 1 {
 			l.WithError(err).Errorf("Unable to locate npc %d in map %d.", p.ObjectId(), ca.MapId())
 			return
@@ -90,11 +90,11 @@ func HandleNPCTalkRequest() request2.MessageHandler {
 		}
 
 		if conversation.HasScript(l)(npc.Id()) {
-			producers.StartConversation(l)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
+			producers.StartConversation(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
 		if shop.HasShop(l)(npc.Id()) {
-			ns, err := shop.GetShop(l)(npc.Id())
+			ns, err := shop.GetShop(l, span)(npc.Id())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return

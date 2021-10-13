@@ -3,6 +3,7 @@ package properties
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,10 +14,10 @@ const (
 	charactersById                     = charactersResource + "%d"
 )
 
-func requestPropertiesById(l logrus.FieldLogger) func(characterId uint32) (*DataContainer, error) {
+func requestPropertiesById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*DataContainer, error) {
 	return func(characterId uint32) (*DataContainer, error) {
 		ar := &DataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(charactersById, characterId), ar)
+		err := requests.Get(l, span)(fmt.Sprintf(charactersById, characterId), ar)
 		if err != nil {
 			return nil, err
 		}

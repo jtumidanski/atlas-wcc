@@ -1,6 +1,9 @@
 package producers
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/opentracing/opentracing-go"
+	"github.com/sirupsen/logrus"
+)
 
 type applySkillCommand struct {
 	CharacterId uint32
@@ -10,8 +13,8 @@ type applySkillCommand struct {
 	Y           int16
 }
 
-func ApplySkill(l logrus.FieldLogger) func(characterId uint32, skillId uint32, level uint8, x int16, y int16) {
-	producer := ProduceEvent(l, "TOPIC_APPLY_SKILL_COMMAND")
+func ApplySkill(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, skillId uint32, level uint8, x int16, y int16) {
+	producer := ProduceEvent(l, span, "TOPIC_APPLY_SKILL_COMMAND")
 	return func(characterId uint32, skillId uint32, level uint8, x int16, y int16) {
 		e := &applySkillCommand{
 			CharacterId: characterId,
@@ -37,8 +40,8 @@ type applyMonsterMagnetCommand struct {
 	Data        []MonsterMagnetData
 }
 
-func ApplyMonsterMagnet(l logrus.FieldLogger) func(characterId uint32, skillId uint32, level uint8, direction int8, data []MonsterMagnetData) {
-	producer := ProduceEvent(l, "TOPIC_APPLY_MONSTER_MAGNET_COMMAND")
+func ApplyMonsterMagnet(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, skillId uint32, level uint8, direction int8, data []MonsterMagnetData) {
+	producer := ProduceEvent(l, span, "TOPIC_APPLY_MONSTER_MAGNET_COMMAND")
 	return func(characterId uint32, skillId uint32, level uint8, direction int8, data []MonsterMagnetData) {
 		e := applyMonsterMagnetCommand{
 			CharacterId: characterId,

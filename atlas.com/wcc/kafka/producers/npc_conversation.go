@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,8 +26,8 @@ type startNPCConversationCommand struct {
 	NPCObjectId uint32 `json:"npcObjectId"`
 }
 
-func SetReturnText(l logrus.FieldLogger) func(characterId uint32, returnText string) {
-	producer := ProduceEvent(l, "TOPIC_SET_RETURN_TEXT")
+func SetReturnText(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, returnText string) {
+	producer := ProduceEvent(l, span, "TOPIC_SET_RETURN_TEXT")
 	return func(characterId uint32, returnText string) {
 		e := &setReturnTextCommand{
 			CharacterId: characterId,
@@ -36,8 +37,8 @@ func SetReturnText(l logrus.FieldLogger) func(characterId uint32, returnText str
 	}
 }
 
-func ContinueConversation(l logrus.FieldLogger) func(characterId uint32, action byte, messageType byte, selection int32) {
-	producer := ProduceEvent(l, "TOPIC_CONTINUE_NPC_CONVERSATION")
+func ContinueConversation(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, action byte, messageType byte, selection int32) {
+	producer := ProduceEvent(l, span, "TOPIC_CONTINUE_NPC_CONVERSATION")
 	return func(characterId uint32, action byte, messageType byte, selection int32) {
 		e := &continueNPCConversationCommand{
 			CharacterId: characterId,
@@ -49,8 +50,8 @@ func ContinueConversation(l logrus.FieldLogger) func(characterId uint32, action 
 	}
 }
 
-func StartConversation(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
-	producer := ProduceEvent(l, "TOPIC_START_NPC_CONVERSATION")
+func StartConversation(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_START_NPC_CONVERSATION")
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
 		e := &startNPCConversationCommand{
 			WorldId:     worldId,

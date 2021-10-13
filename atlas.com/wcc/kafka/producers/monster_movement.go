@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,8 +21,8 @@ type monsterMovementEvent struct {
 	RawMovement   rawMovement `json:"rawMovement"`
 }
 
-func MonsterMovement(l logrus.FieldLogger) func(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
-	producer := ProduceEvent(l, "TOPIC_MONSTER_MOVEMENT")
+func MonsterMovement(l logrus.FieldLogger, span opentracing.Span) func(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
+	producer := ProduceEvent(l, span, "TOPIC_MONSTER_MOVEMENT")
 	return func(uniqueId uint32, observerId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, endX int16, endY int16, stance byte, rawMovement []byte) {
 		e := &monsterMovementEvent{
 			UniqueId:      uniqueId,

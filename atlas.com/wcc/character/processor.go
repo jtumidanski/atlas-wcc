@@ -8,17 +8,18 @@ import (
 	"atlas-wcc/rest/attributes"
 	"atlas-wcc/rest/requests"
 	"errors"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
-func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, error) {
+func GetCharacterById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
 	return func(characterId uint32) (*Model, error) {
-		cs, err := properties.GetById(l)(characterId)
+		cs, err := properties.GetById(l, span)(characterId)
 		if err != nil {
 			return nil, err
 		}
 
-		c, err := getCharacterForAttributes(l)(cs)
+		c, err := getCharacterForAttributes(l, span)(cs)
 		if err != nil {
 			return nil, err
 		}
@@ -26,9 +27,9 @@ func GetCharacterById(l logrus.FieldLogger) func(characterId uint32) (*Model, er
 	}
 }
 
-func getCharacterForAttributes(l logrus.FieldLogger) func(data *properties.Model) (*Model, error) {
+func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func(data *properties.Model) (*Model, error) {
 	return func(data *properties.Model) (*Model, error) {
-		eq, err := getEquippedItemsForCharacter(l)(data.Id())
+		eq, err := getEquippedItemsForCharacter(l, span)(data.Id())
 		if err != nil {
 			return nil, err
 		}
@@ -38,30 +39,30 @@ func getCharacterForAttributes(l logrus.FieldLogger) func(data *properties.Model
 			return nil, err
 		}
 
-		ss, err := skill.GetForCharacter(l)(data.Id())
+		ss, err := skill.GetForCharacter(l, span)(data.Id())
 		if err != nil {
 			return nil, err
 		}
 
 		c := NewCharacter(*data, eq, ss, ps)
 
-		ei, err := getEquipInventoryForCharacter(l)(data.Id())
+		ei, err := getEquipInventoryForCharacter(l, span)(data.Id())
 		if err != nil {
 			return nil, err
 		}
-		ui, err := getItemInventoryForCharacter(l)(data.Id(), "use")
+		ui, err := getItemInventoryForCharacter(l, span)(data.Id(), "use")
 		if err != nil {
 			return nil, err
 		}
-		si, err := getItemInventoryForCharacter(l)(data.Id(), "setup")
+		si, err := getItemInventoryForCharacter(l, span)(data.Id(), "setup")
 		if err != nil {
 			return nil, err
 		}
-		etc, err := getItemInventoryForCharacter(l)(data.Id(), "etc")
+		etc, err := getItemInventoryForCharacter(l, span)(data.Id(), "etc")
 		if err != nil {
 			return nil, err
 		}
-		ci, err := getItemInventoryForCharacter(l)(data.Id(), "cash")
+		ci, err := getItemInventoryForCharacter(l, span)(data.Id(), "cash")
 		if err != nil {
 			return nil, err
 		}
@@ -75,9 +76,9 @@ func getPetsForCharacter() ([]pet.Model, error) {
 	return make([]pet.Model, 0), nil
 }
 
-func getItemInventoryForCharacter(l logrus.FieldLogger) func(characterId uint32, inventoryType string) (*inventory.ItemInventory, error) {
+func getItemInventoryForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, inventoryType string) (*inventory.ItemInventory, error) {
 	return func(characterId uint32, inventoryType string) (*inventory.ItemInventory, error) {
-		r, err := requests.GetItemsForCharacter(l)(characterId, inventoryType)
+		r, err := requests.GetItemsForCharacter(l, span)(characterId, inventoryType)
 		if err != nil {
 			return nil, err
 		}
@@ -92,9 +93,9 @@ func getItemInventoryForCharacter(l logrus.FieldLogger) func(characterId uint32,
 	}
 }
 
-func getEquipInventoryForCharacter(l logrus.FieldLogger) func(characterId uint32) (*inventory.EquipInventory, error) {
+func getEquipInventoryForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*inventory.EquipInventory, error) {
 	return func(characterId uint32) (*inventory.EquipInventory, error) {
-		r, err := requests.GetItemsForCharacter(l)(characterId, "equip")
+		r, err := requests.GetItemsForCharacter(l, span)(characterId, "equip")
 		if err != nil {
 			return nil, err
 		}
@@ -132,9 +133,9 @@ func getEquipInventoryForCharacter(l logrus.FieldLogger) func(characterId uint32
 	}
 }
 
-func getEquippedItemsForCharacter(l logrus.FieldLogger) func(characterId uint32) ([]inventory.EquippedItem, error) {
+func getEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]inventory.EquippedItem, error) {
 	return func(characterId uint32) ([]inventory.EquippedItem, error) {
-		r, err := requests.GetEquippedItemsForCharacter(l)(characterId)
+		r, err := requests.GetEquippedItemsForCharacter(l, span)(characterId)
 		if err != nil {
 			return nil, err
 		}
@@ -171,9 +172,9 @@ func getEquippedItemsForCharacter(l logrus.FieldLogger) func(characterId uint32)
 	}
 }
 
-func GetEquipItemForCharacter(l logrus.FieldLogger) func(characterId uint32, slot int16) (*inventory.EquippedItem, error) {
+func GetEquipItemForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, slot int16) (*inventory.EquippedItem, error) {
 	return func(characterId uint32, slot int16) (*inventory.EquippedItem, error) {
-		r, err := requests.GetEquippedItemForCharacter(l)(characterId, slot)
+		r, err := requests.GetEquippedItemForCharacter(l, span)(characterId, slot)
 		if err != nil {
 			return nil, err
 		}
@@ -216,9 +217,9 @@ func GetEquipItemForCharacter(l logrus.FieldLogger) func(characterId uint32, slo
 	}
 }
 
-func GetCharacterWeaponDamage(l logrus.FieldLogger) func(characterId uint32) uint32 {
+func GetCharacterWeaponDamage(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) uint32 {
 	return func(characterId uint32) uint32 {
-		r, err := requests.GetCharacterWeaponDamage(l)(characterId)
+		r, err := requests.GetCharacterWeaponDamage(l, span)(characterId)
 		if err != nil {
 			return 1
 		}

@@ -1,13 +1,14 @@
 package skill
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetForCharacter(l logrus.FieldLogger) func(characterId uint32) ([]Model, error) {
+func GetForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]Model, error) {
 	return func(characterId uint32) ([]Model, error) {
-		r, err := requestForCharacter(l)(characterId)
+		r, err := requestForCharacter(l, span)(characterId)
 		if err != nil {
 			return nil, err
 		}

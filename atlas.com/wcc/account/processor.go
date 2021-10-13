@@ -1,13 +1,14 @@
 package account
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		resp, err := requestById(l)(id)
+		resp, err := requestById(l, span)(id)
 		if err != nil {
 			return nil, err
 		}
@@ -23,9 +24,9 @@ func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
 	}
 }
 
-func IsLoggedIn(l logrus.FieldLogger) func(id uint32) bool {
+func IsLoggedIn(l logrus.FieldLogger, span opentracing.Span) func(id uint32) bool {
 	return func(id uint32) bool {
-		a, err := GetById(l)(id)
+		a, err := GetById(l, span)(id)
 		if err != nil {
 			return false
 		} else if a.LoggedIn() != 0 {

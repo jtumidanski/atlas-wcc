@@ -4,9 +4,9 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/monster"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -105,14 +105,14 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-func MoveLifeHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {
 			return
 		}
 
-		_, err := monster.GetById(l)(p.ObjectId())
+		_, err := monster.GetById(l, span)(p.ObjectId())
 		if err != nil {
 			l.WithError(err).Errorf("Received move life request for unknown monster %d", p.ObjectId())
 			return
@@ -151,7 +151,7 @@ func MoveLifeHandler() request2.MessageHandler {
 		}
 
 		if p.hasMovement {
-			producers.MonsterMovement(l)(p.ObjectId(), s.CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
+			producers.MonsterMovement(l, span)(p.ObjectId(), s.CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
 		}
 	}
 }

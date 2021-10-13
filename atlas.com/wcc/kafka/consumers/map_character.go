@@ -10,6 +10,7 @@ import (
 	"atlas-wcc/reactor"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,16 +29,16 @@ func MapCharacterEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleMapCharacterEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapCharacterEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
 			if event.Type == "ENTER" {
-				session.ForSessionByCharacterId(event.CharacterId, enterMap(l, *event))
+				session.ForSessionByCharacterId(event.CharacterId, enterMap(l, span)(*event))
 			} else if event.Type == "EXIT" {
-				session.ForEachOtherInMap(l)(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
+				session.ForEachOtherInMap(l, span)(event.WorldId, event.ChannelId, event.CharacterId, removeCharacterForSession(l)(event.CharacterId))
 			} else {
 				l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 				return
@@ -48,55 +49,58 @@ func HandleMapCharacterEvent() ChannelEventProcessor {
 	}
 }
 
-func enterMap(l logrus.FieldLogger, event mapCharacterEvent) session.Operator {
-	return func(s *session.Model) {
-		cIds, err := _map.GetCharacterIdsInMap(l)(event.WorldId, event.ChannelId, event.MapId)
-		if err != nil {
-			return
-		}
+func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharacterEvent) session.Operator {
+	return func(event mapCharacterEvent) session.Operator {
 
-		cm := make(map[uint32]*character.Model)
-		for _, cId := range cIds {
-			c, err := character.GetCharacterById(l)(cId)
+		return func(s *session.Model) {
+			cIds, err := _map.GetCharacterIdsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId)
 			if err != nil {
-				//log something
-			} else {
-				cm[c.Attributes().Id()] = c
+				return
 			}
-		}
 
-		// Spawn new character for other character.
-		for k, v := range cm {
-			if k != event.CharacterId {
-				as := *session.GetByCharacterId(k)
-				err = as.Announce(writer.WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))
+			cm := make(map[uint32]*character.Model)
+			for _, cId := range cIds {
+				c, err := character.GetCharacterById(l, span)(cId)
 				if err != nil {
-					l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
+					//log something
+				} else {
+					cm[c.Attributes().Id()] = c
 				}
 			}
-		}
 
-		// Spawn other characters for incoming character.
-		for k, v := range cm {
-			if k != event.CharacterId {
-				err = s.Announce(writer.WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))
-				if err != nil {
-					l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
+			// Spawn new character for other character.
+			for k, v := range cm {
+				if k != event.CharacterId {
+					as := *session.GetByCharacterId(k)
+					err = as.Announce(writer.WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))
+					if err != nil {
+						l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
+					}
 				}
 			}
+
+			// Spawn other characters for incoming character.
+			for k, v := range cm {
+				if k != event.CharacterId {
+					err = s.Announce(writer.WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))
+					if err != nil {
+						l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
+					}
+				}
+			}
+
+			// Spawn NPCs for incoming character.
+			npc.ForEachInMap(l, span)(event.MapId, spawnNPCForSession(l)(s))
+
+			// Spawn monsters for incoming character.
+			monster.ForEachInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
+
+			// Spawn drops for incoming character.
+			drop.ForEachInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
+
+			// Spawn reactors for incoming character.
+			reactor.ForEachAliveInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, spawnReactorForSession(l)(s))
 		}
-
-		// Spawn NPCs for incoming character.
-		npc.ForEachInMap(l)(event.MapId, spawnNPCForSession(l)(s))
-
-		// Spawn monsters for incoming character.
-		monster.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnMonsterForSession(l)(s))
-
-		// Spawn drops for incoming character.
-		drop.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnDropForSession(l)(s))
-
-		// Spawn reactors for incoming character.
-		reactor.ForEachAliveInMap(l)(event.WorldId, event.ChannelId, event.MapId, spawnReactorForSession(l)(s))
 	}
 }
 

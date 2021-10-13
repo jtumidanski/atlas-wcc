@@ -2,6 +2,7 @@ package session
 
 import (
 	"atlas-wcc/kafka/producers"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"net"
 )
@@ -39,23 +40,31 @@ func Decrypt(_ logrus.FieldLogger, r *Registry) func(sessionId uint32, input []b
 	}
 }
 
-func DestroyAll(l logrus.FieldLogger, r *Registry) {
+func DestroyAll(l logrus.FieldLogger, span opentracing.Span, r *Registry) {
 	for _, s := range r.GetAll() {
-		Destroy(l, r)(s)
+		Destroy(l, span, r)(s)
 	}
 }
 
-func DestroyById(l logrus.FieldLogger, r *Registry) func(sessionId uint32) {
+func DestroyById(l logrus.FieldLogger, span opentracing.Span, r *Registry) func(sessionId uint32) {
 	return func(sessionId uint32) {
 		s := r.Get(sessionId)
 		if s == nil {
 			return
 		}
-		Destroy(l, r)(s)
+		Destroy(l, span, r)(s)
 	}
 }
 
-func Destroy(l logrus.FieldLogger, r *Registry) func(session *Model) {
+func DestroyByIdWithSpan(l logrus.FieldLogger, r *Registry) func(sessionId uint32) {
+	return func(sessionId uint32) {
+		span := opentracing.StartSpan("session_destroy")
+		defer span.Finish()
+		DestroyById(l, span, r)(sessionId)
+	}
+}
+
+func Destroy(l logrus.FieldLogger, span opentracing.Span, r *Registry) func(session *Model) {
 	return func(s *Model) {
 		l.Debugf("Destroying session %d.", s.SessionId())
 
@@ -66,6 +75,6 @@ func Destroy(l logrus.FieldLogger, r *Registry) func(session *Model) {
 			l.WithError(err).Errorf("Unable to issue disconnect to session %d.", s.SessionId())
 		}
 
-		producers.Logout(l)(s.WorldId(), s.ChannelId(), s.AccountId(), s.CharacterId())
+		producers.Logout(l, span)(s.WorldId(), s.ChannelId(), s.AccountId(), s.CharacterId())
 	}
 }

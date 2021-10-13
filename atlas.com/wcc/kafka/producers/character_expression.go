@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -9,8 +10,8 @@ type characterExpressionEvent struct {
 	Emote       uint32 `json:"emote"`
 }
 
-func CharacterExpression(l logrus.FieldLogger) func(characterId uint32, emote uint32) {
-	producer := ProduceEvent(l, "CHANGE_FACIAL_EXPRESSION")
+func CharacterExpression(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, emote uint32) {
+	producer := ProduceEvent(l, span, "CHANGE_FACIAL_EXPRESSION")
 	return func(characterId uint32, emote uint32) {
 		e := &characterExpressionEvent{
 			CharacterId: characterId,

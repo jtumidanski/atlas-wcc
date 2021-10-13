@@ -2,6 +2,7 @@ package producers
 
 import (
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -16,8 +17,8 @@ type characterMovementEvent struct {
 	RawMovement rawMovement `json:"rawMovement"`
 }
 
-func MoveCharacter(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
-	producer := ProduceEvent(l, "TOPIC_CHARACTER_MOVEMENT")
+func MoveCharacter(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
+	producer := ProduceEvent(l, span, "TOPIC_CHARACTER_MOVEMENT")
 	return func(worldId byte, channelId byte, characterId uint32, x int16, y int16, stance byte, rawMovement []byte) {
 		e := &characterMovementEvent{
 			WorldId:     worldId,

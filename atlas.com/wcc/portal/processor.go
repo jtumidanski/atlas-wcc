@@ -1,13 +1,14 @@
 package portal
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetByName(l logrus.FieldLogger) func(mapId uint32, portalName string) (*Model, error) {
+func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (*Model, error) {
 	return func(mapId uint32, portalName string) (*Model, error) {
-		resp, err := requestByName(l)(mapId, portalName)
+		resp, err := requestByName(l, span)(mapId, portalName)
 		if err != nil {
 			return nil, err
 		}

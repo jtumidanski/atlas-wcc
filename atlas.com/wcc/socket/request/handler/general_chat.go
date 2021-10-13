@@ -4,8 +4,8 @@ import (
 	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,15 +30,15 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 	return generalChatRequest{message, show}
 }
 
-func GeneralChatHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
-		ca, err := properties.GetById(l)(s.CharacterId())
+		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", s.CharacterId())
 			return
 		}
 
-		producers.CharacterMapMessage(l)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		producers.CharacterMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }

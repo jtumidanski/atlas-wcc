@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,8 +13,8 @@ type characterMapMessageEvent struct {
 	Show        bool   `json:"show"`
 }
 
-func CharacterMapMessage(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
-	producer := ProduceEvent(l, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT")
+func CharacterMapMessage(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
+	producer := ProduceEvent(l, span, "TOPIC_CHARACTER_MAP_MESSAGE_EVENT")
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, message string, gm bool, show bool) {
 		e := &characterMapMessageEvent{
 			CharacterId: characterId,

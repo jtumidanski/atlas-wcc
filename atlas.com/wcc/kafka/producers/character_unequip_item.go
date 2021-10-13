@@ -1,6 +1,9 @@
 package producers
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/opentracing/opentracing-go"
+	"github.com/sirupsen/logrus"
+)
 
 type characterUnequipItem struct {
 	CharacterId uint32 `json:"characterId"`
@@ -8,8 +11,8 @@ type characterUnequipItem struct {
 	Destination int16  `json:"destination"`
 }
 
-func UnequipItem(l logrus.FieldLogger) func(characterId uint32, source int16, destination int16) {
-	producer := ProduceEvent(l, "TOPIC_UNEQUIP_ITEM")
+func UnequipItem(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, source int16, destination int16) {
+	producer := ProduceEvent(l, span, "TOPIC_UNEQUIP_ITEM")
 	return func(characterId uint32, source int16, destination int16) {
 		e := &characterUnequipItem{CharacterId: characterId, Source: source, Destination: destination}
 		producer(CreateKey(int(characterId)), e)

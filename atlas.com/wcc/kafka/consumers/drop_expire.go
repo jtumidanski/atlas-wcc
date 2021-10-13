@@ -4,10 +4,11 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
-type DropExpireEvent struct {
+type dropExpireEvent struct {
 	WorldId   byte   `json:"worldId"`
 	ChannelId byte   `json:"channelId"`
 	MapId     uint32 `json:"mapId"`
@@ -16,25 +17,25 @@ type DropExpireEvent struct {
 
 func DropExpireEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
-		return &DropExpireEvent{}
+		return &dropExpireEvent{}
 	}
 }
 
 func HandleDropExpireEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
-		if event, ok := e.(*DropExpireEvent); ok {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*dropExpireEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			session.ForEachInMap(l)(wid, cid, event.MapId, expireItem(l, event))
+			session.ForEachInMap(l, span)(wid, cid, event.MapId, expireItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func expireItem(l logrus.FieldLogger, event *DropExpireEvent) session.Operator {
+func expireItem(l logrus.FieldLogger, event *dropExpireEvent) session.Operator {
 	b := writer.WriteRemoveItem(l)(event.UniqueId, 0, 0)
 	return func(s *session.Model) {
 		err := s.Announce(b)

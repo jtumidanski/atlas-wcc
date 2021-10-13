@@ -2,8 +2,8 @@ package handler
 
 import (
 	"atlas-wcc/session"
-	"atlas-wcc/socket/request"
-	request2 "github.com/jtumidanski/atlas-socket/request"
+	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +23,7 @@ func (r questActionRequest) Action() byte {
 	return r.action
 }
 
-func readQuestAction(r *request2.RequestReader) interface{} {
+func readQuestAction(r *request.RequestReader) interface{} {
 	action := r.ReadByte()
 	questId := r.ReadUint16()
 	itemId := uint32(0)
@@ -37,28 +37,28 @@ func readQuestAction(r *request2.RequestReader) interface{} {
 		itemId = r.ReadUint32()
 	} else if action == 1 {
 		npcId = r.ReadUint32()
-		if len(r.GetBuffer()) - r.Position() >= 4 {
+		if len(r.GetBuffer())-r.Position() >= 4 {
 			x = r.ReadInt16()
 			y = r.ReadInt16()
 		}
 	} else if action == 2 {
 		npcId = r.ReadUint32()
-		if len(r.GetBuffer()) - r.Position() >= 4 {
+		if len(r.GetBuffer())-r.Position() >= 4 {
 			x = r.ReadInt16()
 			y = r.ReadInt16()
 		}
-		if len(r.GetBuffer()) - r.Position() >= 2 {
+		if len(r.GetBuffer())-r.Position() >= 2 {
 			selection = r.ReadInt16()
 		}
 	} else if action == 4 {
 		npcId = r.ReadUint32()
-		if len(r.GetBuffer()) - r.Position() >= 4 {
+		if len(r.GetBuffer())-r.Position() >= 4 {
 			x = r.ReadInt16()
 			y = r.ReadInt16()
 		}
 	} else if action == 5 {
 		npcId = r.ReadUint32()
-		if len(r.GetBuffer()) - r.Position() >= 4 {
+		if len(r.GetBuffer())-r.Position() >= 4 {
 			x = r.ReadInt16()
 			y = r.ReadInt16()
 		}
@@ -74,8 +74,8 @@ func readQuestAction(r *request2.RequestReader) interface{} {
 	}
 }
 
-func HandleQuestAction() request.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request2.RequestReader) {
+func HandleQuestAction(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readQuestAction(r)
 		if val, ok := p.(*questActionRequest); ok {
 			if val.Action() == 0 {

@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +24,7 @@ func CharacterCreatedEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleCharacterCreatedEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterCreatedEvent); ok {
 			if wid != event.WorldId {
 				return

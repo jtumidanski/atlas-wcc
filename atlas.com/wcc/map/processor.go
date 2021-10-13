@@ -1,13 +1,14 @@
 package _map
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetCharacterIdsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
+func GetCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
 	return func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-		resp, err := requestCharactersInMap(l)(worldId, channelId, mapId)
+		resp, err := requestCharactersInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return nil, err
 		}

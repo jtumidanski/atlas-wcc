@@ -4,8 +4,8 @@ import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/npc/conversation"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,16 +54,16 @@ func readNPCTalkMoreRequest(reader *request.RequestReader) npcTalkMoreRequest {
 	return npcTalkMoreRequest{lastMessageType, action, returnText, selection}
 }
 
-func HandleNPCTalkMoreRequest() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func HandleNPCTalkMoreRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {
 			if p.Action() != 0 {
 				if questInProcess(s.CharacterId()) {
 					continueQuestConversation(s.CharacterId(), p)
 				} else {
-					producers.SetReturnText(l)(s.CharacterId(), p.ReturnText())
-					producers.ContinueConversation(l)(s.CharacterId(), p.Action(), p.LastMessageType(), -1)
+					producers.SetReturnText(l, span)(s.CharacterId(), p.ReturnText())
+					producers.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), -1)
 				}
 			} else if questInProcess(s.CharacterId()) {
 				questDispose(s.CharacterId())
@@ -74,7 +74,7 @@ func HandleNPCTalkMoreRequest() request2.MessageHandler {
 			if questInProcess(s.CharacterId()) {
 				continueQuestConversation(s.CharacterId(), p)
 			} else if conversation.InProgress(l)(s.CharacterId()) {
-				producers.ContinueConversation(l)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
+				producers.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
 	}

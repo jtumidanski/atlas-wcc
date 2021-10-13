@@ -3,8 +3,8 @@ package handler
 import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -53,8 +53,8 @@ func readChangeKeyMapRequest(reader *request.RequestReader) interface{} {
 	return nil
 }
 
-func ChangeKeyMapHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readChangeKeyMapRequest(r)
 		if packet, ok := p.(changeKeyMapRequest); ok {
 			if packet.available {
@@ -62,7 +62,7 @@ func ChangeKeyMapHandler() request2.MessageHandler {
 				for _, c := range packet.changes {
 					changes = append(changes, producers.KeyMapChange{Key: c.Key(), ChangeType: c.Type(), Action: c.Action()})
 				}
-				producers.ChangeKeyMap(l)(s.CharacterId(), changes)
+				producers.ChangeKeyMap(l, span)(s.CharacterId(), changes)
 			}
 		}
 	}

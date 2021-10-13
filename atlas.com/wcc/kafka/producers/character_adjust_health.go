@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -9,8 +10,8 @@ type characterAdjustHealthEvent struct {
 	Amount      int16  `json:"amount"`
 }
 
-func CharacterAdjustHealth(l logrus.FieldLogger) func(characterId uint32, amount int16) {
-	producer := ProduceEvent(l, "TOPIC_ADJUST_HEALTH")
+func CharacterAdjustHealth(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, amount int16) {
+	producer := ProduceEvent(l, span, "TOPIC_ADJUST_HEALTH")
 	return func(characterId uint32, amount int16) {
 		e := &characterAdjustHealthEvent{
 			CharacterId: characterId,

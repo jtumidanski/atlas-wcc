@@ -3,8 +3,8 @@ package handler
 import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,9 +23,9 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 	return characterExpressionRequest{emote}
 }
 
-func CharacterExpressionHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func CharacterExpressionHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
-		producers.CharacterExpression(l)(s.CharacterId(), p.Emote())
+		producers.CharacterExpression(l, span)(s.CharacterId(), p.Emote())
 	}
 }

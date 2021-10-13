@@ -3,6 +3,7 @@ package npc
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,10 +15,10 @@ const (
 	npcsInMapByObjectId                = mapsResource + "%d/npcs?objectId=%d"
 )
 
-func requestNPCsInMap(l logrus.FieldLogger) func(mapId uint32) (*dataContainer, error) {
+func requestNPCsInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32) (*dataContainer, error) {
 	return func(mapId uint32) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(npcsInMap, mapId), ar)
+		err := requests.Get(l, span)(fmt.Sprintf(npcsInMap, mapId), ar)
 		if err != nil {
 			return nil, err
 		}
@@ -25,10 +26,10 @@ func requestNPCsInMap(l logrus.FieldLogger) func(mapId uint32) (*dataContainer, 
 	}
 }
 
-func requestNPCsInMapByObjectId(l logrus.FieldLogger) func(mapId uint32, objectId uint32) (*dataContainer, error) {
+func requestNPCsInMapByObjectId(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, objectId uint32) (*dataContainer, error) {
 	return func(mapId uint32, objectId uint32) (*dataContainer, error) {
 		ar := &dataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(npcsInMapByObjectId, mapId, objectId), ar)
+		err := requests.Get(l, span)(fmt.Sprintf(npcsInMapByObjectId, mapId, objectId), ar)
 		if err != nil {
 			return nil, err
 		}

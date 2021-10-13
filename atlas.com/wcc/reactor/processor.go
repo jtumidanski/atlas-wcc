@@ -1,6 +1,7 @@
 package reactor
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
@@ -17,21 +18,21 @@ func ExecuteForEach(f Operator) SliceOperator {
 	}
 }
 
-func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
 	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
-		ForReactorsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+		ForReactorsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
-func ForEachAliveInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachAliveInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
 	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
-		ForAliveReactorsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+		ForAliveReactorsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
-func ForReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-		reactors, err := GetInMap(l)(worldId, channelId, mapId)
+		reactors, err := GetInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return
 		}
@@ -39,9 +40,9 @@ func ForReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, m
 	}
 }
 
-func ForAliveReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForAliveReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-		reactors, err := GetInMap(l)(worldId, channelId, mapId, AliveFilter())
+		reactors, err := GetInMap(l, span)(worldId, channelId, mapId, AliveFilter())
 		if err != nil {
 			return
 		}
@@ -49,9 +50,9 @@ func ForAliveReactorsInMap(l logrus.FieldLogger) func(worldId byte, channelId by
 	}
 }
 
-func GetById(l logrus.FieldLogger) func(id uint32) (*Model, error) {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*Model, error) {
 	return func(id uint32) (*Model, error) {
-		data, err := requestById(l)(id)
+		data, err := requestById(l, span)(id)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve reactor by id %d.", id)
 			return nil, err
@@ -73,9 +74,9 @@ func AliveFilter() Filter {
 	}
 }
 
-func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
 	return func(worldId byte, channelId byte, mapId uint32, filters ...Filter) ([]Model, error) {
-		resp, err := requestInMap(l)(worldId, channelId, mapId)
+		resp, err := requestInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return nil, err
 		}

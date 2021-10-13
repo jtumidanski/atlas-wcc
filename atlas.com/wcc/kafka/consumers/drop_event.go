@@ -4,10 +4,11 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
-type DropEvent struct {
+type dropEvent struct {
 	WorldId         byte   `json:"worldId"`
 	ChannelId       byte   `json:"channelId"`
 	MapId           uint32 `json:"mapId"`
@@ -30,25 +31,25 @@ type DropEvent struct {
 
 func DropEventCreator() handler.EmptyEventCreator {
 	return func() interface{} {
-		return &DropEvent{}
+		return &dropEvent{}
 	}
 }
 
 func HandleDropEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
-		if event, ok := e.(*DropEvent); ok {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
+		if event, ok := e.(*dropEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			session.ForEachInMap(l)(wid, cid, event.MapId, dropItem(l, event))
+			session.ForEachInMap(l, span)(wid, cid, event.MapId, dropItem(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func dropItem(l logrus.FieldLogger, event *DropEvent) session.Operator {
+func dropItem(l logrus.FieldLogger, event *dropEvent) session.Operator {
 	return func(s *session.Model) {
 		a := uint32(0)
 		if event.ItemId != 0 {

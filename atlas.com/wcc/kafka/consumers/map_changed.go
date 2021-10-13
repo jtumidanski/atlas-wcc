@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,22 +24,22 @@ func ChangeMapEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleChangeMapEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*mapChangedEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			session.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, event))
+			session.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, span, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
 	}
 }
 
-func warpCharacter(l logrus.FieldLogger, event *mapChangedEvent) session.Operator {
+func warpCharacter(l logrus.FieldLogger, span opentracing.Span, event *mapChangedEvent) session.Operator {
 	return func(s *session.Model) {
-		catt, err := properties.GetById(l)(event.CharacterId)
+		catt, err := properties.GetById(l, span)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return

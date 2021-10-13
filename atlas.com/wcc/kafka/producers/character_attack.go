@@ -1,6 +1,9 @@
 package producers
 
-import "github.com/sirupsen/logrus"
+import (
+   "github.com/opentracing/opentracing-go"
+   "github.com/sirupsen/logrus"
+)
 
 type attackCommand struct {
    WorldId                  byte                `json:"worldId"`
@@ -25,8 +28,8 @@ type attackCommand struct {
    Y                        int16               `json:"y"`
 }
 
-func CharacterAttack(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, skillId uint32, skillLevel byte, attacked byte, damaged byte, attackedAndDamaged byte, stance byte, direction byte, rangedDirection byte, charge uint32, display byte, ranged bool, magic bool, speed byte, allDamage map[uint32][]uint32, x int16, y int16) {
-   producer := ProduceEvent(l, "TOPIC_CHARACTER_ATTACK_COMMAND")
+func CharacterAttack(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, skillId uint32, skillLevel byte, attacked byte, damaged byte, attackedAndDamaged byte, stance byte, direction byte, rangedDirection byte, charge uint32, display byte, ranged bool, magic bool, speed byte, allDamage map[uint32][]uint32, x int16, y int16) {
+   producer := ProduceEvent(l, span, "TOPIC_CHARACTER_ATTACK_COMMAND")
    return func(worldId byte, channelId byte, mapId uint32, characterId uint32, skillId uint32, skillLevel byte, attacked byte, damaged byte, attackedAndDamaged byte, stance byte, direction byte, rangedDirection byte, charge uint32, display byte, ranged bool, magic bool, speed byte, allDamage map[uint32][]uint32, x int16, y int16) {
       c := &attackCommand{
          WorldId:                  worldId,

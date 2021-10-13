@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,13 +33,13 @@ func MonsterMovementEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleMonsterMovementEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterMovementEvent); ok {
 			if actingSession := session.GetByCharacterId(event.ObserverId); actingSession == nil {
 				return
 			}
 
-			session.ForEachOtherInMap(l)(wid, cid, event.ObserverId, moveMonster(l, event))
+			session.ForEachOtherInMap(l, span)(wid, cid, event.ObserverId, moveMonster(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

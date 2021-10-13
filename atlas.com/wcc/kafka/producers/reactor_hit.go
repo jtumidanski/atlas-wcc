@@ -1,6 +1,9 @@
 package producers
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/opentracing/opentracing-go"
+	"github.com/sirupsen/logrus"
+)
 
 type hitReactorCommand struct {
 	WorldId     byte   `json:"world_id"`
@@ -12,8 +15,8 @@ type hitReactorCommand struct {
 	SkillId     uint32 `json:"skill_id"`
 }
 
-func HitReactor(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, characterId uint32, id uint32, stance uint16, skillId uint32) {
-	producer := ProduceEvent(l, "TOPIC_HIT_REACTOR_COMMAND")
+func HitReactor(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, id uint32, stance uint16, skillId uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_HIT_REACTOR_COMMAND")
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, id uint32, stance uint16, skillId uint32) {
 		e := &hitReactorCommand{
 			WorldId:     worldId,

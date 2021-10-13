@@ -1,6 +1,7 @@
 package npc
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
@@ -17,15 +18,15 @@ func ExecuteForEach(f Operator) SliceOperator {
 	}
 }
 
-func ForEachInMap(l logrus.FieldLogger) func(mapId uint32, f Operator) {
+func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, f Operator) {
 	return func(mapId uint32, f Operator) {
-		ForNPCsInMap(l)(mapId, ExecuteForEach(f))
+		ForNPCsInMap(l, span)(mapId, ExecuteForEach(f))
 	}
 }
 
-func ForNPCsInMap(l logrus.FieldLogger) func(mapId uint32, f SliceOperator) {
+func ForNPCsInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, f SliceOperator) {
 	return func(mapId uint32, f SliceOperator) {
-		npcs, err := GetInMap(l)(mapId)
+		npcs, err := GetInMap(l, span)(mapId)
 		if err != nil {
 			return
 		}
@@ -33,9 +34,9 @@ func ForNPCsInMap(l logrus.FieldLogger) func(mapId uint32, f SliceOperator) {
 	}
 }
 
-func GetInMap(l logrus.FieldLogger) func(mapId uint32) ([]Model, error) {
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32) ([]Model, error) {
 	return func(mapId uint32) ([]Model, error) {
-		resp, err := requestNPCsInMap(l)(mapId)
+		resp, err := requestNPCsInMap(l, span)(mapId)
 		if err != nil {
 			return nil, err
 		}
@@ -53,9 +54,9 @@ func GetInMap(l logrus.FieldLogger) func(mapId uint32) ([]Model, error) {
 	}
 }
 
-func GetInMapByObjectId(l logrus.FieldLogger) func(mapId uint32, objectId uint32) ([]Model, error) {
+func GetInMapByObjectId(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, objectId uint32) ([]Model, error) {
 	return func(mapId uint32, objectId uint32) ([]Model, error) {
-		resp, err := requestNPCsInMapByObjectId(l)(mapId, objectId)
+		resp, err := requestNPCsInMapByObjectId(l, span)(mapId, objectId)
 		if err != nil {
 			return nil, err
 		}

@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -12,15 +13,15 @@ type characterStatusEvent struct {
 	Type        string `json:"type"`
 }
 
-func Login(l logrus.FieldLogger) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
-	producer := ProduceEvent(l, "TOPIC_CHARACTER_STATUS")
+func Login(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_CHARACTER_STATUS")
 	return func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
 		emitStatus(producer, worldId, channelId, accountId, characterId, "LOGIN")
 	}
 }
 
-func Logout(l logrus.FieldLogger) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
-	producer := ProduceEvent(l, "TOPIC_CHARACTER_STATUS")
+func Logout(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
+	producer := ProduceEvent(l, span, "TOPIC_CHARACTER_STATUS")
 	return func(worldId byte, channelId byte, accountId uint32, characterId uint32) {
 		emitStatus(producer, worldId, channelId, accountId, characterId, "LOGOUT")
 	}

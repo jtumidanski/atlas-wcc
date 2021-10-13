@@ -3,6 +3,7 @@ package reactor
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,10 +15,10 @@ const (
 	mapReactorsResource         = reactorService + "worlds/%d/channels/%d/maps/%d/reactors"
 )
 
-func requestById(l logrus.FieldLogger) func(id uint32) (*DataContainer, error) {
+func requestById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (*DataContainer, error) {
 	return func(id uint32) (*DataContainer, error) {
 		dc := &DataContainer{}
-		err := requests.Get(l)(fmt.Sprintf(reactorById, id), dc)
+		err := requests.Get(l, span)(fmt.Sprintf(reactorById, id), dc)
 		if err != nil {
 			return nil, err
 		}
@@ -25,10 +26,10 @@ func requestById(l logrus.FieldLogger) func(id uint32) (*DataContainer, error) {
 	}
 }
 
-func requestInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) (*DataListContainer, error) {
+func requestInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) (*DataListContainer, error) {
 	return func(worldId byte, channelId byte, mapId uint32) (*DataListContainer, error) {
 		dc := &DataListContainer{}
-		err := requests.Get(l)(fmt.Sprintf(mapReactorsResource, worldId, channelId, mapId), dc)
+		err := requests.Get(l, span)(fmt.Sprintf(mapReactorsResource, worldId, channelId, mapId), dc)
 		if err != nil {
 			return nil, err
 		}

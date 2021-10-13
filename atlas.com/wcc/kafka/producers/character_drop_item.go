@@ -1,6 +1,9 @@
 package producers
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/opentracing/opentracing-go"
+	"github.com/sirupsen/logrus"
+)
 
 type characterDropItem struct {
 	WorldId       byte   `json:"worldId"`
@@ -11,8 +14,8 @@ type characterDropItem struct {
 	Quantity      int16  `json:"quantity"`
 }
 
-func DropItem(l logrus.FieldLogger) func(worldId byte, channelId byte, characterId uint32, inventoryType int8, source int16, quantity int16) {
-	producer := ProduceEvent(l, "TOPIC_CHARACTER_DROP_ITEM")
+func DropItem(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, inventoryType int8, source int16, quantity int16) {
+	producer := ProduceEvent(l, span, "TOPIC_CHARACTER_DROP_ITEM")
 	return func(worldId byte, channelId byte, characterId uint32, inventoryType int8, source int16, quantity int16) {
 		e := &characterDropItem{WorldId: worldId, ChannelId: channelId, CharacterId: characterId, InventoryType: inventoryType, Source: source, Quantity: quantity}
 		producer(CreateKey(int(characterId)), e)

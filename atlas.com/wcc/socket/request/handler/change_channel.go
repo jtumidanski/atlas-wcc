@@ -4,9 +4,9 @@ import (
 	"atlas-wcc/channel"
 	"atlas-wcc/character/properties"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -26,8 +26,8 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 	return changeChannelRequest{channelId}
 }
 
-func ChangeChannelHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == s.ChannelId() {
 			l.Errorf("Character %s trying to change to the same channel.", s.CharacterId())
@@ -40,7 +40,7 @@ func ChangeChannelHandler() request2.MessageHandler {
 		// not having a player shop open
 		// not being in a mini dungeon
 
-		char, err := properties.GetById(l)(s.CharacterId())
+		char, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d changing channels.", s.CharacterId())
 			disconnect(l)(s)
@@ -50,7 +50,7 @@ func ChangeChannelHandler() request2.MessageHandler {
 			return
 		}
 
-		ch, err := channel.GetForWorld(l)(s.WorldId(), p.ChannelId())
+		ch, err := channel.GetForWorld(l, span)(s.WorldId(), p.ChannelId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
 			return

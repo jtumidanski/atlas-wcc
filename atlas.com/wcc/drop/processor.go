@@ -1,6 +1,7 @@
 package drop
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
@@ -17,15 +18,15 @@ func ExecuteForEach(f Operator) SliceOperator {
 	}
 }
 
-func ForEachInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f Operator) {
+func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
 	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
-		ForDropsInMap(l)(worldId, channelId, mapId, ExecuteForEach(f))
+		ForDropsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
 	}
 }
 
-func ForDropsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
+func ForDropsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
 	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-		drops, err := GetInMap(l)(worldId, channelId, mapId)
+		drops, err := GetInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return
 		}
@@ -33,9 +34,9 @@ func ForDropsInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapI
 	}
 }
 
-func GetInMap(l logrus.FieldLogger) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
 	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-		resp, err := requestInMap(l)(worldId, channelId, mapId)
+		resp, err := requestInMap(l, span)(worldId, channelId, mapId)
 		if err != nil {
 			return nil, err
 		}

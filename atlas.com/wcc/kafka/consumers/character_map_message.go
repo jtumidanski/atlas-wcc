@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,13 +23,13 @@ func CharacterMapMessageEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleCharacterMapMessageEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*characterMapMessageEvent); ok {
 			if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
 				return
 			}
 
-			session.ForEachInMap(l)(wid, cid, event.MapId, showChatText(l, event))
+			session.ForEachInMap(l, span)(wid, cid, event.MapId, showChatText(l, event))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}

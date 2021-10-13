@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/monster"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,7 +24,7 @@ func MonsterControlEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleMonsterControlEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*monsterControlEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
@@ -31,9 +32,9 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 
 			var h session.Operator
 			if event.Type == "START" {
-				h = startControl(l, event)
+				h = startControl(l, span, event)
 			} else if event.Type == "STOP" {
-				h = stopControl(l, event)
+				h = stopControl(l, span, event)
 			} else {
 				l.Warnf("Received unhandled monster control event type of %s", event.Type)
 				return
@@ -46,9 +47,9 @@ func HandleMonsterControlEvent() ChannelEventProcessor {
 	}
 }
 
-func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.Operator {
+func stopControl(l logrus.FieldLogger, span opentracing.Span, event *monsterControlEvent) session.Operator {
 	return func(s *session.Model) {
-		m, err := monster.GetById(l)(event.UniqueId)
+		m, err := monster.GetById(l, span)(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
@@ -61,9 +62,9 @@ func stopControl(l logrus.FieldLogger, event *monsterControlEvent) session.Opera
 	}
 }
 
-func startControl(l logrus.FieldLogger, event *monsterControlEvent) session.Operator {
+func startControl(l logrus.FieldLogger, span opentracing.Span, event *monsterControlEvent) session.Operator {
 	return func(s *session.Model) {
-		m, err := monster.GetById(l)(event.UniqueId)
+		m, err := monster.GetById(l, span)(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return

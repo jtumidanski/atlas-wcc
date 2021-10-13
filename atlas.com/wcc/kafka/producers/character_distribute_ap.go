@@ -1,6 +1,7 @@
 package producers
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -9,8 +10,8 @@ type characterDistributeApEvent struct {
 	Type        string `json:"type"`
 }
 
-func CharacterDistributeAp(l logrus.FieldLogger) func(characterId uint32, attributeType string) {
-	producer := ProduceEvent(l, "TOPIC_ASSIGN_AP_COMMAND")
+func CharacterDistributeAp(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, attributeType string) {
+	producer := ProduceEvent(l, span, "TOPIC_ASSIGN_AP_COMMAND")
 	return func(characterId uint32, attributeType string) {
 		e := &characterDistributeApEvent{
 			CharacterId: characterId,

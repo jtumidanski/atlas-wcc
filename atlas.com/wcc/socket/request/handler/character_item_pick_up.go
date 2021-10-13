@@ -3,8 +3,8 @@ package handler
 import (
 	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
-	request2 "atlas-wcc/socket/request"
 	"github.com/jtumidanski/atlas-socket/request"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,10 +30,10 @@ func readItemPickUpRequest(reader *request.RequestReader) itemPickUpRequest {
 	return itemPickUpRequest{timestamp, x, y, objectId}
 }
 
-func ItemPickUpHandler() request2.MessageHandler {
-	return func(l logrus.FieldLogger, s *session.Model, r *request.RequestReader) {
+func ItemPickUpHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
+	return func(s *session.Model, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 
-		producers.CharacterReserveDrop(l)(s.CharacterId(), p.ObjectId())
+		producers.CharacterReserveDrop(l, span)(s.CharacterId(), p.ObjectId())
 	}
 }

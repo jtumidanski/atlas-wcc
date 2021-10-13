@@ -1,6 +1,7 @@
 package shop
 
 import (
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -10,9 +11,9 @@ func HasShop(l logrus.FieldLogger) func(npcId uint32) bool {
 	}
 }
 
-func GetShop(l logrus.FieldLogger) func(npcId uint32) (*Model, error) {
+func GetShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) (*Model, error) {
 	return func(npcId uint32) (*Model, error) {
-		d, err := requestShop(l)(npcId)
+		d, err := requestShop(l, span)(npcId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve shop for %d.", npcId)
 			return nil, err

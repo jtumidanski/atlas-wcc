@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/kafka/handler"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
+	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
@@ -30,13 +31,13 @@ func EmptyRangeAttackEventCreator() handler.EmptyEventCreator {
 }
 
 func HandleRangeAttackEvent() ChannelEventProcessor {
-	return func(l logrus.FieldLogger, wid byte, cid byte, e interface{}) {
+	return func(l logrus.FieldLogger, span opentracing.Span, wid byte, cid byte, e interface{}) {
 		if event, ok := e.(*rangeAttackEvent); ok {
 			if wid != event.WorldId || cid != event.ChannelId {
 				return
 			}
 
-			session.ForEachInMap(l)(event.WorldId, event.ChannelId, event.MapId, writeRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile))
+			session.ForEachInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, writeRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile))
 		} else {
 			l.Errorf("Unable to cast event provided to handler")
 		}
