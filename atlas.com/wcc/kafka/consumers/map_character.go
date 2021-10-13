@@ -146,9 +146,9 @@ func spawnMonsterForSession(l logrus.FieldLogger) func(s *session.Model) monster
 	}
 }
 
-func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.Operator {
-	return func(s *session.Model) npc.Operator {
-		return func(npc npc.Model) {
+func spawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) npc.ModelOperator {
+	return func(s *session.Model) npc.ModelOperator {
+		return func(npc *npc.Model) {
 			err := s.Announce(writer.WriteSpawnNPC(l)(npc))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to spawn npc %d for character %d", npc.Id(), s.CharacterId())

@@ -8,8 +8,8 @@ import (
 
 const OpCodeSpawnNPCRequestController uint16 = 0x103
 
-func WriteSpawnNPCController(l logrus.FieldLogger) func(npc npc.Model, miniMap bool) []byte {
-	return func(npc npc.Model, miniMap bool) []byte {
+func WriteSpawnNPCController(l logrus.FieldLogger) func(npc *npc.Model, miniMap bool) []byte {
+	return func(npc *npc.Model, miniMap bool) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnNPCRequestController)
 		w.WriteByte(1)

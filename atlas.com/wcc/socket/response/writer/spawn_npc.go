@@ -8,8 +8,8 @@ import (
 
 const OpCodeSpawnNpc uint16 = 0x101
 
-func WriteSpawnNPC(l logrus.FieldLogger) func(npc npc.Model) []byte {
-	return func(npc npc.Model) []byte {
+func WriteSpawnNPC(l logrus.FieldLogger) func(npc *npc.Model) []byte {
+	return func(npc *npc.Model) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnNpc)
 		w.WriteInt(npc.ObjectId())
