@@ -6,12 +6,12 @@ import (
 	"strconv"
 )
 
-type Operator func(Model)
+type Operator func(*Model)
 
-type SliceOperator func([]Model)
+type SliceOperator func([]*Model)
 
 func ExecuteForEach(f Operator) SliceOperator {
-	return func(drops []Model) {
+	return func(drops []*Model) {
 		for _, drop := range drops {
 			f(drop)
 		}
@@ -34,32 +34,52 @@ func ForDropsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byt
 	}
 }
 
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-		resp, err := requestInMap(l, span)(worldId, channelId, mapId)
-		if err != nil {
-			return nil, err
-		}
+type ModelListProvider func() ([]*Model, error)
 
-		ns := make([]Model, 0)
-		for _, d := range resp.DataList() {
-			id, err := strconv.ParseUint(d.Id, 10, 32)
+func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelListProvider {
+	return func(r Request) ModelListProvider {
+		return func() ([]*Model, error) {
+			resp, err := r(l, span)
 			if err != nil {
-				break
+				return nil, err
 			}
-			n := makeDrop(uint32(id), d.Attributes)
-			ns = append(ns, n)
+
+			ms := make([]*Model, 0)
+			for _, v := range resp.DataList() {
+				m, err := makeModel(&v)
+				if err != nil {
+					return nil, err
+				}
+				ms = append(ms, m)
+			}
+			return ms, nil
 		}
-		return ns, nil
 	}
 }
 
-func makeDrop(id uint32, att attributes) Model {
-	return NewDropBuilder().
+func InMapModelProvider(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ModelListProvider {
+	return func(worldId byte, channelId byte, mapId uint32) ModelListProvider {
+		return requestModelListProvider(l, span)(requestInMap(worldId, channelId, mapId))
+	}
+}
+
+func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]*Model, error) {
+	return func(worldId byte, channelId byte, mapId uint32) ([]*Model, error) {
+		return InMapModelProvider(l, span)(worldId, channelId, mapId)()
+	}
+}
+
+func makeModel(body *dataBody) (*Model, error) {
+	id, err := strconv.Atoi(body.Id)
+	if err != nil {
+		return nil, err
+	}
+	att := body.Attributes
+	m := NewBuilder().
 		SetWorldId(att.WorldId).
 		SetChannelId(att.ChannelId).
 		SetMapId(att.MapId).
-		SetUniqueId(id).
+		SetUniqueId(uint32(id)).
 		SetItemId(att.ItemId).
 		SetMeso(att.Meso).
 		SetDropType(att.DropType).
@@ -74,4 +94,5 @@ func makeDrop(id uint32, att attributes) Model {
 		SetCharacterDrop(att.CharacterDrop).
 		SetMod(att.Mod).
 		Build()
+	return &m, nil
 }

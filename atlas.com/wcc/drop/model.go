@@ -77,7 +77,7 @@ func (d Model) Mod() byte {
 	return d.mod
 }
 
-type dropBuilder struct {
+type builder struct {
 	worldId         byte
 	channelId       byte
 	mapId           uint32
@@ -98,100 +98,100 @@ type dropBuilder struct {
 	mod             byte
 }
 
-func NewDropBuilder() *dropBuilder {
-	return &dropBuilder{}
+func NewBuilder() *builder {
+	return &builder{}
 }
 
-func (d *dropBuilder) SetWorldId(worldId byte) *dropBuilder {
+func (d *builder) SetWorldId(worldId byte) *builder {
 	d.worldId = worldId
 	return d
 }
 
-func (d *dropBuilder) SetChannelId(channelId byte) *dropBuilder {
+func (d *builder) SetChannelId(channelId byte) *builder {
 	d.channelId = channelId
 	return d
 }
 
-func (d *dropBuilder) SetMapId(mapId uint32) *dropBuilder {
+func (d *builder) SetMapId(mapId uint32) *builder {
 	d.mapId = mapId
 	return d
 }
 
-func (d *dropBuilder) SetUniqueId(uniqueId uint32) *dropBuilder {
+func (d *builder) SetUniqueId(uniqueId uint32) *builder {
 	d.uniqueId = uniqueId
 	return d
 }
 
-func (d *dropBuilder) SetItemId(itemId uint32) *dropBuilder {
+func (d *builder) SetItemId(itemId uint32) *builder {
 	d.itemId = itemId
 	return d
 }
-func (d *dropBuilder) SetQuantity(quantity uint32) *dropBuilder {
+func (d *builder) SetQuantity(quantity uint32) *builder {
 	d.quantity = quantity
 	return d
 }
 
-func (d *dropBuilder) SetMeso(meso uint32) *dropBuilder {
+func (d *builder) SetMeso(meso uint32) *builder {
 	d.meso = meso
 	return d
 }
 
-func (d *dropBuilder) SetDropType(dropType byte) *dropBuilder {
+func (d *builder) SetDropType(dropType byte) *builder {
 	d.dropType = dropType
 	return d
 }
 
-func (d *dropBuilder) SetDropX(dropX int16) *dropBuilder {
+func (d *builder) SetDropX(dropX int16) *builder {
 	d.dropX = dropX
 	return d
 }
 
-func (d *dropBuilder) SetDropY(dropY int16) *dropBuilder {
+func (d *builder) SetDropY(dropY int16) *builder {
 	d.dropY = dropY
 	return d
 }
 
-func (d *dropBuilder) SetOwnerId(ownerId uint32) *dropBuilder {
+func (d *builder) SetOwnerId(ownerId uint32) *builder {
 	d.ownerId = ownerId
 	return d
 }
 
-func (d *dropBuilder) SetOwnerPartyId(ownerPartyId uint32) *dropBuilder {
+func (d *builder) SetOwnerPartyId(ownerPartyId uint32) *builder {
 	d.ownerPartyId = ownerPartyId
 	return d
 }
 
-func (d *dropBuilder) SetDropTime(dropTime uint64) *dropBuilder {
+func (d *builder) SetDropTime(dropTime uint64) *builder {
 	d.dropTime = dropTime
 	return d
 }
 
-func (d *dropBuilder) SetDropperUniqueId(dropperUniqueId uint32) *dropBuilder {
+func (d *builder) SetDropperUniqueId(dropperUniqueId uint32) *builder {
 	d.dropperUniqueId = dropperUniqueId
 	return d
 }
 
-func (d *dropBuilder) SetDropperX(dropperX int16) *dropBuilder {
+func (d *builder) SetDropperX(dropperX int16) *builder {
 	d.dropperX = dropperX
 	return d
 }
 
-func (d *dropBuilder) SetDropperY(dropperY int16) *dropBuilder {
+func (d *builder) SetDropperY(dropperY int16) *builder {
 	d.dropperY = dropperY
 	return d
 }
 
-func (d *dropBuilder) SetCharacterDrop(characterDrop bool) *dropBuilder {
+func (d *builder) SetCharacterDrop(characterDrop bool) *builder {
 	d.characterDrop = characterDrop
 	return d
 }
 
-func (d *dropBuilder) SetMod(mod byte) *dropBuilder {
+func (d *builder) SetMod(mod byte) *builder {
 	d.mod = mod
 	return d
 }
 
-func (d *dropBuilder) Build() Model {
+func (d *builder) Build() Model {
 	return Model{
 		uniqueId:        d.uniqueId,
 		worldId:         d.worldId,

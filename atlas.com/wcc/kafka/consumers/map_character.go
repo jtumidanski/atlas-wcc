@@ -117,7 +117,7 @@ func spawnReactorForSession(l logrus.FieldLogger) func(s *session.Model) reactor
 
 func spawnDropForSession(l logrus.FieldLogger) func(s *session.Model) drop.Operator {
 	return func(s *session.Model) drop.Operator {
-		return func(drop drop.Model) {
+		return func(drop *drop.Model) {
 			var a = uint32(0)
 			if drop.ItemId() != 0 {
 				a = 0
