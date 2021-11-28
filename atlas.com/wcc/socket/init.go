@@ -22,9 +22,9 @@ func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGro
 				defer wg.Done()
 				err := socket.Run(l, handlerProducer(l),
 					socket.SetPort(port),
-					socket.SetSessionCreator(session.Create(l, session.Get())(worldId, channelId)),
-					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.Get())),
-					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Get())),
+					socket.SetSessionCreator(session.Create(l, session.Registry())(worldId, channelId)),
+					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.Registry())),
+					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Registry())),
 				)
 				if err != nil {
 					l.WithError(err).Errorf("Socket service encountered error")

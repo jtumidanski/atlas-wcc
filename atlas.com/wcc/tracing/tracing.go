@@ -36,3 +36,9 @@ func (l LogrusAdapter) Error(msg string) {
 func (l LogrusAdapter) Infof(msg string, args ...interface{}) {
 	l.logger.Infof(msg, args)
 }
+
+func StartSpan(l logrus.FieldLogger, name string, opts ...opentracing.StartSpanOption) (logrus.FieldLogger, opentracing.Span) {
+	span := opentracing.StartSpan(name, opts...)
+	sl := l.WithField("span", span)
+	return sl, span
+}
