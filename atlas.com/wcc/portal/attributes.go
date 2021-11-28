@@ -1,6 +1,9 @@
 package portal
 
-import "atlas-wcc/rest/response"
+import (
+	"atlas-wcc/rest/response"
+	"encoding/json"
+)
 
 type dataContainer struct {
 	data     response.DataSegment
@@ -21,6 +24,24 @@ type attributes struct {
 	Y           int16  `json:"y"`
 	TargetMapId uint32 `json:"target_map_id"`
 	ScriptName  string `json:"script_name"`
+}
+
+func (c *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	if len(c.included) == 1 {
+		t.Included = c.included[0]
+	} else {
+		t.Included = c.included
+	}
+	return json.Marshal(t)
 }
 
 func (a *dataContainer) UnmarshalJSON(data []byte) error {

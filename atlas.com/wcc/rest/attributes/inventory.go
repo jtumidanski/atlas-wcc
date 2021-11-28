@@ -2,6 +2,7 @@ package attributes
 
 import (
 	"atlas-wcc/rest/response"
+	"encoding/json"
 	"strconv"
 )
 
@@ -31,6 +32,24 @@ type InventoryData struct {
 type InventoryAttributes struct {
 	Type     string `json:"type"`
 	Capacity byte   `json:"capacity"`
+}
+
+func (c *InventoryDataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	if len(c.included) == 1 {
+		t.Included = c.included[0]
+	} else {
+		t.Included = c.included
+	}
+	return json.Marshal(t)
 }
 
 func (c *InventoryDataContainer) UnmarshalJSON(data []byte) error {

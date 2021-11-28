@@ -1,6 +1,9 @@
 package drop
 
-import "atlas-wcc/rest/response"
+import (
+	"atlas-wcc/rest/response"
+	"encoding/json"
+)
 
 type dataContainer struct {
 	data response.DataSegment
@@ -30,6 +33,19 @@ type attributes struct {
 	DropperY        int16  `json:"dropperY"`
 	CharacterDrop   bool   `json:"playerDrop"`
 	Mod             byte   `json:"mod"`
+}
+
+func (c *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(c.data) == 1 {
+		t.Data = c.data[0]
+	} else {
+		t.Data = c.data
+	}
+	return json.Marshal(t)
 }
 
 func (c *dataContainer) UnmarshalJSON(data []byte) error {

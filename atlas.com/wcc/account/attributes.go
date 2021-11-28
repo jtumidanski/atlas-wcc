@@ -1,6 +1,9 @@
 package account
 
-import "atlas-wcc/rest/response"
+import (
+	"atlas-wcc/rest/response"
+	"encoding/json"
+)
 
 type dataContainer struct {
 	data     response.DataSegment
@@ -26,6 +29,19 @@ type attributes struct {
 	Language       string `json:"language"`
 	Country        string `json:"country"`
 	CharacterSlots int16  `json:"characterSlots"`
+}
+
+func (a *dataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(a.data) == 1 {
+		t.Data = a.data[0]
+	} else {
+		t.Data = a.data
+	}
+	return json.Marshal(t)
 }
 
 func (a *dataContainer) UnmarshalJSON(data []byte) error {

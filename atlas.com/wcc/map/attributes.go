@@ -1,6 +1,9 @@
 package _map
 
-import "atlas-wcc/rest/response"
+import (
+   "atlas-wcc/rest/response"
+   "encoding/json"
+)
 
 type CharacterDataContainer struct {
    data response.DataSegment
@@ -13,6 +16,19 @@ type CharacterDataBody struct {
 }
 
 type CharacterAttributes struct {
+}
+
+func (c *CharacterDataContainer) MarshalJSON() ([]byte, error) {
+   t := struct {
+      Data     interface{} `json:"data"`
+      Included interface{} `json:"included"`
+   }{}
+   if len(c.data) == 1 {
+      t.Data = c.data[0]
+   } else {
+      t.Data = c.data
+   }
+   return json.Marshal(t)
 }
 
 func (c *CharacterDataContainer) UnmarshalJSON(data []byte) error {

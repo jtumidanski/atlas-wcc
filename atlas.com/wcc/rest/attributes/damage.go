@@ -1,6 +1,9 @@
 package attributes
 
-import "atlas-wcc/rest/response"
+import (
+	"atlas-wcc/rest/response"
+	"encoding/json"
+)
 
 type DamageDataContainer struct {
 	data     response.DataSegment
@@ -16,6 +19,24 @@ type DamageData struct {
 type DamageAttributes struct {
 	Type    string `json:"type"`
 	Maximum uint32 `json:"maximum"`
+}
+
+func (a *DamageDataContainer) MarshalJSON() ([]byte, error) {
+	t := struct {
+		Data     interface{} `json:"data"`
+		Included interface{} `json:"included"`
+	}{}
+	if len(a.data) == 1 {
+		t.Data = a.data[0]
+	} else {
+		t.Data = a.data
+	}
+	if len(a.included) == 1 {
+		t.Included = a.included[0]
+	} else {
+		t.Included = a.included
+	}
+	return json.Marshal(t)
 }
 
 func (a *DamageDataContainer) UnmarshalJSON(data []byte) error {
