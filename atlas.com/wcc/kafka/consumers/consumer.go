@@ -33,7 +33,7 @@ func NewConsumer(cl *logrus.Logger, ctx context.Context, wg *sync.WaitGroup, nam
    t := topic.GetRegistry().Get(sl, initSpan, topicToken)
    initSpan.Finish()
 
-   l := cl.WithFields(logrus.Fields{"originator": t, "type": "kafka_consumer"})
+   l := sl.WithFields(logrus.Fields{"originator": t, "type": "kafka_consumer"})
 
    l.Infof("Creating topic consumer.")
 
@@ -68,7 +68,7 @@ func NewConsumer(cl *logrus.Logger, ctx context.Context, wg *sync.WaitGroup, nam
          } else if err != nil {
             l.WithError(err).Errorf("Could not successfully read message.")
          } else {
-            l.Infof("Message received %s.", string(msg.Value))
+            l.Infof("Message received %s.", msg.Value)
             event := ec()
             err = json.Unmarshal(msg.Value, &event)
             if err != nil {
