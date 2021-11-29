@@ -64,6 +64,7 @@ const (
 	InnerPortal               = "inner_portal"
 	ChangeKeyMap              = "change_key_map"
 	ReactorHit                = "reactor_hit"
+	PartyOperation            = "party_operation"
 )
 
 func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
@@ -98,6 +99,7 @@ func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
 	hr(handler.OpInnerPortal, InnerPortal, request.LoggedInValidator, request.NoOpHandler)
 	hr(handler.OpChangeKeyMap, ChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler)
 	hr(handler.OpReactorHit, ReactorHit, request.LoggedInValidator, handler.HandleReactorHit)
+	hr(handler.OpPartyOperation, PartyOperation, request.LoggedInValidator, handler.HandlePartyOperation)
 
 	return func() map[uint16]request2.Handler {
 		return handlers

@@ -49,6 +49,8 @@ const (
 	MagicAttackEvent               = "magic_attack_event"
 	CharacterMPEaterEvent          = "character_mp_eater_event"
 	ReactorStatusEvent             = "reactor_status_event"
+	PartyStatusEvent               = "party_status_event"
+	PartyMemberStatusEvent         = "party_member_status_event"
 )
 
 func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte, ctx context.Context, wg *sync.WaitGroup) {
@@ -92,6 +94,8 @@ func CreateEventConsumers(l *logrus.Logger, wid byte, cid byte, ctx context.Cont
 	cec("TOPIC_MAGIC_ATTACK_EVENT", MagicAttackEvent, EmptyMagicAttackEventCreator(), HandleMagicAttackEvent())
 	cec("TOPIC_CHARACTER_MP_EATER_EVENT", CharacterMPEaterEvent, EmptyMPEaterEventCreator(), HandleMPEaterEvent())
 	cec("TOPIC_REACTOR_STATUS_EVENT", ReactorStatusEvent, EmptyReactorStatusEventCreator(), HandleReactorStatusEvent())
+	cec("TOPIC_PARTY_STATUS", PartyStatusEvent, EmptyPartyStatusEventCreator(), HandlePartyStatusEvent())
+	cec("TOPIC_PARTY_MEMBER_STATUS", PartyMemberStatusEvent, EmptyPartyMemberStatusEventCreator(), HandlePartyMemberStatusEvent())
 }
 
 func createEventConsumer(l *logrus.Logger, wid byte, cid byte, ctx context.Context, wg *sync.WaitGroup, name string, topicToken string, emptyEventCreator handler.EmptyEventCreator, processor ChannelEventProcessor) {
