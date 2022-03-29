@@ -1,6 +1,7 @@
 package channel
 
 import (
+	"atlas-wcc/rest/requests"
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -10,8 +11,8 @@ type ModelProvider func() (*Model, error)
 
 type ModelListProvider func() ([]*Model, error)
 
-func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelListProvider {
-	return func(r Request) ModelListProvider {
+func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelListProvider {
+	return func(r requests.Request[attributes]) ModelListProvider {
 		return func() ([]*Model, error) {
 			resp, err := r(l, span)
 			if err != nil {
@@ -20,7 +21,7 @@ func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(
 
 			ms := make([]*Model, 0)
 			for _, v := range resp.DataList() {
-				m, err := makeModel(&v)
+				m, err := makeModel(v)
 				if err != nil {
 					return nil, err
 				}
@@ -54,7 +55,7 @@ func GetByWorldId(l logrus.FieldLogger, span opentracing.Span) func(worldId byte
 	}
 }
 
-func makeModel(data *dataBody) (*Model, error) {
+func makeModel(data requests.DataBody[attributes]) (*Model, error) {
 	att := data.Attributes
 	c := NewBuilder().
 		SetWorldId(att.WorldId).

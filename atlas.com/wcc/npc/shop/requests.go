@@ -3,8 +3,6 @@ package shop
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -13,19 +11,6 @@ const (
 	npcShopResource             = npcShopService + "npcs/%d/shop"
 )
 
-type Request func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error)
-
-func makeRequest(url string) Request {
-	return func(l logrus.FieldLogger, span opentracing.Span) (*dataContainer, error) {
-		ar := &dataContainer{}
-		err := requests.Get(l, span)(url, ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
-}
-
-func requestShop(npcId uint32) Request {
-	return makeRequest(fmt.Sprintf(npcShopResource, npcId))
+func requestShop(npcId uint32) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(npcShopResource, npcId))
 }

@@ -1,6 +1,7 @@
 package properties
 
 import (
+	"atlas-wcc/rest/requests"
 	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -9,7 +10,7 @@ import (
 
 func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
 	return func(characterId uint32) (*Model, error) {
-		cs, err := requestPropertiesById(l, span)(characterId)
+		cs, err := requestPropertiesById(characterId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -21,7 +22,7 @@ func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint3
 	}
 }
 
-func makeProperties(ca *DataBody) *Model {
+func makeProperties(ca requests.DataBody[attributes]) *Model {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
 		return nil

@@ -8,7 +8,7 @@ import (
 
 func GetCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
 	return func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-		resp, err := requestCharactersInMap(l, span)(worldId, channelId, mapId)
+		resp, err := requestCharactersInMap(worldId, channelId, mapId)(l, span)
 		if err != nil {
 			return nil, err
 		}

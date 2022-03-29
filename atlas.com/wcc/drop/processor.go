@@ -1,6 +1,7 @@
 package drop
 
 import (
+	"atlas-wcc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -36,8 +37,8 @@ func ForDropsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byt
 
 type ModelListProvider func() ([]*Model, error)
 
-func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelListProvider {
-	return func(r Request) ModelListProvider {
+func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelListProvider {
+	return func(r requests.Request[attributes]) ModelListProvider {
 		return func() ([]*Model, error) {
 			resp, err := r(l, span)
 			if err != nil {
@@ -46,7 +47,7 @@ func requestModelListProvider(l logrus.FieldLogger, span opentracing.Span) func(
 
 			ms := make([]*Model, 0)
 			for _, v := range resp.DataList() {
-				m, err := makeModel(&v)
+				m, err := makeModel(v)
 				if err != nil {
 					return nil, err
 				}
@@ -69,7 +70,7 @@ func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, ch
 	}
 }
 
-func makeModel(body *dataBody) (*Model, error) {
+func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 	id, err := strconv.Atoi(body.Id)
 	if err != nil {
 		return nil, err

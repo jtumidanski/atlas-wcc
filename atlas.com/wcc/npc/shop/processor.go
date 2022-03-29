@@ -1,6 +1,7 @@
 package shop
 
 import (
+	"atlas-wcc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
@@ -9,8 +10,8 @@ type ModelProvider func() (*Model, error)
 
 type ModelListProvider func() ([]*Model, error)
 
-func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
-	return func(r Request) ModelProvider {
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelProvider {
+	return func(r requests.Request[attributes]) ModelProvider {
 		return func() (*Model, error) {
 			resp, err := r(l, span)
 			if err != nil {
@@ -45,9 +46,10 @@ func GetByNpcId(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) 
 	}
 }
 
-func makeModel(d *dataBody) (*Model, error) {
+func makeModel(d requests.DataBody[attributes]) (*Model, error) {
 	items := make([]Item, 0)
-	for _, i := range d.Attributes.Items {
+	attr := d.Attributes
+	for _, i := range attr.Items {
 		items = append(items, Item{
 			itemId:   i.ItemId,
 			price:    i.Price,
@@ -56,5 +58,5 @@ func makeModel(d *dataBody) (*Model, error) {
 		})
 	}
 
-	return &Model{shopId: d.Attributes.NPC, items: items}, nil
+	return &Model{shopId: attr.NPC, items: items}, nil
 }

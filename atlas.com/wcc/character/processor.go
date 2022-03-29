@@ -5,7 +5,6 @@ import (
 	"atlas-wcc/character/skill"
 	"atlas-wcc/inventory"
 	"atlas-wcc/pet"
-	"atlas-wcc/rest/attributes"
 	"atlas-wcc/rest/requests"
 	"errors"
 	"github.com/opentracing/opentracing-go"
@@ -76,37 +75,43 @@ func getPetsForCharacter() ([]pet.Model, error) {
 	return make([]pet.Model, 0), nil
 }
 
+func itemFilter(i requests.DataBody[itemAttributes]) bool {
+	attr := i.Attributes
+	return attr.Slot >= 0
+}
+
 func getItemInventoryForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, inventoryType string) (*inventory.ItemInventory, error) {
 	return func(characterId uint32, inventoryType string) (*inventory.ItemInventory, error) {
-		r, err := requests.GetItemsForCharacter(l, span)(characterId, inventoryType)
+		r, err := requestItemsForCharacter(characterId, inventoryType)(l, span)
 		if err != nil {
 			return nil, err
 		}
 
 		is := make([]inventory.Item, 0)
-		for _, i := range r.GetIncludedItems() {
-			item := inventory.NewItem(i.Attributes.ItemId, i.Attributes.Slot, i.Attributes.Quantity)
+		for _, i := range requests.GetIncluded(r, itemFilter) {
+			item := inventory.NewItem(i.ItemId, i.Slot, i.Quantity)
 			is = append(is, item)
 		}
-		i := inventory.NewItemInventory(r.Data().Attributes.Capacity, is)
+		attr := r.Data().Attributes
+		i := inventory.NewItemInventory(attr.Capacity, is)
 		return &i, nil
 	}
 }
 
 func getEquipInventoryForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*inventory.EquipInventory, error) {
 	return func(characterId uint32) (*inventory.EquipInventory, error) {
-		r, err := requests.GetItemsForCharacter(l, span)(characterId, "equip")
+		r, err := requestItemsForCharacter(characterId, "equip")(l, span)
 		if err != nil {
 			return nil, err
 		}
 
 		eis := make([]inventory.EquippedItem, 0)
-		for _, e := range r.GetIncludedEquips() {
-			ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
-			if ea != nil {
+		for _, e := range requests.GetIncluded(r, equipmentItemFilter) {
+			ea, ok := requests.GetInclude[inventoryAttributes, equipmentStatisticsAttributes](r, e.EquipmentId)
+			if ok {
 				ei := inventory.NewEquippedItemBuilder().
 					SetItemId(ea.ItemId).
-					SetSlot(e.Attributes.Slot).
+					SetSlot(e.Slot).
 					SetStrength(ea.Strength).
 					SetDexterity(ea.Dexterity).
 					SetIntelligence(ea.Intelligence).
@@ -127,26 +132,26 @@ func getEquipInventoryForCharacter(l logrus.FieldLogger, span opentracing.Span) 
 				eis = append(eis, ei)
 			}
 		}
-
-		ei := inventory.NewEquipInventory(r.Data().Attributes.Capacity, eis)
+		attr := r.Data().Attributes
+		ei := inventory.NewEquipInventory(attr.Capacity, eis)
 		return &ei, nil
 	}
 }
 
 func getEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]inventory.EquippedItem, error) {
 	return func(characterId uint32) ([]inventory.EquippedItem, error) {
-		r, err := requests.GetEquippedItemsForCharacter(l, span)(characterId)
+		r, err := requestEquippedItemsForCharacter(characterId)(l, span)
 		if err != nil {
 			return nil, err
 		}
 
 		eis := make([]inventory.EquippedItem, 0)
-		for _, e := range r.GetIncludedEquippedItems() {
-			ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
-			if ea != nil {
+		for _, e := range requests.GetIncluded(r, equippedItemFilter) {
+			ea, ok := requests.GetInclude[inventoryAttributes, equipmentStatisticsAttributes](r, e.EquipmentId)
+			if ok {
 				ei := inventory.NewEquippedItemBuilder().
 					SetItemId(ea.ItemId).
-					SetSlot(e.Attributes.Slot).
+					SetSlot(e.Slot).
 					SetStrength(ea.Strength).
 					SetDexterity(ea.Dexterity).
 					SetIntelligence(ea.Intelligence).
@@ -172,26 +177,36 @@ func getEquippedItemsForCharacter(l logrus.FieldLogger, span opentracing.Span) f
 	}
 }
 
+func equippedItemFilter(i requests.DataBody[equipmentAttributes]) bool {
+	attr := i.Attributes
+	return attr.Slot < 0
+}
+
+func equipmentItemFilter(i requests.DataBody[equipmentAttributes]) bool {
+	attr := i.Attributes
+	return attr.Slot >= 0
+}
+
 func GetEquipItemForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, slot int16) (*inventory.EquippedItem, error) {
 	return func(characterId uint32, slot int16) (*inventory.EquippedItem, error) {
-		r, err := requests.GetEquippedItemForCharacter(l, span)(characterId, slot)
+		r, err := requestEquippedItemForCharacter(characterId, slot)(l, span)
 		if err != nil {
 			return nil, err
 		}
 
-		var equips []attributes.EquipmentData
+		var equips []equipmentAttributes
 		if slot < 0 {
-			equips = r.GetIncludedEquippedItems()
+			equips = requests.GetIncluded(r, equippedItemFilter)
 		} else {
-			equips = r.GetIncludedEquips()
+			equips = requests.GetIncluded(r, equipmentItemFilter)
 		}
 
 		for _, e := range equips {
-			ea := r.GetEquipmentStatistics(e.Attributes.EquipmentId)
-			if ea != nil {
+			ea, ok := requests.GetInclude[inventoryAttributes, equipmentStatisticsAttributes](r, e.EquipmentId)
+			if ok {
 				ei := inventory.NewEquippedItemBuilder().
 					SetItemId(ea.ItemId).
-					SetSlot(e.Attributes.Slot).
+					SetSlot(e.Slot).
 					SetStrength(ea.Strength).
 					SetDexterity(ea.Dexterity).
 					SetIntelligence(ea.Intelligence).
@@ -219,10 +234,11 @@ func GetEquipItemForCharacter(l logrus.FieldLogger, span opentracing.Span) func(
 
 func GetCharacterWeaponDamage(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) uint32 {
 	return func(characterId uint32) uint32 {
-		r, err := requests.GetCharacterWeaponDamage(l, span)(characterId)
+		r, err := requestCharacterWeaponDamage(characterId)(l, span)
 		if err != nil {
 			return 1
 		}
-		return r.Data().Attributes.Maximum
+		attr := r.Data().Attributes
+		return attr.Maximum
 	}
 }

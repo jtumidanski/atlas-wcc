@@ -1,6 +1,7 @@
 package portal
 
 import (
+	"atlas-wcc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -8,8 +9,8 @@ import (
 
 type ModelProvider func() (*Model, error)
 
-func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r Request) ModelProvider {
-	return func(r Request) ModelProvider {
+func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelProvider {
+	return func(r requests.Request[attributes]) ModelProvider {
 		return func() (*Model, error) {
 			resp, err := r(l, span)
 			if err != nil {
@@ -37,7 +38,7 @@ func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, p
 	}
 }
 
-func makeModel(body *dataBody) (*Model, error) {
+func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 	id, err := strconv.ParseUint(body.Id, 10, 32)
 	if err != nil {
 		return nil, err

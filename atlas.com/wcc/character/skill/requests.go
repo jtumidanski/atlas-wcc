@@ -3,8 +3,6 @@ package skill
 import (
 	"atlas-wcc/rest/requests"
 	"fmt"
-	"github.com/opentracing/opentracing-go"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -14,13 +12,6 @@ const (
 	skillsByCharacter              = charactersResource + "%d/skills"
 )
 
-func requestForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*DataContainer, error) {
-	return func(characterId uint32) (*DataContainer, error) {
-		ar := &DataContainer{}
-		err := requests.Get(l, span)(fmt.Sprintf(skillsByCharacter, characterId), ar)
-		if err != nil {
-			return nil, err
-		}
-		return ar, nil
-	}
+func requestForCharacter(characterId uint32) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(skillsByCharacter, characterId))
 }

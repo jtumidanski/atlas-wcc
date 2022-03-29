@@ -8,7 +8,7 @@ import (
 
 func GetForCharacter(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) ([]Model, error) {
 	return func(characterId uint32) ([]Model, error) {
-		r, err := requestForCharacter(l, span)(characterId)
+		r, err := requestForCharacter(characterId)(l, span)
 		if err != nil {
 			return nil, err
 		}
@@ -19,7 +19,8 @@ func GetForCharacter(l logrus.FieldLogger, span opentracing.Span) func(character
 			if err != nil {
 				break
 			}
-			sr := NewSkill(uint32(sid), s.Attributes.Level, s.Attributes.MasterLevel, s.Attributes.Expiration, false, false)
+			attr := s.Attributes
+			sr := NewSkill(uint32(sid), attr.Level, attr.MasterLevel, attr.Expiration, false, false)
 			ss = append(ss, sr)
 		}
 		return ss, nil
