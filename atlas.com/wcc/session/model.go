@@ -1,7 +1,6 @@
 package session
 
 import (
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/crypto"
 	"math/rand"
 	"net"
@@ -66,7 +65,7 @@ func (s *Model) announce(b []byte) error {
 }
 
 func (s *Model) WriteHello() error {
-	return s.announce(writer.WriteHello(nil)(version, s.send.IV(), s.recv.IV()))
+	return s.announce(WriteHello(nil)(version, s.send.IV(), s.recv.IV()))
 }
 
 func (s *Model) ReceiveAESOFB() *crypto.AESOFB {

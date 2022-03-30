@@ -2,6 +2,7 @@ package npc
 
 import (
 	"atlas-wcc/rest/requests"
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -92,4 +93,19 @@ func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 	att := body.Attributes
 	m := NewNPC(uint32(id), att.Id, att.X, att.CY, att.F, att.FH, att.RX0, att.RX1)
 	return &m, nil
+}
+
+func SpawnNPCForSession(l logrus.FieldLogger) func(s *session.Model) ModelOperator {
+	return func(s *session.Model) ModelOperator {
+		return func(n *Model) {
+			err := s.Announce(WriteSpawnNPC(l)(n))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to spawn npc %d for character %d", n.Id(), s.CharacterId())
+			}
+			err = s.Announce(WriteSpawnNPCController(l)(n, true))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to spawn npc controller %d for character %d", n.Id(), s.CharacterId())
+			}
+		}
+	}
 }

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -114,7 +114,7 @@ func MoveCharacterHandler(l logrus.FieldLogger, span opentracing.Span) func(s *s
 		}
 
 		summary := processMovementList(p.movementData)
-		producers.MoveCharacter(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
+		character.Move(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), summary.X, summary.Y, summary.State, p.movementList)
 	}
 }
 

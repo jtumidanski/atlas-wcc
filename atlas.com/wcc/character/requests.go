@@ -16,22 +16,6 @@ const (
 	characterWeaponDamage              = charactersResource + "%d/damage/weapon"
 )
 
-func requestItemsForCharacter(characterId uint32, inventoryType string) requests.Request[inventoryAttributes] {
-	return requests.MakeGetRequest[inventoryAttributes](fmt.Sprintf(characterItems, characterId, inventoryType), requests.AddMappers(equipmentIncludes))
-}
-
-func requestItemForCharacter(characterId uint32, inventoryType string, slot int16) requests.Request[inventoryAttributes] {
-	return requests.MakeGetRequest[inventoryAttributes](fmt.Sprintf(characterItem, characterId, inventoryType, slot), requests.AddMappers(equipmentIncludes))
-}
-
-func requestEquippedItemsForCharacter(characterId uint32) requests.Request[inventoryAttributes] {
-	return requestItemsForCharacter(characterId, "equip")
-}
-
-func requestEquippedItemForCharacter(characterId uint32, slot int16) requests.Request[inventoryAttributes] {
-	return requestItemForCharacter(characterId, "equip", slot)
-}
-
-func requestCharacterWeaponDamage(characterId uint32) requests.Request[attributes] {
-	return requests.MakeGetRequest[attributes](fmt.Sprintf(characterWeaponDamage, characterId))
+func requestCharacterWeaponDamage(characterId uint32) requests.Request[damageAttributes] {
+	return requests.MakeGetRequest[damageAttributes](fmt.Sprintf(characterWeaponDamage, characterId))
 }

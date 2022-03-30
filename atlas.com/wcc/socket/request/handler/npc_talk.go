@@ -3,12 +3,10 @@ package handler
 import (
 	"atlas-wcc/account"
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
 	npc2 "atlas-wcc/npc"
 	"atlas-wcc/npc/conversation"
 	"atlas-wcc/npc/shop"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -33,7 +31,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		v := account.IsLoggedIn(l, span)(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
-			err := s.Announce(writer.WriteEnableActions(l))
+			err := s.Announce(properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -43,7 +41,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
-			err = s.Announce(writer.WriteEnableActions(l))
+			err = s.Announce(properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -53,7 +51,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		if ca.Hp() > 0 {
 			return true
 		} else {
-			err = s.Announce(writer.WriteEnableActions(l))
+			err = s.Announce(properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -90,7 +88,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *s
 		}
 
 		if conversation.HasScript(l)(npc.Id()) {
-			producers.StartConversation(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
+			npc2.StartConversation(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
 		if shop.HasShop(l, span)(npc.Id()) {
@@ -99,7 +97,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *s
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
 			}
-			err = s.Announce(writer.WriteGetNPCShop(l)(ns))
+			err = s.Announce(npc2.WriteGetNPCShop(l)(ns))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}

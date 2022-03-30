@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -29,7 +29,7 @@ func DistributeApHandler(l logrus.FieldLogger, span opentracing.Span) func(s *se
 		p := readDistributeApRequest(r)
 
 		attributeType := getType(p.Number())
-		producers.CharacterDistributeAp(l, span)(s.CharacterId(), attributeType)
+		character.DistributeAp(l, span)(s.CharacterId(), attributeType)
 	}
 }
 

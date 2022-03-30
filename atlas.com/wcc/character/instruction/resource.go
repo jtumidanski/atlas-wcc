@@ -1,10 +1,11 @@
 package instruction
 
 import (
+	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/json"
 	"atlas-wcc/rest"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/gorilla/mux"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -83,11 +84,11 @@ func handleCreateInstruction(l logrus.FieldLogger) func(span opentracing.Span) f
 					}
 
 					attr := input.Data.Attributes
-					err := s.Announce(writer.WriteHint(l)(attr.Message, attr.Width, attr.Height))
+					err := s.Announce(character.WriteHint(l)(attr.Message, attr.Width, attr.Height))
 					if err != nil {
 						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 					}
-					err = s.Announce(writer.WriteEnableActions(l))
+					err = s.Announce(properties.WriteEnableActions(l))
 					if err != nil {
 						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 					}

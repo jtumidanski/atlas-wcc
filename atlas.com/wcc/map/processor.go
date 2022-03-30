@@ -1,19 +1,20 @@
 package _map
 
 import (
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
-	return func(worldId byte, channelId byte, mapId uint32) ([]uint32, error) {
+func GetCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) []uint32 {
+	return func(worldId byte, channelId byte, mapId uint32) []uint32 {
+		cIds := make([]uint32, 0)
 		resp, err := requestCharactersInMap(worldId, channelId, mapId)(l, span)
 		if err != nil {
-			return nil, err
+			return cIds
 		}
 
-		cIds := make([]uint32, 0)
 		for _, d := range resp.DataList() {
 			cId, err := strconv.ParseUint(d.Id, 10, 32)
 			if err != nil {
@@ -21,6 +22,31 @@ func GetCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worl
 			}
 			cIds = append(cIds, uint32(cId))
 		}
-		return cIds, nil
+		return cIds
+	}
+}
+
+func GetOtherCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32) []uint32 {
+	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32) []uint32 {
+		result := make([]uint32, 0)
+		ids := GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
+		for _, id := range ids {
+			if id != referenceCharacterId {
+				result = append(result, id)
+			}
+		}
+		return result
+	}
+}
+
+func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, o session.Operator) {
+	return func(worldId byte, channelId byte, mapId uint32, o session.Operator) {
+		session.ForEachByCharacterId(GetCharacterIdsInMap(l, span)(worldId, channelId, mapId), o)
+	}
+}
+
+func ForOtherSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o session.Operator) {
+	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o session.Operator) {
+		session.ForEachByCharacterId(GetOtherCharacterIdsInMap(l, span)(worldId, channelId, mapId, referenceCharacterId), o)
 	}
 }

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -68,6 +68,6 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 func HandleCharacterDamageRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
 	return func(s *session.Model, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
-		producers.CharacterDamage(l, span)(s.CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
+		character.Damage(l, span)(s.CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())
 	}
 }

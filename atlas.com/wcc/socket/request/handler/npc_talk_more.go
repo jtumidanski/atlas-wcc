@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/npc"
 	"atlas-wcc/npc/conversation"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -62,8 +62,8 @@ func HandleNPCTalkMoreRequest(l logrus.FieldLogger, span opentracing.Span) func(
 				if questInProcess(s.CharacterId()) {
 					continueQuestConversation(s.CharacterId(), p)
 				} else {
-					producers.SetReturnText(l, span)(s.CharacterId(), p.ReturnText())
-					producers.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), -1)
+					npc.SetReturnText(l, span)(s.CharacterId(), p.ReturnText())
+					npc.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), -1)
 				}
 			} else if questInProcess(s.CharacterId()) {
 				questDispose(s.CharacterId())
@@ -74,7 +74,7 @@ func HandleNPCTalkMoreRequest(l logrus.FieldLogger, span opentracing.Span) func(
 			if questInProcess(s.CharacterId()) {
 				continueQuestConversation(s.CharacterId(), p)
 			} else if conversation.InProgress(l)(s.CharacterId()) {
-				producers.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
+				npc.ContinueConversation(l, span)(s.CharacterId(), p.Action(), p.LastMessageType(), p.Selection())
 			}
 		}
 	}

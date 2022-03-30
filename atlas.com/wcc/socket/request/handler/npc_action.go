@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"atlas-wcc/npc"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -54,12 +54,12 @@ func HandleNPCAction(l logrus.FieldLogger, _ opentracing.Span) func(s *session.M
 	return func(s *session.Model, r *request.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
-			err := s.Announce(writer.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))
+			err := s.Announce(npc.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
 		} else if val, ok := p.(*npcMoveRequest); ok {
-			err := s.Announce(writer.WriteNPCMove(l)(val.Movement()))
+			err := s.Announce(npc.WriteNPCMove(l)(val.Movement()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}

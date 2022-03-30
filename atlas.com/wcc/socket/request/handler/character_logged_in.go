@@ -3,9 +3,8 @@ package handler
 import (
 	"atlas-wcc/character"
 	"atlas-wcc/character/keymap"
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/map"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -38,8 +37,8 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(
 		s.SetCharacterId(c.Attributes().Id())
 		s.SetGm(c.Attributes().Gm())
 
-		producers.Login(l, span)(s.WorldId(), s.ChannelId(), s.AccountId(), p.CharacterId())
-		err = s.Announce(writer.WriteGetCharacterInfo(l)(s.ChannelId(), *c))
+		session.Login(l, span)(s.WorldId(), s.ChannelId(), s.AccountId(), p.CharacterId())
+		err = s.Announce(_map.WriteGetCharacterInfo(l)(s.ChannelId(), *c))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -48,7 +47,7 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(
 		if err != nil || len(keys) == 0 {
 			l.WithError(err).Warnf("Unable to send keybinding to character %d.", c.Attributes().Id())
 		} else {
-			err = s.Announce(writer.WriteKeyMap(l)(keys))
+			err = s.Announce(keymap.WriteKeyMap(l)(keys))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}

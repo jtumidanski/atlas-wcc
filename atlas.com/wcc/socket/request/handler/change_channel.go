@@ -4,7 +4,6 @@ import (
 	"atlas-wcc/channel"
 	"atlas-wcc/character/properties"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -56,7 +55,7 @@ func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s *s
 			return
 		}
 
-		err = s.Announce(writer.WriteChangeChannel(l)(ch.IpAddress(), ch.Port()))
+		err = s.Announce(channel.WriteChangeChannel(l)(ch.IpAddress(), ch.Port()))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -39,6 +39,6 @@ func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s *ses
 			return
 		}
 
-		producers.CharacterMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		character.SendMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }

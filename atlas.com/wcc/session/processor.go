@@ -1,12 +1,5 @@
 package session
 
-import (
-	"atlas-wcc/character/properties"
-	_map "atlas-wcc/map"
-	"github.com/opentracing/opentracing-go"
-	"github.com/sirupsen/logrus"
-)
-
 // Operator function which performs an operation on a single session
 type Operator func(*Model)
 
@@ -44,21 +37,13 @@ func ForSessionByCharacterId(characterId uint32, f Operator) {
 		return
 	}
 	f(s)
-	return
 }
 
-// GetOtherInMap a Getter which will retrieve all sessions for characters in the given map, not identified by the supplied characterId
-func GetOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
-	return func(worldId byte, channelId byte, mapId uint32, characterId uint32) Getter {
-		return func() []*Model {
-			cs, err := _map.GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
-			if err != nil {
-				return nil
-			}
-			if len(cs) <= 0 {
-				return nil
-			}
-			return getAllFiltered(CharacterIdInFilter(cs), CharacterIdNotFilter(characterId))
+func ForEachByCharacterId(characterIds []uint32, f Operator) {
+	for _, id := range characterIds {
+		s := GetByCharacterId(id)
+		if s != nil {
+			f(s)
 		}
 	}
 }
@@ -67,68 +52,6 @@ func GetOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byt
 func CharacterIdFilter(characterId uint32) Filter {
 	return func(session *Model) bool {
 		return session.CharacterId() == characterId
-	}
-}
-
-// CharacterIdNotFilter a filter which yields true when the characterId does not match the one in the session
-func CharacterIdNotFilter(characterId uint32) Filter {
-	return func(session *Model) bool {
-		return session.CharacterId() != characterId
-	}
-}
-
-// CharacterIdInFilter a filter which yields true when the characterId of the session is in the slice of provided characterIds
-func CharacterIdInFilter(validIds []uint32) Filter {
-	return func(session *Model) bool {
-		return contains(validIds, session.CharacterId())
-	}
-}
-
-// GetInMap a Getter which retrieve all sessions which reside in the identified map
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) Getter {
-	return func(worldId byte, channelId byte, mapId uint32) Getter {
-		return func() []*Model {
-			cs, err := _map.GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
-			if err != nil {
-				return nil
-			}
-			if len(cs) <= 0 {
-				return nil
-			}
-			return getAllFiltered(CharacterIdInFilter(cs))
-		}
-	}
-}
-
-// ForEachOtherInMap executes a Operator for all sessions in the identified map, aside from the session of the provided characterId
-func ForEachOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, f Operator) {
-	return func(worldId byte, channelId byte, characterId uint32, f Operator) {
-	ForOtherInMap(l, span)(worldId, channelId, characterId, ExecuteForEach(f))
-	}
-}
-
-// ForOtherInMap executes a SliceOperator for all sessions in the identified map, aside from the session of the provided characterId
-func ForOtherInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
-	return func(worldId byte, channelId byte, characterId uint32, f SliceOperator) {
-		c, err := properties.GetById(l, span)(characterId)
-		if err != nil {
-			return
-		}
-		forSessions(GetOtherInMap(l, span)(worldId, channelId, c.MapId(), characterId), f)
-	}
-}
-
-// ForEachInMap executes a Operator for all sessions in the identified map
-func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f Operator) {
-	return func(worldId byte, channelId byte, mapId uint32, f Operator) {
-		ForSessionsInMap(l, span)(worldId, channelId, mapId, ExecuteForEach(f))
-	}
-}
-
-// ForSessionsInMap executes a SliceOperator for all sessions in the identified map
-func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-	return func(worldId byte, channelId byte, mapId uint32, f SliceOperator) {
-		forSessions(GetInMap(l, span)(worldId, channelId, mapId), f)
 	}
 }
 
@@ -181,13 +104,4 @@ func getAllFiltered(filters ...Filter) []*Model {
 		}
 	}
 	return results
-}
-
-func contains(set []uint32, id uint32) bool {
-	for _, s := range set {
-		if s == id {
-			return true
-		}
-	}
-	return false
 }

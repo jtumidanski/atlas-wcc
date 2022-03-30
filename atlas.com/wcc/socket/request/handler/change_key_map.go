@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character/keymap"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -58,11 +58,11 @@ func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s *se
 		p := readChangeKeyMapRequest(r)
 		if packet, ok := p.(changeKeyMapRequest); ok {
 			if packet.available {
-				changes := make([]producers.KeyMapChange, 0)
+				changes := make([]keymap.Change, 0)
 				for _, c := range packet.changes {
-					changes = append(changes, producers.KeyMapChange{Key: c.Key(), ChangeType: c.Type(), Action: c.Action()})
+					changes = append(changes, keymap.Change{Key: c.Key(), ChangeType: c.Type(), Action: c.Action()})
 				}
-				producers.ChangeKeyMap(l, span)(s.CharacterId(), changes)
+				keymap.ChangeKeyMap(l, span)(s.CharacterId(), changes)
 			}
 		}
 	}

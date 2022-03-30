@@ -2,6 +2,7 @@ package reactor
 
 import (
 	"atlas-wcc/rest/requests"
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -152,4 +153,63 @@ func makeModel(data requests.DataBody[attributes]) (*Model, error) {
 		y:              attr.Y,
 		alive:          attr.Alive,
 	}, nil
+}
+
+func SpawnForSession(l logrus.FieldLogger) func(s *session.Model) ModelOperator {
+	return func(s *session.Model) ModelOperator {
+		return func(r *Model) {
+			err := s.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())
+			}
+		}
+	}
+}
+
+func DestroyForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32) session.Operator {
+	return func(reactorId uint32) session.Operator {
+		return func(session *session.Model) {
+			r, err := GetById(l, span)(reactorId)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
+				return
+			}
+			err = session.Announce(WriteReactorDestroyed(l)(r.Id(), r.State(), r.X(), r.Y()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d destroyed to session %d.", r.Id(), session.SessionId())
+			}
+		}
+	}
+}
+
+func HitForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) session.Operator {
+	return func(reactorId uint32, stance uint16) session.Operator {
+		return func(session *session.Model) {
+			r, err := GetById(l, span)(reactorId)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
+				return
+			}
+			err = session.Announce(WriteReactorTrigger(l)(r.Id(), r.State(), r.X(), r.Y(), byte(stance)))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d trigger to session %d.", r.Id(), session.SessionId())
+			}
+		}
+	}
+}
+
+func CreateForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) session.Operator {
+	return func(reactorId uint32, stance uint16) session.Operator {
+		return func(session *session.Model) {
+			r, err := GetById(l, span)(reactorId)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
+				return
+			}
+			err = session.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), session.SessionId())
+			}
+		}
+	}
 }

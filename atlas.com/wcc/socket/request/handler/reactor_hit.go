@@ -2,7 +2,7 @@ package handler
 
 import (
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/reactor"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -54,7 +54,7 @@ func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s *sessi
 				return
 			}
 
-			producers.HitReactor(l, span)(
+			reactor.Hit(l, span)(
 				s.WorldId(),
 				s.ChannelId(),
 				c.MapId(),

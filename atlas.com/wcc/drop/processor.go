@@ -2,6 +2,7 @@ package drop
 
 import (
 	"atlas-wcc/rest/requests"
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -96,4 +97,46 @@ func makeModel(body requests.DataBody[attributes]) (*Model, error) {
 		SetMod(att.Mod).
 		Build()
 	return &m, nil
+}
+
+func SpawnDropForSession(l logrus.FieldLogger) func(s *session.Model) Operator {
+	return func(s *session.Model) Operator {
+		return func(d *Model) {
+			var a = uint32(0)
+			if d.ItemId() != 0 {
+				a = 0
+			} else {
+				a = d.Meso()
+			}
+			err := s.Announce(WriteDropItemFromMapObject(l)(d.UniqueId(), d.ItemId(), d.Meso(), a,
+				d.DropperUniqueId(), d.DropType(), d.OwnerId(), d.OwnerPartyId(), s.CharacterId(),
+				0, d.DropTime(), d.DropX(), d.DropY(), d.DropperX(), d.DropperY(),
+				d.CharacterDrop(), d.Mod()))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce drop to character %d", s.CharacterId())
+			}
+		}
+	}
+}
+
+func RemoveDropForSession(l logrus.FieldLogger) func(dropId uint32, characterId uint32) session.Operator {
+	return func(dropId uint32, characterId uint32) session.Operator {
+		return func(s *session.Model) {
+			err := s.Announce(WriteRemoveItem(l)(dropId, 2, characterId))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+		}
+	}
+}
+
+func ExpireDropForSession(l logrus.FieldLogger) func(dropId uint32) session.Operator {
+	return func(dropId uint32) session.Operator {
+		return func(s *session.Model) {
+			err := s.Announce(WriteRemoveItem(l)(dropId, 0, 0))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+		}
+	}
 }

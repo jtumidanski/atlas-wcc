@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -20,6 +20,6 @@ func CharacterRangedAttackHandler(l logrus.FieldLogger, span opentracing.Span) f
 			l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", s.CharacterId())
 			return
 		}
-		producers.CharacterAttack(l, span)(s.WorldId(), s.ChannelId(), catt.MapId(), s.CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
+		character.Attack(l, span)(s.WorldId(), s.ChannelId(), catt.MapId(), s.CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
 	}
 }
