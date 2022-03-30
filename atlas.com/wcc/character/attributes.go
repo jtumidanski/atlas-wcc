@@ -24,19 +24,19 @@ var equipmentIncludes = []response.ConditionalMapperProvider{
 
 func transformItemAttributes() (string, response.ObjectMapper) {
 	return response.UnmarshalData(ItemAttributesType, func() interface{} {
-		return requests.DataBody[itemAttributes]{}
+		return &requests.DataBody[itemAttributes]{}
 	})
 }
 
 func transformEquipmentAttributes() (string, response.ObjectMapper) {
 	return response.UnmarshalData(EquipmentAttributesType, func() interface{} {
-		return requests.DataBody[equipmentAttributes]{}
+		return &requests.DataBody[equipmentAttributes]{}
 	})
 }
 
 func transformEquipmentStatistics() (string, response.ObjectMapper) {
 	return response.UnmarshalData(EquipmentStatisticsType, func() interface{} {
-		return requests.DataBody[equipmentStatisticsAttributes]{}
+		return &requests.DataBody[equipmentStatisticsAttributes]{}
 	})
 }
 
