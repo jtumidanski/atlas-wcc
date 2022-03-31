@@ -41,26 +41,14 @@ func OtherCharacterIdsInMapModelProvider(l logrus.FieldLogger, span opentracing.
 	}
 }
 
-func GetOtherCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32) ([]uint32, error) {
-	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32) ([]uint32, error) {
-		return OtherCharacterIdsInMapModelProvider(l, span)(worldId, channelId, mapId, referenceCharacterId)()
-	}
-}
-
 func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, o model.Operator[session.Model]) {
 	return func(worldId byte, channelId byte, mapId uint32, o model.Operator[session.Model]) {
-		ids, err := GetCharacterIdsInMap(l, span)(worldId, channelId, mapId)
-		if err == nil {
-			session.ForEachByCharacterId(ids, o)
-		}
+		session.ForEachByCharacterId(CharacterIdsInMapModelProvider(l, span)(worldId, channelId, mapId), o)
 	}
 }
 
 func ForOtherSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o model.Operator[session.Model]) {
 	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o model.Operator[session.Model]) {
-		ids, err := GetOtherCharacterIdsInMap(l, span)(worldId, channelId, mapId, referenceCharacterId)
-		if err == nil {
-			session.ForEachByCharacterId(ids, o)
-		}
+		session.ForEachByCharacterId(OtherCharacterIdsInMapModelProvider(l, span)(worldId, channelId, mapId, referenceCharacterId), o)
 	}
 }

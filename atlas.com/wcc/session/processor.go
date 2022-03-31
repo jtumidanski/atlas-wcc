@@ -10,7 +10,7 @@ func AllModelProvider() ([]Model, error) {
 }
 
 func ByIdModelProvider(id uint32) model.Provider[Model] {
-	return model.SliceProviderToProviderAdapter[Model](AllModelProvider, CharacterIdFilter(id))
+	return model.SliceProviderToProviderAdapter[Model](AllModelProvider, CharacterIdPreciselyOneFilter(id))
 }
 
 // GetByCharacterId gets a session (if one exists) for the given characterId
@@ -23,30 +23,20 @@ func ForSessionByCharacterId(characterId uint32, f model.Operator[Model]) {
 	model.IfPresent(ByIdModelProvider(characterId), f)
 }
 
-func IdSliceProviderToSliceProviderAdapter(ids []uint32) model.SliceProvider[Model] {
-	var results = make([]Model, 0)
-	for _, id := range ids {
-		m, err := GetByCharacterId(id)
-		if err == nil {
-			results = append(results, m)
-		}
+func ForEachByCharacterId(provider model.SliceProvider[uint32], f model.Operator[Model]) {
+	model.ForEach(model.Map[uint32, Model](provider, GetByCharacterId), f)
+}
+
+func CharacterIdFilter(referenceId uint32) model.Filter[Model] {
+	return func(model Model) bool {
+		return model.CharacterId() == referenceId
 	}
-	return model.FixedSliceProvider(results)
 }
 
-func ForEachByCharacterId(characterIds []uint32, f model.Operator[Model]) {
-	model.ForEach(IdSliceProviderToSliceProviderAdapter(characterIds), f)
-}
-
-// CharacterIdFilter a filter which yields true when the characterId matches the one in the session
-func CharacterIdFilter(characterId uint32) model.PreciselyOneFilter[Model] {
+// CharacterIdPreciselyOneFilter a filter which yields true when the characterId matches the one in the session
+func CharacterIdPreciselyOneFilter(characterId uint32) model.PreciselyOneFilter[Model] {
 	return func(models []Model) (Model, error) {
-		for _, m := range models {
-			if m.CharacterId() == characterId {
-				return m, nil
-			}
-		}
-		return Model{}, errors.New("not found")
+		return model.First(models, CharacterIdFilter(characterId))
 	}
 }
 

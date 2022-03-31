@@ -1,5 +1,7 @@
 package model
 
+import "errors"
+
 type Operator[M any] func(M)
 
 type Provider[M any] func() (M, error)
@@ -83,4 +85,43 @@ func For[M any](provider SliceProvider[M], operator SliceOperator[M]) {
 
 func ForEach[M any](provider SliceProvider[M], operator Operator[M]) {
 	For(provider, ExecuteForEach(operator))
+}
+
+type Transformer[M any, N any] func(M) (N, error)
+
+func Map[M any, N any](provider SliceProvider[M], transformer Transformer[M, N]) SliceProvider[N] {
+	models, err := provider()
+	if err != nil {
+		return ErrorSliceProvider[N](err)
+	}
+	var results = make([]N, 0)
+	for _, m := range models {
+		var n N
+		n, err = transformer(m)
+		if err != nil {
+			return ErrorSliceProvider[N](err)
+		}
+		results = append(results, n)
+	}
+	return FixedSliceProvider(results)
+}
+
+func First[M any](ms []M, filters ...Filter[M]) (M, error) {
+	var r M
+	if len(filters) == 0 {
+		return ms[0], nil
+	}
+
+	for _, m := range ms {
+		ok := true
+		for _, filter := range filters {
+			if !filter(m) {
+				ok = false
+			}
+		}
+		if ok {
+			return m, nil
+		}
+	}
+	return r, errors.New("no result found")
 }
