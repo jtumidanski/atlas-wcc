@@ -26,8 +26,8 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 	return changeMapSpecialRequest{sw}
 }
 
-func ChangeMapSpecialHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ChangeMapSpecialHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
 		c, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {

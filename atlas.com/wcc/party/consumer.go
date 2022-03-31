@@ -2,6 +2,7 @@ package party
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -41,13 +42,13 @@ func handleStatus(wid byte, _ byte) kafka.HandlerFunc[statusEvent] {
 	}
 }
 
-func showCreated(l logrus.FieldLogger, _ opentracing.Span) func(event statusEvent) session.Operator {
-	return func(event statusEvent) session.Operator {
-		return func(model *session.Model) {
+func showCreated(l logrus.FieldLogger, _ opentracing.Span) func(event statusEvent) model.Operator[session.Model] {
+	return func(event statusEvent) model.Operator[session.Model] {
+		return func(s session.Model) {
 			l.Debugf("Party %d created for character %d.", event.PartyId, event.CharacterId)
-			err := model.Announce(WritePartyCreated(l)(event.PartyId))
+			err := session.Announce(WritePartyCreated(l)(event.PartyId))(s)
 			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", model.CharacterId())
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
 		}
 	}
@@ -78,12 +79,12 @@ func handleMemberStatus(wid byte, cid byte) kafka.HandlerFunc[memberStatusEvent]
 	}
 }
 
-func showDisbanded(l logrus.FieldLogger, _ opentracing.Span) func(partyId uint32, characterId uint32) session.Operator {
-	return func(partyId uint32, characterId uint32) session.Operator {
-		return func(model *session.Model) {
-			err := model.Announce(WritePartyDisbanded(l)(partyId, characterId))
+func showDisbanded(l logrus.FieldLogger, _ opentracing.Span) func(partyId uint32, characterId uint32) model.Operator[session.Model] {
+	return func(partyId uint32, characterId uint32) model.Operator[session.Model] {
+		return func(s session.Model) {
+			err := session.Announce(WritePartyDisbanded(l)(partyId, characterId))(s)
 			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", model.CharacterId())
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
 		}
 	}

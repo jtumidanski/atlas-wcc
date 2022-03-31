@@ -13,11 +13,10 @@ func Create(l logrus.FieldLogger, r *registry) func(worldId byte, channelId byte
 			l.Debugf("Creating session %d.", sessionId)
 
 			s := NewSession(sessionId, conn)
-
-			s.SetWorldId(worldId)
-			s.SetChannelId(channelId)
-
 			r.Add(s)
+
+			s = SetWorldId(worldId)(s.SessionId())
+			s = SetChannelId(channelId)(s.SessionId())
 
 			err := s.WriteHello()
 			if err != nil {
@@ -29,8 +28,8 @@ func Create(l logrus.FieldLogger, r *registry) func(worldId byte, channelId byte
 
 func Decrypt(_ logrus.FieldLogger, r *registry) func(sessionId uint32, input []byte) []byte {
 	return func(sessionId uint32, input []byte) []byte {
-		s := r.Get(sessionId)
-		if s == nil {
+		s, ok := r.Get(sessionId)
+		if !ok {
 			return input
 		}
 		if s.ReceiveAESOFB() == nil {
@@ -42,17 +41,17 @@ func Decrypt(_ logrus.FieldLogger, r *registry) func(sessionId uint32, input []b
 
 func DestroyAll(l logrus.FieldLogger, span opentracing.Span, r *registry) {
 	for _, s := range r.GetAll() {
-		Destroy(l, span, r)(s)
+		Destroy(l, span, r)(&s)
 	}
 }
 
 func DestroyById(l logrus.FieldLogger, span opentracing.Span, r *registry) func(sessionId uint32) {
 	return func(sessionId uint32) {
-		s := r.Get(sessionId)
-		if s == nil {
+		s, ok := r.Get(sessionId)
+		if !ok {
 			return
 		}
-		Destroy(l, span, r)(s)
+		Destroy(l, span, r)(&s)
 	}
 }
 

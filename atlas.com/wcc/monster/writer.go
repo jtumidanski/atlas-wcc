@@ -11,14 +11,14 @@ const OpCodeSpawnMonsterControl uint16 = 0xEE
 const OpCodeMoveMonster uint16 = 0xEF
 const OpCodeMoveMonsterResponse uint16 = 0xF0
 
-func WriteSpawnMonster(l logrus.FieldLogger) func(m *Model, newSpawn bool) []byte {
-	return func(m *Model, newSpawn bool) []byte {
+func WriteSpawnMonster(l logrus.FieldLogger) func(m Model, newSpawn bool) []byte {
+	return func(m Model, newSpawn bool) []byte {
 		return WriteSpawnMonsterWithEffect(l)(m, newSpawn, 0)
 	}
 }
 
-func WriteSpawnMonsterWithEffect(l logrus.FieldLogger) func(m *Model, newSpawn bool, effect byte) []byte {
-	return func(m *Model, newSpawn bool, effect byte) []byte {
+func WriteSpawnMonsterWithEffect(l logrus.FieldLogger) func(m Model, newSpawn bool, effect byte) []byte {
+	return func(m Model, newSpawn bool, effect byte) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnMonster)
 		w.WriteInt(m.UniqueId())
@@ -90,8 +90,8 @@ func WriteKillMonster(l logrus.FieldLogger) func(uniqueId uint32, animation bool
 	}
 }
 
-func WriteControlMonster(l logrus.FieldLogger) func(m *Model, newSpawn bool, aggro bool) []byte {
-	return func(m *Model, newSpawn bool, aggro bool) []byte {
+func WriteControlMonster(l logrus.FieldLogger) func(m Model, newSpawn bool, aggro bool) []byte {
+	return func(m Model, newSpawn bool, aggro bool) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnMonsterControl)
 		if aggro {
@@ -141,8 +141,8 @@ func WriteControlMonster(l logrus.FieldLogger) func(m *Model, newSpawn bool, agg
 	}
 }
 
-func WriteStopControlMonster(l logrus.FieldLogger) func(m *Model) []byte {
-	return func(m *Model) []byte {
+func WriteStopControlMonster(l logrus.FieldLogger) func(m Model) []byte {
+	return func(m Model) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnMonsterControl)
 		w.WriteByte(0)

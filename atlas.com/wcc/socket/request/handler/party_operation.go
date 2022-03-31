@@ -55,8 +55,8 @@ func readPartyOperation(r *request.RequestReader) interface{} {
 	return nil
 }
 
-func HandlePartyOperation(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandlePartyOperation(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readPartyOperation(r)
 		ok := false
 

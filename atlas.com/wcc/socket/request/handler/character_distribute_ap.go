@@ -24,8 +24,8 @@ func readDistributeApRequest(reader *request.RequestReader) distributeApRequest 
 	return distributeApRequest{number}
 }
 
-func DistributeApHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func DistributeApHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readDistributeApRequest(r)
 
 		attributeType := getType(p.Number())

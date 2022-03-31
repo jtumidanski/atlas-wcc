@@ -2,6 +2,7 @@ package monster
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -32,7 +33,7 @@ func handleControl(wid byte, cid byte) kafka.HandlerFunc[controlEvent] {
 			return
 		}
 
-		var h session.Operator
+		var h model.Operator[session.Model]
 		if event.Type == "START" {
 			h = startControl(l, span, event)
 		} else if event.Type == "STOP" {
@@ -46,30 +47,30 @@ func handleControl(wid byte, cid byte) kafka.HandlerFunc[controlEvent] {
 	}
 }
 
-func stopControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) session.Operator {
-	return func(s *session.Model) {
+func stopControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
 		m, err := GetById(l, span)(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
 		}
 		l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = s.Announce(WriteStopControlMonster(l)(m))
+		err = session.Announce(WriteStopControlMonster(l)(m))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to stop control of %d by %d", event.UniqueId, event.CharacterId)
 		}
 	}
 }
 
-func startControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) session.Operator {
-	return func(s *session.Model) {
+func startControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
 		m, err := GetById(l, span)(event.UniqueId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 			return
 		}
 		l.Infof("Starting control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = s.Announce(WriteControlMonster(l)(m, false, false))
+		err = session.Announce(WriteControlMonster(l)(m, false, false))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to start control of %d by %d", event.UniqueId, event.CharacterId)
 		}

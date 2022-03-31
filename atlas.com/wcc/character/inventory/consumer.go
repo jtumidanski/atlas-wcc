@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -37,16 +38,16 @@ type modification struct {
 
 func handleModification(_ byte, _ byte) kafka.HandlerFunc[modificationEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event modificationEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 		session.ForSessionByCharacterId(event.CharacterId, writeModification(l, span)(event))
 	}
 }
 
-func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event modificationEvent) session.Operator {
-	return func(event modificationEvent) session.Operator {
-		return func(s *session.Model) {
+func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event modificationEvent) model.Operator[session.Model] {
+	return func(event modificationEvent) model.Operator[session.Model] {
+		return func(s session.Model) {
 			result := ModifyInventory{}
 			result.UpdateTick = event.UpdateTick
 			for _, m := range event.Modifications {
@@ -75,7 +76,7 @@ func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event m
 				}
 				result.Modifications = append(result.Modifications, mi)
 			}
-			err := s.Announce(WriteCharacterInventoryModification(l)(result))
+			err := session.Announce(WriteCharacterInventoryModification(l)(result))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write inventory modification for character %d", s.CharacterId())
 			}
@@ -99,9 +100,9 @@ func handleFull(_ byte, _ byte) kafka.HandlerFunc[fullCommand] {
 	}
 }
 
-func showFull(l logrus.FieldLogger) session.Operator {
-	return func(s *session.Model) {
-		err := s.Announce(WriteShowInventoryFull(l))
+func showFull(l logrus.FieldLogger) model.Operator[session.Model] {
+	return func(s session.Model) {
+		err := session.Announce(WriteShowInventoryFull(l))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show inventory is full for character %d.", s.CharacterId())
 		}

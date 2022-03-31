@@ -44,7 +44,7 @@ func handleGetSessions(l logrus.FieldLogger) func(span opentracing.Span) http.Ha
 	}
 }
 
-func getSessionObject(x *Model) DataBody {
+func getSessionObject(x Model) DataBody {
 	return DataBody{
 		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",

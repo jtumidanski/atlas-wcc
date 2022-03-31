@@ -11,8 +11,8 @@ import (
 
 const OpCharacterMagicAttack uint16 = 0x2E
 
-func CharacterMagicAttackHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func CharacterMagicAttackHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readAttackPacket(l, span, r, s.CharacterId(), false, true)
 
 		catt, err := properties.GetById(l, span)(s.CharacterId())

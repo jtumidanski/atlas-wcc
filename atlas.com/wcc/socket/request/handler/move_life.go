@@ -103,8 +103,8 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {
 			return
@@ -143,7 +143,7 @@ func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *sessio
 		startY := p.StartY() - 2
 
 		summary := processMovementList(p.MovementData())
-		err = s.Announce(monster.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+		err = session.Announce(monster.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

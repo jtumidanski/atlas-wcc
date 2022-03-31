@@ -13,8 +13,8 @@ const OpCodeNPCAction uint16 = 0x104
 const OpCodeNPCTalk uint16 = 0x130
 const OpCodeOpenNPCShop uint16 = 0x131
 
-func WriteSpawnNPC(l logrus.FieldLogger) func(npc *Model) []byte {
-	return func(npc *Model) []byte {
+func WriteSpawnNPC(l logrus.FieldLogger) func(npc Model) []byte {
+	return func(npc Model) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnNpc)
 		w.WriteInt(npc.ObjectId())
@@ -43,8 +43,8 @@ func WriteRemoveNPC(l logrus.FieldLogger) func(objectId uint32) []byte {
 	}
 }
 
-func WriteSpawnNPCController(l logrus.FieldLogger) func(npc *Model, miniMap bool) []byte {
-	return func(npc *Model, miniMap bool) []byte {
+func WriteSpawnNPCController(l logrus.FieldLogger) func(npc Model, miniMap bool) []byte {
+	return func(npc Model, miniMap bool) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSpawnNPCRequestController)
 		w.WriteByte(1)
@@ -143,8 +143,8 @@ func WriteNPCTalkStyle(l logrus.FieldLogger) func(npcId uint32, talk string, sty
 	}
 }
 
-func WriteGetNPCShop(l logrus.FieldLogger) func(model *shop.Model) []byte {
-	return func(model *shop.Model) []byte {
+func WriteGetNPCShop(l logrus.FieldLogger) func(model shop.Model) []byte {
+	return func(model shop.Model) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeOpenNPCShop)
 		w.WriteInt(model.ShopId())

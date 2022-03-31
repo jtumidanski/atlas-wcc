@@ -25,8 +25,8 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 	return changeChannelRequest{channelId}
 }
 
-func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
 		if p.ChannelId() == s.ChannelId() {
 			l.Errorf("Character %s trying to change to the same channel.", s.CharacterId())
@@ -55,15 +55,15 @@ func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s *s
 			return
 		}
 
-		err = s.Announce(channel.WriteChangeChannel(l)(ch.IpAddress(), ch.Port()))
+		err = session.Announce(channel.WriteChangeChannel(l)(ch.IpAddress(), ch.Port()))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
 	}
 }
 
-func disconnect(l logrus.FieldLogger) func(s *session.Model) {
-	return func(s *session.Model) {
+func disconnect(l logrus.FieldLogger) func(s session.Model) {
+	return func(s session.Model) {
 		err := s.Disconnect()
 		if err != nil {
 			l.WithError(err).Errorf("Unable to issue disconnect to session %d.", s.SessionId())

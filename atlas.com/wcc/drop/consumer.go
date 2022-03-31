@@ -4,6 +4,7 @@ import (
 	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
@@ -33,7 +34,7 @@ type reservationEvent struct {
 
 func handleReservation(_ byte, _ byte) kafka.HandlerFunc[reservationEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event reservationEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -45,10 +46,10 @@ func handleReservation(_ byte, _ byte) kafka.HandlerFunc[reservationEvent] {
 	}
 }
 
-func cancelDropReservation(l logrus.FieldLogger, _ reservationEvent) session.Operator {
+func cancelDropReservation(l logrus.FieldLogger, _ reservationEvent) model.Operator[session.Model] {
 	b := properties.WriteEnableActions(l)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -69,7 +70,7 @@ type pickupItemEvent struct {
 
 func handlePickupItem(_ byte, _ byte) kafka.HandlerFunc[pickupItemEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event pickupItemEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -77,15 +78,15 @@ func handlePickupItem(_ byte, _ byte) kafka.HandlerFunc[pickupItemEvent] {
 	}
 }
 
-func showItemGain(l logrus.FieldLogger, event pickupItemEvent) session.Operator {
+func showItemGain(l logrus.FieldLogger, event pickupItemEvent) model.Operator[session.Model] {
 	ig := properties.WriteShowItemGain(l)(event.ItemId, event.Quantity)
 	ea := properties.WriteEnableActions(l)
-	return func(s *session.Model) {
-		err := s.Announce(ig)
+	return func(s session.Model) {
+		err := session.Announce(ig)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
-		err = s.Announce(ea)
+		err = session.Announce(ea)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -107,7 +108,7 @@ type pickupNXEvent struct {
 
 func handlePickupNX(_ byte, _ byte) kafka.HandlerFunc[pickupNXEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event pickupNXEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -115,15 +116,15 @@ func handlePickupNX(_ byte, _ byte) kafka.HandlerFunc[pickupNXEvent] {
 	}
 }
 
-func showNXGain(l logrus.FieldLogger, event pickupNXEvent) session.Operator {
+func showNXGain(l logrus.FieldLogger, event pickupNXEvent) model.Operator[session.Model] {
 	h := character.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10)
 	ea := properties.WriteEnableActions(l)
-	return func(s *session.Model) {
-		err := s.Announce(h)
+	return func(s session.Model) {
+		err := session.Announce(h)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
-		err = s.Announce(ea)
+		err = session.Announce(ea)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

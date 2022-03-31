@@ -53,8 +53,8 @@ func readChangeKeyMapRequest(reader *request.RequestReader) interface{} {
 	return nil
 }
 
-func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeKeyMapRequest(r)
 		if packet, ok := p.(changeKeyMapRequest); ok {
 			if packet.available {

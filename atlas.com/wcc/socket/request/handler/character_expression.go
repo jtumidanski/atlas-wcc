@@ -23,8 +23,8 @@ func readCharacterExpressionRequest(reader *request.RequestReader) characterExpr
 	return characterExpressionRequest{emote}
 }
 
-func CharacterExpressionHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func CharacterExpressionHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readCharacterExpressionRequest(r)
 		character.ChangeExpression(l, span)(s.CharacterId(), p.Emote())
 	}

@@ -30,8 +30,8 @@ func readHealOverTimeRequest(reader *request.RequestReader) healOverTimeRequest 
 	return healOverTimeRequest{hp, mp}
 }
 
-func HealOverTimeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HealOverTimeHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readHealOverTimeRequest(r)
 
 		character.AdjustHealth(l, span)(s.CharacterId(), p.HP())

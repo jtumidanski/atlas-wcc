@@ -44,8 +44,8 @@ func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
 	return changeMapRequest{cs, fromDying, targetId, startWarp, wheel}
 }
 
-func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeMapRequest(r)
 		if p.CashShop() {
 

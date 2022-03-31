@@ -2,6 +2,7 @@ package properties
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -33,7 +34,7 @@ type experienceEvent struct {
 
 func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event experienceEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -45,8 +46,8 @@ func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 			return
 		}
 
-		as := session.GetByCharacterId(event.CharacterId)
-		if as == nil {
+		as, err := session.GetByCharacterId(event.CharacterId)
+		if err != nil {
 			l.Errorf("Unable to locate session for character %d.", event.CharacterId)
 			return
 		}
@@ -58,7 +59,7 @@ func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 			party = 0
 			white = false
 		}
-		err := as.Announce(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white))
+		err = session.Announce(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white))(as)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show experience gain to character %d", as.CharacterId())
 		}
@@ -78,7 +79,7 @@ type mesoEvent struct {
 
 func handleMeso(_ byte, _ byte) kafka.HandlerFunc[mesoEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event mesoEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -86,15 +87,15 @@ func handleMeso(_ byte, _ byte) kafka.HandlerFunc[mesoEvent] {
 	}
 }
 
-func showChange(l logrus.FieldLogger, event mesoEvent) session.Operator {
+func showChange(l logrus.FieldLogger, event mesoEvent) model.Operator[session.Model] {
 	mg := WriteShowMesoGain(l)(event.Gain, false)
 	ea := WriteEnableActions(l)
-	return func(s *session.Model) {
-		err := s.Announce(mg)
+	return func(s session.Model) {
+		err := session.Announce(mg)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
-		err = s.Announce(ea)
+		err = session.Announce(ea)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -114,7 +115,7 @@ type statisticEvent struct {
 
 func handleStatisticChange(_ byte, _ byte) kafka.HandlerFunc[statisticEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event statisticEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -122,8 +123,8 @@ func handleStatisticChange(_ byte, _ byte) kafka.HandlerFunc[statisticEvent] {
 	}
 }
 
-func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEvent) session.Operator {
-	return func(s *session.Model) {
+func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
 		ca, err := GetById(l, span)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
@@ -134,7 +135,7 @@ func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEve
 		for _, t := range event.Updates {
 			statUpdates = append(statUpdates, getStatUpdate(ca, t))
 		}
-		err = s.Announce(WriteCharacterStatUpdate(l)(statUpdates, true))
+		err = session.Announce(WriteCharacterStatUpdate(l)(statUpdates, true))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write character stat update for %d", event.CharacterId)
 		}

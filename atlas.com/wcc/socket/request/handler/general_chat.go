@@ -30,8 +30,8 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 	return generalChatRequest{message, show}
 }
 
-func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {

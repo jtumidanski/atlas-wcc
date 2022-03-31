@@ -11,8 +11,8 @@ import (
 
 const OpCharacterRangedAttack uint16 = 0x2D
 
-func CharacterRangedAttackHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func CharacterRangedAttackHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readAttackPacket(l, span, r, s.CharacterId(), true, false)
 
 		catt, err := properties.GetById(l, span)(s.CharacterId())

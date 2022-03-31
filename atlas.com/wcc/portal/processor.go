@@ -1,49 +1,31 @@
 package portal
 
 import (
+	"atlas-wcc/model"
 	"atlas-wcc/rest/requests"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-type ModelProvider func() (*Model, error)
-
-func requestModelProvider(l logrus.FieldLogger, span opentracing.Span) func(r requests.Request[attributes]) ModelProvider {
-	return func(r requests.Request[attributes]) ModelProvider {
-		return func() (*Model, error) {
-			resp, err := r(l, span)
-			if err != nil {
-				return nil, err
-			}
-
-			p, err := makeModel(resp.Data())
-			if err != nil {
-				return nil, err
-			}
-			return p, nil
-		}
+func ByNameModelProvider(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) model.Provider[Model] {
+	return func(mapId uint32, portalName string) model.Provider[Model] {
+		return requests.Provider[attributes, Model](l, span)(requestByName(mapId, portalName), makeModel)
 	}
 }
 
-func ByNameModelProvider(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) ModelProvider {
-	return func(mapId uint32, portalName string) ModelProvider {
-		return requestModelProvider(l, span)(requestByName(mapId, portalName))
-	}
-}
-
-func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (*Model, error) {
-	return func(mapId uint32, portalName string) (*Model, error) {
+func GetByName(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, portalName string) (Model, error) {
+	return func(mapId uint32, portalName string) (Model, error) {
 		return ByNameModelProvider(l, span)(mapId, portalName)()
 	}
 }
 
-func makeModel(body requests.DataBody[attributes]) (*Model, error) {
+func makeModel(body requests.DataBody[attributes]) (Model, error) {
 	id, err := strconv.ParseUint(body.Id, 10, 32)
 	if err != nil {
-		return nil, err
+		return Model{}, err
 	}
 	attr := body.Attributes
 	m := NewPortal(uint32(id), attr.Name, attr.Target, attr.TargetMapId, attr.Type, attr.X, attr.Y, attr.ScriptName)
-	return &m, nil
+	return m, nil
 }

@@ -2,6 +2,7 @@ package skill
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -28,7 +29,7 @@ type updateEvent struct {
 
 func handleUpdate(_ byte, _ byte) kafka.HandlerFunc[updateEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event updateEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -36,9 +37,9 @@ func handleUpdate(_ byte, _ byte) kafka.HandlerFunc[updateEvent] {
 	}
 }
 
-func showUpdate(l logrus.FieldLogger, event updateEvent) session.Operator {
-	return func(s *session.Model) {
-		err := s.Announce(WriteCharacterSkillUpdate(l)(event.SkillId, event.Level, event.MasterLevel, event.Expiration))
+func showUpdate(l logrus.FieldLogger, event updateEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
+		err := session.Announce(WriteCharacterSkillUpdate(l)(event.SkillId, event.Level, event.MasterLevel, event.Expiration))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write skill update for character %d", event.CharacterId)
 		}

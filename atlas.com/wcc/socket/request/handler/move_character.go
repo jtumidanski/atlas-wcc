@@ -106,8 +106,8 @@ func updatePosition(reader *request.RequestReader, offset int16) []interface{} {
 	return mdl
 }
 
-func MoveCharacterHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func MoveCharacterHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveCharacterRequest(r)
 		if p == nil {
 			return

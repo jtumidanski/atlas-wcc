@@ -1,6 +1,7 @@
 package _map
 
 import (
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -39,14 +40,14 @@ func GetOtherCharacterIdsInMap(l logrus.FieldLogger, span opentracing.Span) func
 	}
 }
 
-func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, o session.Operator) {
-	return func(worldId byte, channelId byte, mapId uint32, o session.Operator) {
+func ForSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, o model.Operator[session.Model]) {
+	return func(worldId byte, channelId byte, mapId uint32, o model.Operator[session.Model]) {
 		session.ForEachByCharacterId(GetCharacterIdsInMap(l, span)(worldId, channelId, mapId), o)
 	}
 }
 
-func ForOtherSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o session.Operator) {
-	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o session.Operator) {
+func ForOtherSessionsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o model.Operator[session.Model]) {
+	return func(worldId byte, channelId byte, mapId uint32, referenceCharacterId uint32, o model.Operator[session.Model]) {
 		session.ForEachByCharacterId(GetOtherCharacterIdsInMap(l, span)(worldId, channelId, mapId, referenceCharacterId), o)
 	}
 }

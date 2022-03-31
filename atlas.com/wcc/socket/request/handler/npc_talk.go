@@ -26,12 +26,12 @@ func readNPCTalkRequest(reader *request.RequestReader) npcTalkRequest {
 	return npcTalkRequest{reader.ReadUint32()}
 }
 
-func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model) bool {
-	return func(s *session.Model) bool {
+func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s session.Model) bool {
+	return func(s session.Model) bool {
 		v := account.IsLoggedIn(l, span)(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
-			err := s.Announce(properties.WriteEnableActions(l))
+			err := session.Announce(properties.WriteEnableActions(l))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -41,7 +41,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
-			err = s.Announce(properties.WriteEnableActions(l))
+			err = session.Announce(properties.WriteEnableActions(l))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -51,7 +51,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		if ca.Hp() > 0 {
 			return true
 		} else {
-			err = s.Announce(properties.WriteEnableActions(l))
+			err = session.Announce(properties.WriteEnableActions(l))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -60,8 +60,8 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 	}
 }
 
-func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
 		ca, err := properties.GetById(l, span)(s.CharacterId())
@@ -97,7 +97,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *s
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
 			}
-			err = s.Announce(npc2.WriteGetNPCShop(l)(ns))
+			err = session.Announce(npc2.WriteGetNPCShop(l)(ns))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}
@@ -105,10 +105,10 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s *s
 	}
 }
 
-func handleGachapon(_ *session.Model) {
+func handleGachapon(_ session.Model) {
 
 }
 
-func handleDuey(_ *session.Model) {
+func handleDuey(_ session.Model) {
 
 }

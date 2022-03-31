@@ -5,6 +5,7 @@ import (
 	"atlas-wcc/character/properties"
 	"atlas-wcc/drop"
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/monster"
 	"atlas-wcc/npc"
 	"atlas-wcc/reactor"
@@ -66,7 +67,7 @@ type messageEvent struct {
 
 func handleMessage(wid byte, cid byte) kafka.HandlerFunc[messageEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event messageEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -74,10 +75,10 @@ func handleMessage(wid byte, cid byte) kafka.HandlerFunc[messageEvent] {
 	}
 }
 
-func showMessage(l logrus.FieldLogger, event messageEvent) session.Operator {
+func showMessage(l logrus.FieldLogger, event messageEvent) model.Operator[session.Model] {
 	b := WriteChatText(l)(event.CharacterId, event.Message, event.GM, event.Show)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -115,9 +116,9 @@ func HandleMapCharacterEvent(wid byte, cid byte) kafka.HandlerFunc[mapCharacterE
 	}
 }
 
-func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharacterEvent) session.Operator {
-	return func(event mapCharacterEvent) session.Operator {
-		return func(s *session.Model) {
+func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharacterEvent) model.Operator[session.Model] {
+	return func(event mapCharacterEvent) model.Operator[session.Model] {
+		return func(s session.Model) {
 			cIds := GetCharacterIdsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId)
 
 			cm := make(map[uint32]*character.Model)
@@ -133,8 +134,11 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 			// Spawn new character for other character.
 			for k, v := range cm {
 				if k != event.CharacterId {
-					as := *session.GetByCharacterId(k)
-					err := as.Announce(WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))
+					as, err := session.GetByCharacterId(k)
+					if err != nil {
+						continue
+					}
+					err = session.Announce(WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))(as)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
 					}
@@ -144,7 +148,7 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 			// Spawn other characters for incoming character.
 			for k, v := range cm {
 				if k != event.CharacterId {
-					err := s.Announce(WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))
+					err := session.Announce(WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))(s)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
 					}
@@ -166,10 +170,10 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 	}
 }
 
-func removeCharacterForSession(l logrus.FieldLogger) func(characterId uint32) session.Operator {
-	return func(characterId uint32) session.Operator {
-		return func(s *session.Model) {
-			err := s.Announce(WriteRemoveCharacterFromMap(l)(characterId))
+func removeCharacterForSession(l logrus.FieldLogger) func(characterId uint32) model.Operator[session.Model] {
+	return func(characterId uint32) model.Operator[session.Model] {
+		return func(s session.Model) {
+			err := session.Announce(WriteRemoveCharacterFromMap(l)(characterId))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to remove character %d from view for character %d", characterId, s.CharacterId())
 			}
@@ -189,7 +193,7 @@ type characterLevelEvent struct {
 
 func handleCharacterLevel(wid byte, cid byte) kafka.HandlerFunc[characterLevelEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterLevelEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -202,10 +206,10 @@ func handleCharacterLevel(wid byte, cid byte) kafka.HandlerFunc[characterLevelEv
 	}
 }
 
-func showForeignEffect(l logrus.FieldLogger, event characterLevelEvent) session.Operator {
+func showForeignEffect(l logrus.FieldLogger, event characterLevelEvent) model.Operator[session.Model] {
 	b := WriteShowForeignEffect(l)(event.CharacterId, 0)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -236,14 +240,14 @@ func handleChangeMap(wid byte, cid byte) kafka.HandlerFunc[mapChangedEvent] {
 	}
 }
 
-func warpCharacter(l logrus.FieldLogger, span opentracing.Span, event mapChangedEvent) session.Operator {
-	return func(s *session.Model) {
+func warpCharacter(l logrus.FieldLogger, span opentracing.Span, event mapChangedEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
 		catt, err := properties.GetById(l, span)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 			return
 		}
-		err = s.Announce(WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Hp()))
+		err = session.Announce(WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Hp()))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to warp character %d to map %d", event.CharacterId, event.MapId)
 		}
@@ -271,19 +275,19 @@ func handleMPEater(_ byte, _ byte) kafka.HandlerFunc[mpEaterEvent] {
 	}
 }
 
-func showMPEaterEffect(l logrus.FieldLogger, event mpEaterEvent) session.Operator {
-	return func(s *session.Model) {
-		err := s.Announce(WriteShowOwnBuff(l)(1, event.SkillId))
+func showMPEaterEffect(l logrus.FieldLogger, event mpEaterEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
+		err := session.Announce(WriteShowOwnBuff(l)(1, event.SkillId))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show MP Eater application for character %d.", event.CharacterId)
 		}
 	}
 }
 
-func showForeignMPEaterEffect(l logrus.FieldLogger, event mpEaterEvent) session.Operator {
+func showForeignMPEaterEffect(l logrus.FieldLogger, event mpEaterEvent) model.Operator[session.Model] {
 	b := WriteShowBuffEffect(l)(event.CharacterId, 1, event.SkillId, 3)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show MP Eater effect to character %d for character %d.", s.CharacterId(), event.CharacterId)
 		}
@@ -314,7 +318,7 @@ type characterDamageEvent struct {
 
 func handleCharacterDamage(wid byte, cid byte) kafka.HandlerFunc[characterDamageEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterDamageEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -322,10 +326,10 @@ func handleCharacterDamage(wid byte, cid byte) kafka.HandlerFunc[characterDamage
 	}
 }
 
-func showCharacterDamage(l logrus.FieldLogger, event characterDamageEvent) session.Operator {
+func showCharacterDamage(l logrus.FieldLogger, event characterDamageEvent) model.Operator[session.Model] {
 	b := WriteCharacterDamaged(l)(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -346,7 +350,7 @@ type characterExpressionChangedEvent struct {
 
 func handleCharacterExpressionChange(wid byte, cid byte) kafka.HandlerFunc[characterExpressionChangedEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterExpressionChangedEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -354,10 +358,10 @@ func handleCharacterExpressionChange(wid byte, cid byte) kafka.HandlerFunc[chara
 	}
 }
 
-func showCharacterExpression(l logrus.FieldLogger, event characterExpressionChangedEvent) session.Operator {
+func showCharacterExpression(l logrus.FieldLogger, event characterExpressionChangedEvent) model.Operator[session.Model] {
 	b := WriteCharacterExpression(l)(event.CharacterId, event.Expression)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -394,7 +398,7 @@ func (m rawMovement) MarshalJSON() ([]byte, error) {
 
 func handleCharacterMovement(wid byte, cid byte) kafka.HandlerFunc[characterMovementEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterMovementEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -407,9 +411,9 @@ func handleCharacterMovement(wid byte, cid byte) kafka.HandlerFunc[characterMove
 	}
 }
 
-func moveCharacter(l logrus.FieldLogger, event characterMovementEvent) session.Operator {
-	return func(s *session.Model) {
-		err := s.Announce(WriteMoveCharacter(l)(event.CharacterId, event.RawMovement))
+func moveCharacter(l logrus.FieldLogger, event characterMovementEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
+		err := session.Announce(WriteMoveCharacter(l)(event.CharacterId, event.RawMovement))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -429,7 +433,7 @@ type characterEquipmentChangedEvent struct {
 
 func handleCharacterEquipmentChanged(wid byte, cid byte) kafka.HandlerFunc[characterEquipmentChangedEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterEquipmentChangedEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -442,9 +446,9 @@ func handleCharacterEquipmentChanged(wid byte, cid byte) kafka.HandlerFunc[chara
 	}
 }
 
-func updateCharacterAppearance(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) session.Operator {
-	return func(characterId uint32) session.Operator {
-		return func(s *session.Model) {
+func updateCharacterAppearance(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) model.Operator[session.Model] {
+	return func(characterId uint32) model.Operator[session.Model] {
+		return func(s session.Model) {
 			r, err := character.GetCharacterById(l, span)(s.CharacterId())
 			if err != nil {
 				l.WithError(err).Errorf("Unable to retrieve character %d details.", s.CharacterId())
@@ -455,7 +459,7 @@ func updateCharacterAppearance(l logrus.FieldLogger, span opentracing.Span) func
 				l.WithError(err).Errorf("Unable to retrieve character %d details.", characterId)
 				return
 			}
-			err = s.Announce(WriteCharacterLookUpdated(l)(*r, *c))
+			err = session.Announce(WriteCharacterLookUpdated(l)(*r, *c))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to %d that character %d has changed their look.", s.CharacterId(), characterId)
 			}
@@ -500,17 +504,17 @@ func handleDropEvent(wid byte, cid byte) kafka.HandlerFunc[dropEvent] {
 	}
 }
 
-func showDrop(l logrus.FieldLogger, event dropEvent) session.Operator {
-	return func(s *session.Model) {
+func showDrop(l logrus.FieldLogger, event dropEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
 		a := uint32(0)
 		if event.ItemId != 0 {
 			a = 0
 		} else {
 			a = event.Meso
 		}
-		err := s.Announce(drop.WriteDropItemFromMapObject(l)(event.UniqueId, event.ItemId, event.Meso, a,
+		err := session.Announce(drop.WriteDropItemFromMapObject(l)(event.UniqueId, event.ItemId, event.Meso, a,
 			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0,
-			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))
+			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write drop in map for character %d", s.CharacterId())
 		}
@@ -554,7 +558,7 @@ type pickupEvent struct {
 
 func handlePickup(wid byte, cid byte) kafka.HandlerFunc[pickupEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event pickupEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -590,7 +594,7 @@ func handleMonsterEvent(wid byte, cid byte) kafka.HandlerFunc[monsterEvent] {
 			return
 		}
 
-		var h session.Operator
+		var h model.Operator[session.Model]
 		if event.Type == "CREATED" {
 			h = monster.CreateForSession(l, m)
 		} else if event.Type == "DESTROYED" {
@@ -628,7 +632,7 @@ type monsterMovementEvent struct {
 
 func handleMovement(wid byte, cid byte) kafka.HandlerFunc[monsterMovementEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event monsterMovementEvent) {
-		if actingSession := session.GetByCharacterId(event.ObserverId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.ObserverId); err != nil {
 			return
 		}
 

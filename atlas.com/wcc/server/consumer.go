@@ -2,6 +2,7 @@ package server
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
@@ -37,7 +38,7 @@ type noticeEvent struct {
 
 func handleNotice(_ byte, _ byte) kafka.HandlerFunc[noticeEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event noticeEvent) {
-		if actingSession := session.GetByCharacterId(event.RecipientId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.RecipientId); err != nil {
 			return
 		}
 
@@ -45,9 +46,9 @@ func handleNotice(_ byte, _ byte) kafka.HandlerFunc[noticeEvent] {
 	}
 }
 
-func showNotice(l logrus.FieldLogger, event noticeEvent) session.Operator {
-	return func(s *session.Model) {
-		err := s.Announce(WriteServerNotice(l)(s.ChannelId(), getNoticeByType(event.Type), event.Message, false, 0))
+func showNotice(l logrus.FieldLogger, event noticeEvent) model.Operator[session.Model] {
+	return func(s session.Model) {
+		err := session.Announce(WriteServerNotice(l)(s.ChannelId(), getNoticeByType(event.Type), event.Message, false, 0))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

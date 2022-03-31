@@ -30,8 +30,8 @@ func readItemPickUpRequest(reader *request.RequestReader) itemPickUpRequest {
 	return itemPickUpRequest{timestamp, x, y, objectId}
 }
 
-func ItemPickUpHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ItemPickUpHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 
 		character.ReserveDrop(l, span)(s.CharacterId(), p.ObjectId())

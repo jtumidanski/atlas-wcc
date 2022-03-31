@@ -42,8 +42,8 @@ func readMoveItemRequest(reader *request.RequestReader) moveItemRequest {
 	return moveItemRequest{inventoryType: inventoryType, source: source, action: action, quantity: quantity}
 }
 
-func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveItemRequest(r)
 		// adjust for client indexing positive from 1 not 0
 		source := p.Source()

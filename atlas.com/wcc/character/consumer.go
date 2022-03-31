@@ -3,6 +3,7 @@ package character
 import (
 	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"atlas-wcc/socket/response/writer"
 	"fmt"
@@ -41,11 +42,11 @@ func handleCreated(wid byte, _ byte) kafka.HandlerFunc[createdEvent] {
 	}
 }
 
-func announceCharacterCreated(l logrus.FieldLogger) func(event createdEvent) session.Operator {
-	return func(event createdEvent) session.Operator {
+func announceCharacterCreated(l logrus.FieldLogger) func(event createdEvent) model.Operator[session.Model] {
+	return func(event createdEvent) model.Operator[session.Model] {
 		b := writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))
-		return func(s *session.Model) {
-			err := s.Announce(b)
+		return func(s session.Model) {
+			err := session.Announce(b)(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -65,7 +66,7 @@ type enableActionsEvent struct {
 
 func handleEnableActions(_ byte, _ byte) kafka.HandlerFunc[enableActionsEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event enableActionsEvent) {
-		if actingSession := session.GetByCharacterId(event.CharacterId); actingSession == nil {
+		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
 
@@ -73,10 +74,10 @@ func handleEnableActions(_ byte, _ byte) kafka.HandlerFunc[enableActionsEvent] {
 	}
 }
 
-func enableActions(l logrus.FieldLogger, _ enableActionsEvent) session.Operator {
+func enableActions(l logrus.FieldLogger, _ enableActionsEvent) model.Operator[session.Model] {
 	b := properties.WriteEnableActions(l)
-	return func(s *session.Model) {
-		err := s.Announce(b)
+	return func(s session.Model) {
+		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

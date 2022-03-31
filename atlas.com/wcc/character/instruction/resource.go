@@ -76,19 +76,19 @@ func handleCreateInstruction(l logrus.FieldLogger) func(span opentracing.Span) f
 		return func(characterId uint32) func(input *InputDataContainer) http.HandlerFunc {
 			return func(input *InputDataContainer) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
-					s := session.GetByCharacterId(characterId)
-					if s == nil {
+					s, err := session.GetByCharacterId(characterId)
+					if err != nil {
 						l.Errorf("Cannot locate session for instruction")
 						w.WriteHeader(http.StatusBadRequest)
 						return
 					}
 
 					attr := input.Data.Attributes
-					err := s.Announce(character.WriteHint(l)(attr.Message, attr.Width, attr.Height))
+					err = session.Announce(character.WriteHint(l)(attr.Message, attr.Width, attr.Height))(s)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 					}
-					err = s.Announce(properties.WriteEnableActions(l))
+					err = session.Announce(properties.WriteEnableActions(l))(s)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 					}
