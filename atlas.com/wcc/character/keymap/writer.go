@@ -7,9 +7,9 @@ import (
 
 const OpCodeKeyMap uint16 = 0x14F
 
-func WriteKeyMap(l logrus.FieldLogger) func(keys []*Model) []byte {
-	return func(keys []*Model) []byte {
-		km := make(map[int32]*Model)
+func WriteKeyMap(l logrus.FieldLogger) func(keys []Model) []byte {
+	return func(keys []Model) []byte {
+		km := make(map[int32]Model)
 		for _, k := range keys {
 			km[k.Key()] = k
 		}

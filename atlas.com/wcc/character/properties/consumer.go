@@ -142,7 +142,7 @@ func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEve
 	}
 }
 
-func getStatUpdate(ca *Model, stat string) StatUpdate {
+func getStatUpdate(ca Model, stat string) StatUpdate {
 	switch stat {
 	case "EXPERIENCE":
 		return NewStatUpdate(StatUpdateExperience, ca.Experience())

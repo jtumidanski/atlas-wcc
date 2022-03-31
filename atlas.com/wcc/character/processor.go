@@ -24,8 +24,8 @@ func GetCharacterById(l logrus.FieldLogger, span opentracing.Span) func(characte
 	}
 }
 
-func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func(data *properties.Model) (*Model, error) {
-	return func(data *properties.Model) (*Model, error) {
+func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func(data properties.Model) (*Model, error) {
+	return func(data properties.Model) (*Model, error) {
 		eq, err := inventory.GetEquippedItemsForCharacter(l, span)(data.Id())
 		if err != nil {
 			return nil, err
@@ -41,7 +41,7 @@ func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func
 			return nil, err
 		}
 
-		c := NewCharacter(*data, eq, ss, ps)
+		c := NewCharacter(data, eq, ss, ps)
 
 		ei, err := inventory.GetEquipInventoryForCharacter(l, span)(data.Id())
 		if err != nil {

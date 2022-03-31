@@ -1,31 +1,29 @@
 package properties
 
 import (
+	"atlas-wcc/model"
 	"atlas-wcc/rest/requests"
-	"errors"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
-func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
-	return func(characterId uint32) (*Model, error) {
-		cs, err := requestPropertiesById(characterId)(l, span)
-		if err != nil {
-			return nil, err
-		}
-		ca := makeProperties(cs.Data())
-		if ca == nil {
-			return nil, errors.New("unable to make character attributes")
-		}
-		return ca, nil
+func ByIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(id uint32) model.Provider[Model] {
+	return func(id uint32) model.Provider[Model] {
+		return requests.Provider[attributes, Model](l, span)(requestPropertiesById(id), makeProperties)
 	}
 }
 
-func makeProperties(ca requests.DataBody[attributes]) *Model {
+func GetById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (Model, error) {
+	return func(characterId uint32) (Model, error) {
+		return ByIdModelProvider(l, span)(characterId)()
+	}
+}
+
+func makeProperties(ca requests.DataBody[attributes]) (Model, error) {
 	cid, err := strconv.ParseUint(ca.Id, 10, 32)
 	if err != nil {
-		return nil
+		return Model{}, err
 	}
 	att := ca.Attributes
 	r := NewBuilder().
@@ -59,5 +57,5 @@ func makeProperties(ca requests.DataBody[attributes]) *Model {
 		SetY(att.Y).
 		SetStance(att.Stance).
 		Build()
-	return &r
+	return r, nil
 }
