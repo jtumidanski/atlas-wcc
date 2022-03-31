@@ -22,7 +22,7 @@ func idFilter(channelId byte) func(models []Model) (Model, error) {
 func ByWorldIdModelProvider(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) model.Provider[Model] {
 	return func(worldId byte, channelId byte) model.Provider[Model] {
 		sp := requests.SliceProvider[attributes, Model](l, span)(requestForWorld(worldId), makeModel)
-		return model.ModelListProviderToModelProviderAdapter(sp, idFilter(channelId))
+		return model.SliceProviderToProviderAdapter(sp, idFilter(channelId))
 	}
 }
 

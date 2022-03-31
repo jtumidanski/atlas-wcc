@@ -20,7 +20,7 @@ func ExecuteForEach[M any](f Operator[M]) SliceOperator[M] {
 
 type Filter[M any] func(M) bool
 
-func ModelListProviderToModelProviderAdapter[M any](provider SliceProvider[M], preciselyOneFilter PreciselyOneFilter[M]) Provider[M] {
+func SliceProviderToProviderAdapter[M any](provider SliceProvider[M], preciselyOneFilter PreciselyOneFilter[M]) Provider[M] {
 	return func() (M, error) {
 		ps, err := provider()
 		if err != nil {
