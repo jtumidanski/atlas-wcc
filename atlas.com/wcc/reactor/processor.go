@@ -59,59 +59,63 @@ func makeModel(data requests.DataBody[attributes]) (Model, error) {
 
 func SpawnForSession(l logrus.FieldLogger) func(s session.Model) model.Operator[Model] {
 	return func(s session.Model) model.Operator[Model] {
-		return func(r Model) {
+		return func(r Model) error {
 			err := session.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())
 			}
+			return err
 		}
 	}
 }
 
 func DestroyForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32) model.Operator[session.Model] {
 	return func(reactorId uint32) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			r, err := GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
-				return
+				return err
 			}
 			err = session.Announce(WriteReactorDestroyed(l)(r.Id(), r.State(), r.X(), r.Y()))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d destroyed to session %d.", r.Id(), s.SessionId())
 			}
+			return err
 		}
 	}
 }
 
 func HitForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) model.Operator[session.Model] {
 	return func(reactorId uint32, stance uint16) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			r, err := GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
-				return
+				return err
 			}
 			err = session.Announce(WriteReactorTrigger(l)(r.Id(), r.State(), r.X(), r.Y(), byte(stance)))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d trigger to session %d.", r.Id(), s.SessionId())
 			}
+			return err
 		}
 	}
 }
 
 func CreateForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId uint32, stance uint16) model.Operator[session.Model] {
 	return func(reactorId uint32, stance uint16) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			r, err := GetById(l, span)(reactorId)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to locate reactor to process status of.")
-				return
+				return err
 			}
 			err = session.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())
 			}
+			return err
 		}
 	}
 }

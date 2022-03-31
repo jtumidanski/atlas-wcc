@@ -36,7 +36,7 @@ func CharacterIdFilter(referenceId uint32) model.Filter[Model] {
 // CharacterIdPreciselyOneFilter a filter which yields true when the characterId matches the one in the session
 func CharacterIdPreciselyOneFilter(characterId uint32) model.PreciselyOneFilter[Model] {
 	return func(models []Model) (Model, error) {
-		return model.First(models, CharacterIdFilter(characterId))
+		return model.First(model.FixedSliceProvider(models), CharacterIdFilter(characterId))
 	}
 }
 

@@ -43,11 +43,12 @@ func handleCharacterBuff(_ byte, _ byte) kafka.HandlerFunc[characterBuffEvent] {
 
 func showBuffEffect(l logrus.FieldLogger, event characterBuffEvent) model.Operator[session.Model] {
 	b := WriteShowBuff(l)(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
 
@@ -81,10 +82,11 @@ func handleCharacterCancelBuff(_ byte, _ byte) kafka.HandlerFunc[characterCancel
 }
 
 func cancelBuffEffect(l logrus.FieldLogger, event characterCancelBuffEvent) model.Operator[session.Model] {
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(WriteCancelBuff(l)(makeBuffStats(event.Stats)))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to cancel buff for character %d", s.CharacterId())
 		}
+		return err
 	}
 }

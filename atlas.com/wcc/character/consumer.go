@@ -45,11 +45,12 @@ func handleCreated(wid byte, _ byte) kafka.HandlerFunc[createdEvent] {
 func announceCharacterCreated(l logrus.FieldLogger) func(event createdEvent) model.Operator[session.Model] {
 	return func(event createdEvent) model.Operator[session.Model] {
 		b := writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			err := session.Announce(b)(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }
@@ -76,10 +77,11 @@ func handleEnableActions(_ byte, _ byte) kafka.HandlerFunc[enableActionsEvent] {
 
 func enableActions(l logrus.FieldLogger, _ enableActionsEvent) model.Operator[session.Model] {
 	b := properties.WriteEnableActions(l)
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }

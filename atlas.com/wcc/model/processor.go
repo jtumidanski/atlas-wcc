@@ -2,21 +2,25 @@ package model
 
 import "errors"
 
-type Operator[M any] func(M)
+type Operator[M any] func(M) error
 
 type Provider[M any] func() (M, error)
 
-type SliceOperator[M any] func([]M)
+type SliceOperator[M any] func([]M) error
 
 type SliceProvider[M any] func() ([]M, error)
 
 type PreciselyOneFilter[M any] func([]M) (M, error)
 
 func ExecuteForEach[M any](f Operator[M]) SliceOperator[M] {
-	return func(models []M) {
+	return func(models []M) error {
 		for _, m := range models {
-			f(m)
+			err := f(m)
+			if err != nil {
+				return err
+			}
 		}
+		return nil
 	}
 }
 
@@ -85,7 +89,7 @@ func IfPresent[M any](provider Provider[M], operator Operator[M]) {
 	if err != nil {
 		return
 	}
-	operator(model)
+	_ = operator(model)
 }
 
 func For[M any](provider SliceProvider[M], operator SliceOperator[M]) {
@@ -93,7 +97,7 @@ func For[M any](provider SliceProvider[M], operator SliceOperator[M]) {
 	if err != nil {
 		return
 	}
-	operator(models)
+	_ = operator(models)
 }
 
 func ForEach[M any](provider SliceProvider[M], operator Operator[M]) {
@@ -131,8 +135,13 @@ func SliceMap[M any, N any](provider SliceProvider[M], transformer Transformer[M
 	return FixedSliceProvider(results)
 }
 
-func First[M any](ms []M, filters ...Filter[M]) (M, error) {
+func First[M any](provider SliceProvider[M], filters ...Filter[M]) (M, error) {
 	var r M
+	ms, err := provider()
+	if err != nil {
+		return r, err
+	}
+
 	if len(filters) == 0 {
 		return ms[0], nil
 	}

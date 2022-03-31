@@ -47,7 +47,7 @@ func handleModification(_ byte, _ byte) kafka.HandlerFunc[modificationEvent] {
 
 func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event modificationEvent) model.Operator[session.Model] {
 	return func(event modificationEvent) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			result := ModifyInventory{}
 			result.UpdateTick = event.UpdateTick
 			for _, m := range event.Modifications {
@@ -80,6 +80,7 @@ func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event m
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write inventory modification for character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }
@@ -101,10 +102,11 @@ func handleFull(_ byte, _ byte) kafka.HandlerFunc[fullCommand] {
 }
 
 func showFull(l logrus.FieldLogger) model.Operator[session.Model] {
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(WriteShowInventoryFull(l))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to show inventory is full for character %d.", s.CharacterId())
 		}
+		return err
 	}
 }

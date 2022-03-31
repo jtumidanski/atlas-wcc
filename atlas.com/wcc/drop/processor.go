@@ -51,7 +51,7 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 
 func SpawnDropForSession(l logrus.FieldLogger) func(s session.Model) model.Operator[Model] {
 	return func(s session.Model) model.Operator[Model] {
-		return func(d Model) {
+		return func(d Model) error {
 			var a = uint32(0)
 			if d.ItemId() != 0 {
 				a = 0
@@ -65,28 +65,31 @@ func SpawnDropForSession(l logrus.FieldLogger) func(s session.Model) model.Opera
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce drop to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }
 
 func RemoveDropForSession(l logrus.FieldLogger) func(dropId uint32, characterId uint32) model.Operator[session.Model] {
 	return func(dropId uint32, characterId uint32) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			err := session.Announce(WriteRemoveItem(l)(dropId, 2, characterId))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }
 
 func ExpireDropForSession(l logrus.FieldLogger) func(dropId uint32) model.Operator[session.Model] {
 	return func(dropId uint32) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			err := session.Announce(WriteRemoveItem(l)(dropId, 0, 0))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }

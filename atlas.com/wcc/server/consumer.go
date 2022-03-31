@@ -47,11 +47,12 @@ func handleNotice(_ byte, _ byte) kafka.HandlerFunc[noticeEvent] {
 }
 
 func showNotice(l logrus.FieldLogger, event noticeEvent) model.Operator[session.Model] {
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(WriteServerNotice(l)(s.ChannelId(), getNoticeByType(event.Type), event.Message, false, 0))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
 

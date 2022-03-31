@@ -90,15 +90,17 @@ func handleMeso(_ byte, _ byte) kafka.HandlerFunc[mesoEvent] {
 func showChange(l logrus.FieldLogger, event mesoEvent) model.Operator[session.Model] {
 	mg := WriteShowMesoGain(l)(event.Gain, false)
 	ea := WriteEnableActions(l)
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(mg)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			return err
 		}
 		err = session.Announce(ea)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
 
@@ -124,11 +126,11 @@ func handleStatisticChange(_ byte, _ byte) kafka.HandlerFunc[statisticEvent] {
 }
 
 func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEvent) model.Operator[session.Model] {
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		ca, err := GetById(l, span)(event.CharacterId)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
-			return
+			return err
 		}
 
 		var statUpdates []StatUpdate
@@ -139,6 +141,7 @@ func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEve
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write character stat update for %d", event.CharacterId)
 		}
+		return err
 	}
 }
 

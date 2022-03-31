@@ -44,12 +44,13 @@ func handleStatus(wid byte, _ byte) kafka.HandlerFunc[statusEvent] {
 
 func showCreated(l logrus.FieldLogger, _ opentracing.Span) func(event statusEvent) model.Operator[session.Model] {
 	return func(event statusEvent) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			l.Debugf("Party %d created for character %d.", event.PartyId, event.CharacterId)
 			err := session.Announce(WritePartyCreated(l)(event.PartyId))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }
@@ -81,11 +82,12 @@ func handleMemberStatus(wid byte, cid byte) kafka.HandlerFunc[memberStatusEvent]
 
 func showDisbanded(l logrus.FieldLogger, _ opentracing.Span) func(partyId uint32, characterId uint32) model.Operator[session.Model] {
 	return func(partyId uint32, characterId uint32) model.Operator[session.Model] {
-		return func(s session.Model) {
+		return func(s session.Model) error {
 			err := session.Announce(WritePartyDisbanded(l)(partyId, characterId))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
+			return err
 		}
 	}
 }

@@ -44,11 +44,12 @@ func handleTalk(_ byte, _ byte) kafka.HandlerFunc[talkCommand] {
 
 func showTalking(l logrus.FieldLogger, event talkCommand) model.Operator[session.Model] {
 	b := WriteNPCTalk(l)(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
 
@@ -135,11 +136,12 @@ func handleTalkNumber(_ byte, _ byte) kafka.HandlerFunc[talkNumberCommand] {
 
 func showTalkingNumber(l logrus.FieldLogger, event talkNumberCommand) model.Operator[session.Model] {
 	b := WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
 
@@ -169,10 +171,11 @@ func handleTalkStyle(_ byte, _ byte) kafka.HandlerFunc[talkStyleCommand] {
 
 func showTalkStyle(l logrus.FieldLogger, event talkStyleCommand) model.Operator[session.Model] {
 	b := WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)
-	return func(s session.Model) {
+	return func(s session.Model) error {
 		err := session.Announce(b)(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
+		return err
 	}
 }
