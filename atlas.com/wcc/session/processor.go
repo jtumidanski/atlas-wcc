@@ -24,7 +24,7 @@ func ForSessionByCharacterId(characterId uint32, f model.Operator[Model]) {
 }
 
 func ForEachByCharacterId(provider model.SliceProvider[uint32], f model.Operator[Model]) {
-	model.ForEach(model.Map[uint32, Model](provider, GetByCharacterId), f)
+	model.ForEach(model.SliceMap[uint32, Model](provider, GetByCharacterId), f)
 }
 
 func CharacterIdFilter(referenceId uint32) model.Filter[Model] {

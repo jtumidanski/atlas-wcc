@@ -44,13 +44,26 @@ func FilteredProvider[M any](provider SliceProvider[M], filters ...Filter[M]) Sl
 	return FixedSliceProvider(results)
 }
 
-func FixedSliceProvider[M any](models []M) func() ([]M, error) {
+func FixedProvider[M any](model M) Provider[M] {
+	return func() (M, error) {
+		return model, nil
+	}
+}
+
+func FixedSliceProvider[M any](models []M) SliceProvider[M] {
 	return func() ([]M, error) {
 		return models, nil
 	}
 }
 
-func ErrorSliceProvider[M any](err error) func() ([]M, error) {
+func ErrorProvider[M any](err error) Provider[M] {
+	return func() (M, error) {
+		var m M
+		return m, err
+	}
+}
+
+func ErrorSliceProvider[M any](err error) SliceProvider[M] {
 	return func() ([]M, error) {
 		return nil, err
 	}
@@ -89,7 +102,19 @@ func ForEach[M any](provider SliceProvider[M], operator Operator[M]) {
 
 type Transformer[M any, N any] func(M) (N, error)
 
-func Map[M any, N any](provider SliceProvider[M], transformer Transformer[M, N]) SliceProvider[N] {
+func Map[M any, N any](provider Provider[M], transformer Transformer[M, N]) Provider[N] {
+	m, err := provider()
+	if err != nil {
+		return ErrorProvider[N](err)
+	}
+	n, err := transformer(m)
+	if err != nil {
+		return ErrorProvider[N](err)
+	}
+	return FixedProvider(n)
+}
+
+func SliceMap[M any, N any](provider SliceProvider[M], transformer Transformer[M, N]) SliceProvider[N] {
 	models, err := provider()
 	if err != nil {
 		return ErrorSliceProvider[N](err)
