@@ -11,29 +11,13 @@ import (
 
 func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f model.Operator[Model]) {
 	return func(worldId byte, channelId byte, mapId uint32, f model.Operator[Model]) {
-		ForDropsInMap(l, span)(worldId, channelId, mapId, model.ExecuteForEach(f))
-	}
-}
-
-func ForDropsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f model.SliceOperator[Model]) {
-	return func(worldId byte, channelId byte, mapId uint32, f model.SliceOperator[Model]) {
-		drops, err := GetInMap(l, span)(worldId, channelId, mapId)
-		if err != nil {
-			return
-		}
-		f(drops)
+		model.ForEach(InMapModelProvider(l, span)(worldId, channelId, mapId), f)
 	}
 }
 
 func InMapModelProvider(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) model.SliceProvider[Model] {
 	return func(worldId byte, channelId byte, mapId uint32) model.SliceProvider[Model] {
 		return requests.SliceProvider[attributes, Model](l, span)(requestInMap(worldId, channelId, mapId), makeModel)
-	}
-}
-
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-	return func(worldId byte, channelId byte, mapId uint32) ([]Model, error) {
-		return InMapModelProvider(l, span)(worldId, channelId, mapId)()
 	}
 }
 

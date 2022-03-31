@@ -11,29 +11,13 @@ import (
 
 func ForEachAliveInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f model.Operator[Model]) {
 	return func(worldId byte, channelId byte, mapId uint32, f model.Operator[Model]) {
-		ForAliveReactorsInMap(l, span)(worldId, channelId, mapId, model.ExecuteForEach(f))
-	}
-}
-
-func ForAliveReactorsInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, f model.SliceOperator[Model]) {
-	return func(worldId byte, channelId byte, mapId uint32, f model.SliceOperator[Model]) {
-		reactors, err := GetInMap(l, span)(worldId, channelId, mapId, AliveFilter())
-		if err != nil {
-			return
-		}
-		f(reactors)
+		model.ForEach(InMapModelProvider(l, span)(worldId, channelId, mapId, AliveFilter), f)
 	}
 }
 
 func InMapModelProvider(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...model.Filter[Model]) model.SliceProvider[Model] {
 	return func(worldId byte, channelId byte, mapId uint32, filters ...model.Filter[Model]) model.SliceProvider[Model] {
 		return requests.SliceProvider[attributes, Model](l, span)(requestInMap(worldId, channelId, mapId), makeModel, filters...)
-	}
-}
-
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, filters ...model.Filter[Model]) ([]Model, error) {
-	return func(worldId byte, channelId byte, mapId uint32, filters ...model.Filter[Model]) ([]Model, error) {
-		return InMapModelProvider(l, span)(worldId, channelId, mapId, filters...)()
 	}
 }
 
@@ -49,10 +33,8 @@ func GetById(l logrus.FieldLogger, span opentracing.Span) func(id uint32) (Model
 	}
 }
 
-func AliveFilter() model.Filter[Model] {
-	return func(m Model) bool {
-		return m.Alive()
-	}
+func AliveFilter(m Model) bool {
+	return m.Alive()
 }
 
 func makeModel(data requests.DataBody[attributes]) (Model, error) {

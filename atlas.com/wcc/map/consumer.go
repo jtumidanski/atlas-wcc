@@ -119,10 +119,14 @@ func HandleMapCharacterEvent(wid byte, cid byte) kafka.HandlerFunc[mapCharacterE
 func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharacterEvent) model.Operator[session.Model] {
 	return func(event mapCharacterEvent) model.Operator[session.Model] {
 		return func(s session.Model) {
-			cIds := GetCharacterIdsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId)
+			ids, err := GetCharacterIdsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId)
+			if err != nil {
+				l.WithError(err).Errorf("No characters found in map %d for world %d and channel %d.", event.MapId, event.WorldId, event.ChannelId)
+				return
+			}
 
 			cm := make(map[uint32]*character.Model)
-			for _, cId := range cIds {
+			for _, cId := range ids {
 				c, err := character.GetCharacterById(l, span)(cId)
 				if err != nil {
 					//log something

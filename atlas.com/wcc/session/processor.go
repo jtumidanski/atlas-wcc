@@ -5,96 +5,63 @@ import (
 	"errors"
 )
 
-// GetByCharacterId gets a session (if one exists) for the given characterId
-func GetByCharacterId(characterId uint32) (Model, error) {
-	sessions, err := getAllFiltered(CharacterIdFilter(characterId))
-	if err != nil {
-		return Model{}, err
-	}
-	if len(sessions) >= 1 {
-		return sessions[0], nil
-	}
-	return Model{}, errors.New("not found")
+func AllModelProvider() ([]Model, error) {
+	return Registry().GetAll(), nil
 }
 
-// ForSessionByCharacterId executes a Operator if a session exists for the characterId
+func ByIdModelProvider(id uint32) model.Provider[Model] {
+	return model.SliceProviderToProviderAdapter[Model](AllModelProvider, CharacterIdFilter(id))
+}
+
+// GetByCharacterId gets a session (if one exists) for the given characterId
+func GetByCharacterId(characterId uint32) (Model, error) {
+	return ByIdModelProvider(characterId)()
+}
+
+// ForSessionByCharacterId executes an Operator if a session exists for the characterId
 func ForSessionByCharacterId(characterId uint32, f model.Operator[Model]) {
-	s, err := GetByCharacterId(characterId)
-	if err != nil {
-		return
+	model.IfPresent(ByIdModelProvider(characterId), f)
+}
+
+func IdSliceProviderToSliceProviderAdapter(ids []uint32) model.SliceProvider[Model] {
+	var results = make([]Model, 0)
+	for _, id := range ids {
+		m, err := GetByCharacterId(id)
+		if err == nil {
+			results = append(results, m)
+		}
 	}
-	f(s)
+	return model.FixedSliceProvider(results)
 }
 
 func ForEachByCharacterId(characterIds []uint32, f model.Operator[Model]) {
-	for _, id := range characterIds {
-		s, err := GetByCharacterId(id)
-		if err != nil {
-			return
-		}
-		f(s)
-	}
+	model.ForEach(IdSliceProviderToSliceProviderAdapter(characterIds), f)
 }
 
 // CharacterIdFilter a filter which yields true when the characterId matches the one in the session
-func CharacterIdFilter(characterId uint32) model.Filter[Model] {
-	return func(session Model) bool {
-		return session.CharacterId() == characterId
-	}
-}
-
-// ForEachGM executes a Operator for all sessions which correspond to GMs
-func ForEachGM(f model.Operator[Model]) {
-	ForGMs(model.ExecuteForEach(f))
-}
-
-// ForGMs executes a SliceOperator for all sessions which correspond to GMs
-func ForGMs(f model.SliceOperator[Model]) {
-	forSessions(GetGMs, f)
-}
-
-// executes a Operator for all sessions retrieved by a Getter
-func forSessions(p model.SliceProvider[Model], f model.SliceOperator[Model]) {
-	s, err := p()
-	if err == nil {
-		f(s)
-	}
-}
-
-// GetGMs retrieves all sessions which correspond to GMs
-func GetGMs() ([]Model, error) {
-	return getAllFiltered(OnlyGMs())
-}
-
-// OnlyGMs a Filter which yields true when the session is a GM
-func OnlyGMs() model.Filter[Model] {
-	return func(session Model) bool {
-		return session.GM()
-	}
-}
-
-// retrieves all sessions which pass the provided Filter slice.
-func getAllFiltered(filters ...model.Filter[Model]) ([]Model, error) {
-	sessions := Registry().GetAll()
-
-	var results []Model
-	for _, session := range sessions {
-		if len(filters) == 0 {
-			results = append(results, session)
-		} else {
-			good := true
-			for _, filter := range filters {
-				if !filter(session) {
-					good = false
-					break
-				}
-			}
-			if good {
-				results = append(results, session)
+func CharacterIdFilter(characterId uint32) model.PreciselyOneFilter[Model] {
+	return func(models []Model) (Model, error) {
+		for _, m := range models {
+			if m.CharacterId() == characterId {
+				return m, nil
 			}
 		}
+		return Model{}, errors.New("not found")
 	}
-	return results, nil
+}
+
+// ForEachGM executes an Operator for all sessions which correspond to GMs
+func ForEachGM(f model.Operator[Model]) {
+	model.ForEach(OnlyGMModelProvider(), f)
+}
+
+func OnlyGMModelProvider() model.SliceProvider[Model] {
+	return model.FilteredProvider(AllModelProvider, OnlyGMFilter)
+}
+
+// OnlyGMFilter a Filter which yields true when the session is a GM
+func OnlyGMFilter(session Model) bool {
+	return session.GM()
 }
 
 func Announce(b []byte) func(s Model) error {

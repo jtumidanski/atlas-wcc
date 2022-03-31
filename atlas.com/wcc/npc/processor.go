@@ -11,29 +11,13 @@ import (
 
 func ForEachInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, f model.Operator[Model]) {
 	return func(mapId uint32, f model.Operator[Model]) {
-		ForNPCsInMap(l, span)(mapId, model.ExecuteForEach(f))
-	}
-}
-
-func ForNPCsInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32, f model.SliceOperator[Model]) {
-	return func(mapId uint32, f model.SliceOperator[Model]) {
-		npcs, err := GetInMap(l, span)(mapId)
-		if err != nil {
-			return
-		}
-		f(npcs)
+		model.ForEach(InMapModelProvider(l, span)(mapId), f)
 	}
 }
 
 func InMapModelProvider(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32) model.SliceProvider[Model] {
 	return func(mapId uint32) model.SliceProvider[Model] {
 		return requests.SliceProvider[attributes, Model](l, span)(requestNPCsInMap(mapId), makeModel)
-	}
-}
-
-func GetInMap(l logrus.FieldLogger, span opentracing.Span) func(mapId uint32) ([]Model, error) {
-	return func(mapId uint32) ([]Model, error) {
-		return InMapModelProvider(l, span)(mapId)()
 	}
 }
 

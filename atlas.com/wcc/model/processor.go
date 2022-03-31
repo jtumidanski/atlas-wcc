@@ -20,6 +20,40 @@ func ExecuteForEach[M any](f Operator[M]) SliceOperator[M] {
 
 type Filter[M any] func(M) bool
 
+func FilteredProvider[M any](provider SliceProvider[M], filters ...Filter[M]) SliceProvider[M] {
+	models, err := provider()
+	if err != nil {
+		return ErrorSliceProvider[M](err)
+	}
+
+	var results []M
+	for _, m := range models {
+		good := true
+		for _, f := range filters {
+			if !f(m) {
+				good = false
+				break
+			}
+		}
+		if good {
+			results = append(results, m)
+		}
+	}
+	return FixedSliceProvider(results)
+}
+
+func FixedSliceProvider[M any](models []M) func() ([]M, error) {
+	return func() ([]M, error) {
+		return models, nil
+	}
+}
+
+func ErrorSliceProvider[M any](err error) func() ([]M, error) {
+	return func() ([]M, error) {
+		return nil, err
+	}
+}
+
 func SliceProviderToProviderAdapter[M any](provider SliceProvider[M], preciselyOneFilter PreciselyOneFilter[M]) Provider[M] {
 	return func() (M, error) {
 		ps, err := provider()
@@ -29,4 +63,24 @@ func SliceProviderToProviderAdapter[M any](provider SliceProvider[M], preciselyO
 		}
 		return preciselyOneFilter(ps)
 	}
+}
+
+func IfPresent[M any](provider Provider[M], operator Operator[M]) {
+	model, err := provider()
+	if err != nil {
+		return
+	}
+	operator(model)
+}
+
+func For[M any](provider SliceProvider[M], operator SliceOperator[M]) {
+	models, err := provider()
+	if err != nil {
+		return
+	}
+	operator(models)
+}
+
+func ForEach[M any](provider SliceProvider[M], operator Operator[M]) {
+	For(provider, ExecuteForEach(operator))
 }
