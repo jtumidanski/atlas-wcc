@@ -41,7 +41,7 @@ func Decrypt(_ logrus.FieldLogger, r *registry) func(sessionId uint32, input []b
 
 func DestroyAll(l logrus.FieldLogger, span opentracing.Span, r *registry) {
 	for _, s := range r.GetAll() {
-		Destroy(l, span, r)(&s)
+		Destroy(l, span, r)(s)
 	}
 }
 
@@ -51,7 +51,7 @@ func DestroyById(l logrus.FieldLogger, span opentracing.Span, r *registry) func(
 		if !ok {
 			return
 		}
-		Destroy(l, span, r)(&s)
+		Destroy(l, span, r)(s)
 	}
 }
 
@@ -63,8 +63,8 @@ func DestroyByIdWithSpan(l logrus.FieldLogger, r *registry) func(sessionId uint3
 	}
 }
 
-func Destroy(l logrus.FieldLogger, span opentracing.Span, r *registry) func(session *Model) {
-	return func(s *Model) {
+func Destroy(l logrus.FieldLogger, span opentracing.Span, r *registry) func(session Model) {
+	return func(s Model) {
 		l.Debugf("Destroying session %d.", s.SessionId())
 
 		r.Remove(s.SessionId())
