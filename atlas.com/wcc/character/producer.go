@@ -350,3 +350,17 @@ func UnequipItem(l logrus.FieldLogger, span opentracing.Span) func(characterId u
 		producer(kafka.CreateKey(int(characterId)), e)
 	}
 }
+
+type adjustMesoEvent struct {
+	CharacterId uint32 `json:"characterId"`
+	Amount      int32  `json:"amount"`
+	Show        bool   `json:"show"`
+}
+
+func emitMesoAdjustment(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, amount int32) {
+	producer := kafka.ProduceEvent(l, span, "TOPIC_ADJUST_MESO")
+	return func(characterId uint32, amount int32) {
+		event := &adjustMesoEvent{characterId, amount, true}
+		producer(kafka.CreateKey(int(characterId)), event)
+	}
+}

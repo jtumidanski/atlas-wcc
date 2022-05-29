@@ -42,7 +42,7 @@ func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s sess
 
 		e, found := command.Registry().Get(s, p.Message())
 		if found {
-			err = e(l, span)(s, p.Message())
+			err = e(l, span)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to execute command for character %d. Command=[%s]", s.CharacterId(), p.Message())
 			}

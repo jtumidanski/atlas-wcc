@@ -124,7 +124,7 @@ func main() {
 
 	rest.CreateService(l, ctx, wg, "/ms/csrv/worlds/{worldId}/channels/{channelId}", session.InitResource, instruction.InitResource)
 
-	command.Registry().Add(_map.WarpMapCommandSyntaxValidator(), _map.WarpMapCommandExecutor())
+	command.Registry().Add(character.AwardMesoCommandProducer(), _map.WarpMapCommandProducer())
 
 	sl, span := tracing.StartSpan(l, "startup")
 	channel.StartChannelServer(sl, span)(wid, cid, ha, uint32(port))

@@ -83,3 +83,10 @@ func GetCharacterWeaponDamage(l logrus.FieldLogger, span opentracing.Span) func(
 		return attr.Maximum
 	}
 }
+
+func GainMeso(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, amount int32) {
+	adjuster := emitMesoAdjustment(l, span)
+	return func(characterId uint32, amount int32) {
+		adjuster(characterId, amount)
+	}
+}

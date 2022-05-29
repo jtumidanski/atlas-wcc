@@ -10,37 +10,28 @@ import (
 	"strings"
 )
 
-func WarpMapCommandSyntaxValidator() command.SyntaxValidator {
-	return func(s session.Model, m string) bool {
+func WarpMapCommandProducer() command.Producer {
+	return func(s session.Model, m string) (command.Executor, bool) {
 		if !s.GM() {
-			return false
+			return nil, false
 		}
 
 		if !strings.HasPrefix(m, "@warp map") {
-			return false
+			return nil, false
 		}
 		re := regexp.MustCompile("@warp map (\\d*)")
 		match := re.FindStringSubmatch(m)
-		_, err := strconv.ParseUint(match[1], 10, 32)
+		mapId, err := strconv.ParseUint(match[1], 10, 32)
 		if err != nil {
-			return false
+			return nil, false
 		}
-		return true
+		return WarpMapCommandExecutor(s.WorldId(), s.ChannelId(), s.CharacterId(), uint32(mapId)), true
 	}
 }
 
-func WarpMapCommandExecutor() command.Executor {
-	return func(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, m string) error {
-		return func(s session.Model, m string) error {
-			re := regexp.MustCompile("@warp map (\\d*)")
-			match := re.FindStringSubmatch(m)
-			mapId, err := strconv.ParseUint(match[1], 10, 32)
-			if err != nil {
-				return err
-			}
-
-			WarpRandom(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), uint32(mapId))
-			return nil
-		}
+func WarpMapCommandExecutor(worldId byte, channelId byte, characterId uint32, mapId uint32) command.Executor {
+	return func(l logrus.FieldLogger, span opentracing.Span) error {
+		WarpRandom(l, span)(worldId, channelId, characterId, mapId)
+		return nil
 	}
 }

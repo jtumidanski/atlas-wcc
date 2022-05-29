@@ -10,8 +10,13 @@ const (
 	charactersService              = requests.BaseRequest + charactersServicePrefix
 	charactersResource             = charactersService + "characters/"
 	charactersById                 = charactersResource + "%d"
+	charactersByName               = charactersService + "characters?name=%s"
 )
 
-func requestPropertiesById(characterId uint32) requests.Request[attributes] {
-	return requests.MakeGetRequest[attributes](fmt.Sprintf(charactersById, characterId))
+func requestById(id uint32) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(charactersById, id))
+}
+
+func requestByName(name string) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(charactersByName, name))
 }
