@@ -16,3 +16,7 @@ const (
 func requestByName(mapId uint32, portalName string) requests.Request[attributes] {
 	return requests.MakeGetRequest[attributes](fmt.Sprintf(portalsByName, mapId, portalName))
 }
+
+func requestAll(mapId uint32) requests.Request[attributes] {
+	return requests.MakeGetRequest[attributes](fmt.Sprintf(portalsResource, mapId))
+}

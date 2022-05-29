@@ -3,6 +3,7 @@ package handler
 import (
 	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
+	"atlas-wcc/command"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -36,6 +37,15 @@ func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s sess
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Cannot handle [GeneralChatRequest] because the acting character %d cannot be located.", s.CharacterId())
+			return
+		}
+
+		e, found := command.Registry().Get(s, p.Message())
+		if found {
+			err = e(l, span)(s, p.Message())
+			if err != nil {
+				l.WithError(err).Errorf("Unable to execute command for character %d. Command=[%s]", s.CharacterId(), p.Message())
+			}
 			return
 		}
 
