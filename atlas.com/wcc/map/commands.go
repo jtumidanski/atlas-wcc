@@ -21,6 +21,10 @@ func WarpMapCommandProducer() command.Producer {
 		}
 		re := regexp.MustCompile("@warp map (\\d*)")
 		match := re.FindStringSubmatch(m)
+		if len(match) != 2 {
+			return nil, false
+		}
+
 		mapId, err := strconv.ParseUint(match[1], 10, 32)
 		if err != nil {
 			return nil, false

@@ -23,6 +23,10 @@ func AwardMesoCommandProducer() command.Producer {
 		re := regexp.MustCompile("@award meso ([^ ]*) (\\d*)")
 		match := re.FindStringSubmatch(m)
 
+		if len(match) != 3 {
+			return nil, false
+		}
+
 		if len(match[1]) < 4 {
 			return nil, false
 		}
