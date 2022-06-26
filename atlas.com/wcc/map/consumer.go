@@ -126,7 +126,7 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 				return err
 			}
 
-			cm := make(map[uint32]*character.Model)
+			cm := make(map[uint32]character.Model)
 			for _, cId := range ids {
 				c, err := character.GetCharacterById(l, span)(cId)
 				if err != nil {
@@ -143,7 +143,7 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 					if err != nil {
 						continue
 					}
-					err = session.Announce(WriteSpawnCharacter(l)(*v, *cm[event.CharacterId], true))(as)
+					err = session.Announce(WriteSpawnCharacter(l)(v, cm[event.CharacterId], true))(as)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to spawn character %d for %d", event.CharacterId, v.Attributes().Id())
 					}
@@ -153,7 +153,7 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 			// Spawn other characters for incoming character.
 			for k, v := range cm {
 				if k != event.CharacterId {
-					err := session.Announce(WriteSpawnCharacter(l)(*cm[event.CharacterId], *v, false))(s)
+					err := session.Announce(WriteSpawnCharacter(l)(cm[event.CharacterId], v, false))(s)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
 					}
@@ -473,7 +473,7 @@ func updateCharacterAppearance(l logrus.FieldLogger, span opentracing.Span) func
 				l.WithError(err).Errorf("Unable to retrieve character %d details.", characterId)
 				return err
 			}
-			err = session.Announce(WriteCharacterLookUpdated(l)(*r, *c))(s)
+			err = session.Announce(WriteCharacterLookUpdated(l)(r, c))(s)
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to %d that character %d has changed their look.", s.CharacterId(), characterId)
 			}

@@ -2,7 +2,6 @@ package _map
 
 import (
 	"atlas-wcc/character"
-	"atlas-wcc/character/inventory"
 	"atlas-wcc/pet"
 	"atlas-wcc/socket/response"
 	"github.com/sirupsen/logrus"
@@ -21,8 +20,8 @@ const OpCodeCharacterDamage uint16 = 0xC0
 const OpCodeCharacterExpression uint16 = 0xC1
 const OpCodeUpdateCharacterLook uint16 = 0xC5
 
-func WriteGetCharacterInfo(l logrus.FieldLogger) func(channelId byte, character character.Model) []byte {
-	return func(channelId byte, character character.Model) []byte {
+func WriteGetCharacterInfo(l logrus.FieldLogger) func(channelId byte, c character.Model) []byte {
+	return func(channelId byte, c character.Model) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeSetField)
 		w.WriteInt(uint32(channelId - 1))
@@ -32,162 +31,10 @@ func WriteGetCharacterInfo(l logrus.FieldLogger) func(channelId byte, character 
 		for i := 0; i < 3; i++ {
 			w.WriteInt(rand.Uint32())
 		}
-		addCharacterInfo(w, character)
+		character.AddCharacterInfo(w, c)
 		w.WriteInt64(getTime(timeNow()))
 		return w.Bytes()
 	}
-}
-
-func addCharacterInfo(w *response.Writer, character character.Model) {
-	w.WriteInt64(-1)
-	w.WriteByte(0)
-	addCharacterStats(w, character)
-	//buddy list capacity
-	w.WriteByte(0)
-	//      if (character.getLinkedName() == null) {
-	w.WriteByte(0)
-	//      } else {
-	//         writer.write(1);
-	//         writer.writeMapleAsciiString(character.getLinkedName());
-	//      }
-	w.WriteInt(character.Attributes().Meso())
-	inventory.AddInventoryInfo(w, character.Equipment(), character.Inventory())
-	addSkillInfo(w, character)
-	addQuestInfo(w, character)
-	addMiniGameInfo(w, character)
-	addRingInfo(w, character)
-	addTeleportInfo(w, character)
-	addMonsterBookInfo(w, character)
-	addNewYearInfo(w, character)
-	addAreaInfo(w, character)
-	w.WriteShort(0)
-}
-
-func addAreaInfo(w *response.Writer, _ character.Model) {
-	w.WriteShort(0)
-}
-
-func addNewYearInfo(w *response.Writer, _ character.Model) {
-	w.WriteShort(0)
-}
-
-func addMonsterBookInfo(w *response.Writer, _ character.Model) {
-	w.WriteInt(0)
-	w.WriteByte(0)
-	w.WriteShort(0)
-}
-
-func addTeleportInfo(w *response.Writer, _ character.Model) {
-	for i := 0; i < 5; i++ {
-		w.WriteInt(999999999)
-	}
-	for j := 0; j < 10; j++ {
-		w.WriteInt(999999999)
-	}
-}
-
-func addRingInfo(w *response.Writer, _ character.Model) {
-	w.WriteShort(0)
-	w.WriteShort(0)
-	w.WriteShort(0)
-}
-
-func addMiniGameInfo(w *response.Writer, _ character.Model) {
-	w.WriteShort(0)
-}
-
-func addQuestInfo(w *response.Writer, _ character.Model) {
-	w.WriteShort(0)
-	w.WriteShort(0)
-}
-
-func addSkillInfo(w *response.Writer, character character.Model) {
-	w.WriteByte(0)
-
-	sc := uint16(0)
-	for _, s := range character.Skills() {
-		if !s.Hidden() {
-			sc += 1
-		}
-	}
-	w.WriteShort(sc)
-
-	for _, s := range character.Skills() {
-		if !s.Hidden() {
-			w.WriteInt(s.Id())
-			w.WriteInt(s.Level())
-			w.WriteLong(uint64(getTime(s.Expiration())))
-			if s.FourthJob() {
-				w.WriteInt(s.MasterLevel())
-			}
-		}
-	}
-
-	//      writer.writeShort(character.getAllCoolDowns().size());
-	w.WriteShort(0)
-	//      for (PlayerCoolDownValueHolder cooling : character.getAllCoolDowns()) {
-	//         writer.writeInt(cooling.skillId);
-	//         int timeLeft = (int) (cooling.length + cooling.startTime - System.currentTimeMillis());
-	//         writer.writeShort(timeLeft / 1000);
-	//      }
-}
-
-func addCharacterStats(w *response.Writer, character character.Model) {
-	w.WriteInt(character.Attributes().Id())
-	addPaddedCharacterName(w, character)
-	w.WriteByte(character.Attributes().Gender())
-	w.WriteByte(character.Attributes().SkinColor())
-	w.WriteInt(character.Attributes().Face())
-	w.WriteInt(character.Attributes().Hair())
-	pet.WriteForEachPet(w, character.Pets(), writePetId, writeEmptyPetId)
-	w.WriteByte(character.Attributes().Level())
-	w.WriteShort(character.Attributes().JobId())
-	w.WriteShort(character.Attributes().Strength())
-	w.WriteShort(character.Attributes().Dexterity())
-	w.WriteShort(character.Attributes().Intelligence())
-	w.WriteShort(character.Attributes().Luck())
-	w.WriteShort(character.Attributes().Hp())
-	w.WriteShort(character.Attributes().MaxHp())
-	w.WriteShort(character.Attributes().Mp())
-	w.WriteShort(character.Attributes().MaxMp())
-	w.WriteShort(character.Attributes().Ap())
-
-	if character.Attributes().HasSPTable() {
-		addRemainingSkillInfo(w, character)
-	} else {
-		w.WriteShort(character.Attributes().RemainingSp())
-	}
-
-	w.WriteInt(character.Attributes().Experience())
-	w.WriteShort(uint16(character.Attributes().Fame()))
-	w.WriteInt(character.Attributes().GachaponExperience())
-	w.WriteInt(character.Attributes().MapId())
-	w.WriteByte(character.Attributes().SpawnPoint())
-	w.WriteInt(0)
-}
-
-func addRemainingSkillInfo(_ *response.Writer, _ character.Model) {
-
-}
-
-func addPaddedCharacterName(w *response.Writer, character character.Model) {
-	name := character.Attributes().Name()
-	if len(name) > 13 {
-		name = name[:13]
-	}
-	padSize := 13 - len(name)
-	w.WriteByteArray([]byte(name))
-	for i := 0; i < padSize; i++ {
-		w.WriteByte(0x0)
-	}
-}
-
-func writePetId(w *response.Writer, pet pet.Model) {
-	w.WriteLong(pet.Id())
-}
-
-func writeEmptyPetId(w *response.Writer) {
-	w.WriteLong(0)
 }
 
 func getTime(utcTimestamp int64) int64 {

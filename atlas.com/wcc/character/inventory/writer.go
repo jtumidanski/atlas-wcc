@@ -262,3 +262,27 @@ func getTime(utcTimestamp int64) int64 {
 func timeNow() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
+
+func AddCashItemInformation(w *response.Writer, index int, item Item, accountId uint32) {
+	// TODO determine if it's a gift, a ring, or a pet. All assumptions = no
+	w.WriteLong(uint64(index))
+	w.WriteInt(accountId)
+	w.WriteInt(0)
+	w.WriteInt(item.ItemId())
+	w.WriteInt(item.ItemId()) // needs to be SN
+	w.WriteShort(item.Quantity())
+	addPaddedGiftOriginatorName(w, "") //gift from
+	w.WriteLong(uint64(getTime(item.Expiration())))
+	w.WriteLong(0)
+}
+
+func addPaddedGiftOriginatorName(w *response.Writer, name string) {
+	if len(name) > 13 {
+		name = name[:13]
+	}
+	padSize := 13 - len(name)
+	w.WriteByteArray([]byte(name))
+	for i := 0; i < padSize; i++ {
+		w.WriteByte(0x0)
+	}
+}

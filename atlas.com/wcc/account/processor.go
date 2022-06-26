@@ -41,6 +41,7 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 	att := body.Attributes
 	m := NewBuilder().
 		SetId(uint32(id)).
+		SetName(att.Name).
 		SetPassword(att.Password).
 		SetPin(att.Pin).
 		SetPic(att.Pic).

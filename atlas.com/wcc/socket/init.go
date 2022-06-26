@@ -65,6 +65,9 @@ const (
 	ChangeKeyMap              = "change_key_map"
 	ReactorHit                = "reactor_hit"
 	PartyOperation            = "party_operation"
+	EnterCashShop             = "enter_cash_shop"
+	TouchCashShop             = "touch_cash_shop"
+	CashShopOperation         = "cash_shop_operation"
 )
 
 func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
@@ -100,6 +103,9 @@ func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
 	hr(handler.OpChangeKeyMap, ChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler)
 	hr(handler.OpReactorHit, ReactorHit, request.LoggedInValidator, handler.HandleReactorHit)
 	hr(handler.OpPartyOperation, PartyOperation, request.LoggedInValidator, handler.HandlePartyOperation)
+	hr(handler.OpEnterCashShop, EnterCashShop, request.LoggedInValidator, handler.EnterCashShopHandler)
+	hr(handler.OpTouchingCashShop, TouchCashShop, request.LoggedInValidator, handler.TouchingCashShopHandler)
+	hr(handler.OpCashShopOperation, CashShopOperation, request.LoggedInValidator, handler.CashShopOperationHandler)
 
 	return func() map[uint16]request2.Handler {
 		return handlers

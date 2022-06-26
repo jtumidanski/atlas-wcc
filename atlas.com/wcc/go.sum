@@ -17,8 +17,8 @@ github.com/golang/snappy v0.0.1/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEW
 github.com/google/go-cmp v0.5.4/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
-github.com/jtumidanski/atlas-socket v0.0.0-20210617172209-8fef40e4e959 h1:kEOJkhgYUkm1JvRI3L0k5Z8f6ML8HZvpyxF9LXiIEuo=
-github.com/jtumidanski/atlas-socket v0.0.0-20210617172209-8fef40e4e959/go.mod h1:SbSUjed9I6BJ/q3DkLQPFtNHEeFr7gnxhvXK2we2sRU=
+github.com/jtumidanski/atlas-socket v0.0.0-20220605132806-c0f9b6a7ae6d h1:gExUgHXpfk1Ac3SoTABSpnxhryqvSoddIs6bkaNjLgI=
+github.com/jtumidanski/atlas-socket v0.0.0-20220605132806-c0f9b6a7ae6d/go.mod h1:SbSUjed9I6BJ/q3DkLQPFtNHEeFr7gnxhvXK2we2sRU=
 github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E/uU8ce6rXgefFLlgrJj/GYY22cpxn+r32jIOes=
 github.com/klauspost/compress v1.9.8 h1:VMAMUUOh+gaxKTMk+zqbjsSjsIcUcL/LF4o63i82QyA=
 github.com/klauspost/compress v1.9.8/go.mod h1:RyIbtBH6LamlWaDj8nUwkbUhJ87Yi3uG0guNDohfE1A=

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"atlas-wcc/cashshop"
+	"atlas-wcc/cashshop/character/wishlist"
 	"atlas-wcc/channel"
 	"atlas-wcc/character"
 	"atlas-wcc/character/attack"
@@ -118,7 +120,9 @@ func main() {
 		party.MemberStatusConsumer(wid, cid)(consumerGroupId),
 		_map.ReactorStatusConsumer(wid, cid)(consumerGroupId),
 		server.NoticeConsumer(wid, cid)(consumerGroupId),
-		skill.UpdateConsumer(wid, cid)(consumerGroupId))
+		skill.UpdateConsumer(wid, cid)(consumerGroupId),
+		cashshop.EnterCashShopEventConsumer(wid, cid)(consumerGroupId),
+		wishlist.StatusEventConsumer(wid, cid)(consumerGroupId))
 
 	socket.CreateSocketService(l, ctx, wg)(wid, cid, int(port))
 

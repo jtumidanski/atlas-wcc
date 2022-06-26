@@ -9,63 +9,63 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func GetCharacterById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (*Model, error) {
-	return func(characterId uint32) (*Model, error) {
+func GetCharacterById(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) (Model, error) {
+	return func(characterId uint32) (Model, error) {
 		cs, err := properties.GetById(l, span)(characterId)
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 
 		c, err := getCharacterForAttributes(l, span)(cs)
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		return c, nil
 	}
 }
 
-func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func(data properties.Model) (*Model, error) {
-	return func(data properties.Model) (*Model, error) {
+func getCharacterForAttributes(l logrus.FieldLogger, span opentracing.Span) func(data properties.Model) (Model, error) {
+	return func(data properties.Model) (Model, error) {
 		eq, err := inventory.GetEquippedItemsForCharacter(l, span)(data.Id())
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 
 		ps, err := getPetsForCharacter()
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 
 		ss, err := skill.GetForCharacter(l, span)(data.Id())
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 
 		c := NewCharacter(data, eq, ss, ps)
 
 		ei, err := inventory.GetEquipInventoryForCharacter(l, span)(data.Id())
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		ui, err := inventory.GetItemInventoryForCharacter(l, span)(data.Id(), "use")
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		si, err := inventory.GetItemInventoryForCharacter(l, span)(data.Id(), "setup")
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		etc, err := inventory.GetItemInventoryForCharacter(l, span)(data.Id(), "etc")
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		ci, err := inventory.GetItemInventoryForCharacter(l, span)(data.Id(), "cash")
 		if err != nil {
-			return nil, err
+			return Model{}, err
 		}
 		i := c.Inventory().SetEquipInventory(*ei).SetUseInventory(*ui).SetSetupInventory(*si).SetEtcInventory(*etc).SetCashInventory(*ci)
 		c = c.SetInventory(i)
-		return &c, nil
+		return c, nil
 	}
 }
 

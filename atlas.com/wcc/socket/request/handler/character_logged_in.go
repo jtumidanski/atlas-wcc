@@ -38,7 +38,7 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(
 		s = session.SetGm(c.Attributes().Gm())(s.SessionId())
 
 		session.Login(l, span)(s.WorldId(), s.ChannelId(), s.AccountId(), p.CharacterId())
-		err = session.Announce(_map.WriteGetCharacterInfo(l)(s.ChannelId(), *c))(s)
+		err = session.Announce(_map.WriteGetCharacterInfo(l)(s.ChannelId(), c))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

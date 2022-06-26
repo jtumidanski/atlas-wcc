@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gorilla/mux v1.8.0
-	github.com/jtumidanski/atlas-socket v0.0.0-20210617172209-8fef40e4e959
+	github.com/jtumidanski/atlas-socket v0.0.0-20220605132806-c0f9b6a7ae6d
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/segmentio/kafka-go v0.4.9
 	github.com/sirupsen/logrus v1.8.1
