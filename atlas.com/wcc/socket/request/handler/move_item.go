@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -42,21 +42,21 @@ func readMoveItemRequest(reader *request.RequestReader) moveItemRequest {
 	return moveItemRequest{inventoryType: inventoryType, source: source, action: action, quantity: quantity}
 }
 
-func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveItemRequest(r)
 		// adjust for client indexing positive from 1 not 0
 		source := p.Source()
 		action := p.Action()
 
 		if p.Source() < 0 && p.Action() > 0 {
-			producers.UnequipItem(l, span)(s.CharacterId(), source, action)
+			character.UnequipItem(l, span)(s.CharacterId(), source, action)
 		} else if p.Action() < 0 {
-			producers.EquipItem(l, span)(s.CharacterId(), source, action)
+			character.EquipItem(l, span)(s.CharacterId(), source, action)
 		} else if p.Action() == 0 {
-			producers.DropItem(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
+			character.DropItem(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
 		} else {
-			producers.MoveItem(l, span)(s.CharacterId(), p.InventoryType(), p.Source(), p.Action())
+			character.MoveItem(l, span)(s.CharacterId(), p.InventoryType(), p.Source(), p.Action())
 		}
 	}
 }

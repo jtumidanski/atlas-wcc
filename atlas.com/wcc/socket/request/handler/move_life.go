@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
 	"atlas-wcc/monster"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -105,8 +103,8 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {
 			return
@@ -145,13 +143,13 @@ func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s *sessio
 		startY := p.StartY() - 2
 
 		summary := processMovementList(p.MovementData())
-		err = s.Announce(writer.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
+		err = session.Announce(monster.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
 
 		if p.hasMovement {
-			producers.MonsterMovement(l, span)(p.ObjectId(), s.CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
+			monster.Move(l, span)(p.ObjectId(), s.CharacterId(), nextMovementCouldBeSkill, ra, usi, usl, pOption, startX, startY, summary.X, summary.Y, summary.State, p.MovementList())
 		}
 	}
 }

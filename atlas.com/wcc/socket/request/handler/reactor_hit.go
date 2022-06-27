@@ -2,7 +2,7 @@ package handler
 
 import (
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/reactor"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -44,8 +44,8 @@ func readReactorHit(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readReactorHit(r)
 		if val, ok := p.(*reactorHitRequest); ok {
 			c, err := properties.GetById(l, span)(s.CharacterId())
@@ -54,7 +54,7 @@ func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s *sessi
 				return
 			}
 
-			producers.HitReactor(l, span)(
+			reactor.Hit(l, span)(
 				s.WorldId(),
 				s.ChannelId(),
 				c.MapId(),

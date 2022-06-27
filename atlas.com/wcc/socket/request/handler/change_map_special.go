@@ -2,7 +2,6 @@ package handler
 
 import (
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
 	portal2 "atlas-wcc/portal"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -27,8 +26,8 @@ func readChangeMapSpecialRequest(reader *request.RequestReader) changeMapSpecial
 	return changeMapSpecialRequest{sw}
 }
 
-func ChangeMapSpecialHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func ChangeMapSpecialHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeMapSpecialRequest(r)
 		c, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
@@ -41,6 +40,6 @@ func ChangeMapSpecialHandler(l logrus.FieldLogger, span opentracing.Span) func(s
 			l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapSpecialRequest] for character %d", p.StartWarp(), c.MapId(), s.CharacterId())
 			return
 		}
-		producers.PortalEnter(l, span)(s.WorldId(), s.ChannelId(), c.MapId(), portal.Id(), s.CharacterId())
+		portal2.Enter(l, span)(s.WorldId(), s.ChannelId(), c.MapId(), portal.Id(), s.CharacterId())
 	}
 }

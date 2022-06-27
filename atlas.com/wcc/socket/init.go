@@ -22,9 +22,9 @@ func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGro
 				defer wg.Done()
 				err := socket.Run(l, handlerProducer(l),
 					socket.SetPort(port),
-					socket.SetSessionCreator(session.Create(l, session.Get())(worldId, channelId)),
-					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.Get())),
-					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Get())),
+					socket.SetSessionCreator(session.Create(l, session.Registry())(worldId, channelId)),
+					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.Registry())),
+					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Registry())),
 				)
 				if err != nil {
 					l.WithError(err).Errorf("Socket service encountered error")
@@ -64,6 +64,10 @@ const (
 	InnerPortal               = "inner_portal"
 	ChangeKeyMap              = "change_key_map"
 	ReactorHit                = "reactor_hit"
+	PartyOperation            = "party_operation"
+	EnterCashShop             = "enter_cash_shop"
+	TouchCashShop             = "touch_cash_shop"
+	CashShopOperation         = "cash_shop_operation"
 )
 
 func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
@@ -98,6 +102,10 @@ func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
 	hr(handler.OpInnerPortal, InnerPortal, request.LoggedInValidator, request.NoOpHandler)
 	hr(handler.OpChangeKeyMap, ChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler)
 	hr(handler.OpReactorHit, ReactorHit, request.LoggedInValidator, handler.HandleReactorHit)
+	hr(handler.OpPartyOperation, PartyOperation, request.LoggedInValidator, handler.HandlePartyOperation)
+	hr(handler.OpEnterCashShop, EnterCashShop, request.LoggedInValidator, handler.EnterCashShopHandler)
+	hr(handler.OpTouchingCashShop, TouchCashShop, request.LoggedInValidator, handler.TouchingCashShopHandler)
+	hr(handler.OpCashShopOperation, CashShopOperation, request.LoggedInValidator, handler.CashShopOperationHandler)
 
 	return func() map[uint16]request2.Handler {
 		return handlers

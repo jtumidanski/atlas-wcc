@@ -1,8 +1,9 @@
 package handler
 
 import (
+	"atlas-wcc/character"
 	"atlas-wcc/character/properties"
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/command"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -30,8 +31,8 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 	return generalChatRequest{message, show}
 }
 
-func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
@@ -39,6 +40,15 @@ func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s *ses
 			return
 		}
 
-		producers.CharacterMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		e, found := command.Registry().Get(s, p.Message())
+		if found {
+			err = e(l, span)
+			if err != nil {
+				l.WithError(err).Errorf("Unable to execute command for character %d. Command=[%s]", s.CharacterId(), p.Message())
+			}
+			return
+		}
+
+		character.SendMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }

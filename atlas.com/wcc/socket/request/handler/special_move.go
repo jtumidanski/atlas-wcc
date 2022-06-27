@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"atlas-wcc/kafka/producers"
+	"atlas-wcc/character"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -76,18 +76,18 @@ func readSpecialMoveRequest(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span) func(s *session.Model, r *request.RequestReader) {
-	return func(s *session.Model, r *request.RequestReader) {
+func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+	return func(s session.Model, r *request.RequestReader) {
 		p := readSpecialMoveRequest(r)
 		if event, ok := p.(monsterMagnetRequest); ok {
-			data := make([]producers.MonsterMagnetData, 0)
+			data := make([]character.MonsterMagnetData, 0)
 			for _, d := range event.data {
-				data = append(data, producers.MonsterMagnetData{MonsterId: d.monsterId, Success: d.success})
+				data = append(data, character.MonsterMagnetData{MonsterId: d.monsterId, Success: d.success})
 			}
 
-			producers.ApplyMonsterMagnet(l, span)(s.CharacterId(), event.skillId, event.level, event.direction, data)
+			character.ApplyMonsterMagnet(l, span)(s.CharacterId(), event.skillId, event.level, event.direction, data)
 		} else if event, ok := p.(specialMoveRequest); ok {
-			producers.ApplySkill(l, span)(s.CharacterId(), event.skillId, event.level, event.x, event.y)
+			character.ApplySkill(l, span)(s.CharacterId(), event.skillId, event.level, event.x, event.y)
 		} else {
 			l.Errorf("Received unexpected result from reading the special move request.")
 		}

@@ -1,18 +1,6 @@
 package properties
 
-import "atlas-wcc/rest/response"
-
-type DataContainer struct {
-	data response.DataSegment
-}
-
-type DataBody struct {
-	Id         string     `json:"id"`
-	Type       string     `json:"type"`
-	Attributes Attributes `json:"attributes"`
-}
-
-type Attributes struct {
+type attributes struct {
 	AccountId          uint32 `json:"accountId"`
 	WorldId            byte   `json:"worldId"`
 	Name               string `json:"name"`
@@ -43,32 +31,4 @@ type Attributes struct {
 	X                  int16  `json:"x"`
 	Y                  int16  `json:"y"`
 	Stance             byte   `json:"stance"`
-}
-
-func (c *DataContainer) UnmarshalJSON(data []byte) error {
-	d, _, err := response.UnmarshalRoot(data, response.MapperFunc(EmptyCharacterAttributesData))
-	if err != nil {
-		return err
-	}
-	c.data = d
-	return nil
-}
-
-func (c *DataContainer) Data() *DataBody {
-	if len(c.data) >= 1 {
-		return c.data[0].(*DataBody)
-	}
-	return nil
-}
-
-func (c *DataContainer) DataList() []DataBody {
-	var r = make([]DataBody, 0)
-	for _, x := range c.data {
-		r = append(r, *x.(*DataBody))
-	}
-	return r
-}
-
-func EmptyCharacterAttributesData() interface{} {
-	return &DataBody{}
 }

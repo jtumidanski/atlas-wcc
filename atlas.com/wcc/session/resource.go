@@ -28,7 +28,7 @@ func registerGetSessions(l logrus.FieldLogger) http.HandlerFunc {
 func handleGetSessions(l logrus.FieldLogger) func(span opentracing.Span) http.HandlerFunc {
 	return func(span opentracing.Span) http.HandlerFunc {
 		return func(w http.ResponseWriter, _ *http.Request) {
-			ss := Get().GetAll()
+			ss := Registry().GetAll()
 			var response DataListContainer
 			response.Data = make([]DataBody, 0)
 			for _, x := range ss {
@@ -44,7 +44,7 @@ func handleGetSessions(l logrus.FieldLogger) func(span opentracing.Span) http.Ha
 	}
 }
 
-func getSessionObject(x *Model) DataBody {
+func getSessionObject(x Model) DataBody {
 	return DataBody{
 		Id:   strconv.Itoa(int(x.SessionId())),
 		Type: "Session",

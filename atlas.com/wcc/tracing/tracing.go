@@ -1,6 +1,7 @@
 package tracing
 
 import (
+	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"github.com/uber/jaeger-client-go/config"
@@ -35,4 +36,10 @@ func (l LogrusAdapter) Error(msg string) {
 
 func (l LogrusAdapter) Infof(msg string, args ...interface{}) {
 	l.logger.Infof(msg, args)
+}
+
+func StartSpan(l logrus.FieldLogger, name string, opts ...opentracing.StartSpanOption) (logrus.FieldLogger, opentracing.Span) {
+	span := opentracing.StartSpan(name, opts...)
+	sl := l.WithField("span", fmt.Sprintf("%v", span))
+	return sl, span
 }
