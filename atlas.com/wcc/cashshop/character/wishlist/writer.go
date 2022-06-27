@@ -17,8 +17,11 @@ func WriteWishList(l logrus.FieldLogger) func(wishlist []Model, update bool) []b
 			w.WriteByte(0x4F)
 		}
 
-		for i := 0; i < 10; i++ {
-			w.WriteInt(wishlist[i].SerialNumber())
+		for _, wli := range wishlist {
+			w.WriteInt(wli.SerialNumber())
+		}
+		for i := len(wishlist); i < 10; i++ {
+			w.WriteInt(0)
 		}
 		return w.Bytes()
 	}

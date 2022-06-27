@@ -31,6 +31,14 @@ type itemPurchaseRequest struct {
 	serialNumber uint32
 }
 
+func (r itemPurchaseRequest) SerialNumber() uint32 {
+	return r.serialNumber
+}
+
+func (r itemPurchaseRequest) CashIndex() uint32 {
+	return r.cashIndex
+}
+
 type packagePurchaseRequest struct {
 	cashIndex    uint32
 	serialNumber uint32
@@ -238,8 +246,12 @@ func readCashShopOperation(r *request.RequestReader) interface{} {
 func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCashShopOperation(r)
+		if val, ok := p.(*itemPurchaseRequest); ok {
+			cashshop.RequestItemPurchase(l, span)(s.CharacterId(), val.CashIndex(), val.SerialNumber())
+		}
 		if val, ok := p.(*modifyWishlistRequest); ok {
 			cashshop.ModifyWishlist(l, span)(s.CharacterId(), val.SerialNumbers())
+			return
 		}
 	}
 }

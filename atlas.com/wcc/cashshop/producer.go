@@ -39,3 +39,21 @@ func emitModifyWishlistCommand(l logrus.FieldLogger, span opentracing.Span) func
 		producer(kafka.CreateKey(int(characterId)), e)
 	}
 }
+
+type purchaseItemCommand struct {
+	CharacterId  uint32 `json:"character_id"`
+	CashIndex    uint32 `json:"cash_index"`
+	SerialNumber uint32 `json:"serial_number"`
+}
+
+func emitPurchaseItemCommand(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, cashIndex uint32, serialNumber uint32) {
+	producer := kafka.ProduceEvent(l, span, "TOPIC_PURCHASE_CASH_SHOP_ITEM_COMMAND")
+	return func(characterId uint32, cashIndex uint32, serialNumber uint32) {
+		e := &purchaseItemCommand{
+			CharacterId:  characterId,
+			CashIndex:    cashIndex,
+			SerialNumber: serialNumber,
+		}
+		producer(kafka.CreateKey(int(characterId)), e)
+	}
+}
