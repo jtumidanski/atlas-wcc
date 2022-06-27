@@ -38,8 +38,8 @@ func writeCashAmounts(l logrus.FieldLogger) func(credit uint32, points uint32, p
 	}
 }
 
-func RequestItemPurchase(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, serialNumber uint32) {
-	return func(characterId uint32, serialNumber uint32) {
+func RequestItemPurchase(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, cashIndex uint32, serialNumber uint32) {
+	return func(characterId uint32, cashIndex uint32, serialNumber uint32) {
 		emitPurchaseItemCommand(l, span)(characterId, cashIndex, serialNumber)
 	}
 }
