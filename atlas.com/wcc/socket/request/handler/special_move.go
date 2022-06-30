@@ -9,6 +9,15 @@ import (
 )
 
 const OpCodeSpecialMove uint16 = 0x5B
+const SpecialMove = "special_move"
+
+func HandleSpecialMoveProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCodeSpecialMove, SpanHandlerDecorator(l, SpecialMove, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HandleSpecialMove(l, span))
+		})
+	}
+}
 
 const (
 	HeroMonsterMagnet       uint32 = 1121001
@@ -76,7 +85,7 @@ func readSpecialMoveRequest(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readSpecialMoveRequest(r)
 		if event, ok := p.(monsterMagnetRequest); ok {

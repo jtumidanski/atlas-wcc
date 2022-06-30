@@ -10,8 +10,6 @@ const (
 	charactersService              = requests.BaseRequest + charactersServicePrefix
 	charactersResource             = charactersService + "characters/"
 
-	charactersInventoryResource = charactersResource + "%d/inventories/"
-
 	characterWeaponDamage = charactersResource + "%d/damage/weapon"
 )
 

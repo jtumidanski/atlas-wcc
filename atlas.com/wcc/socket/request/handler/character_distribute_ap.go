@@ -9,6 +9,15 @@ import (
 )
 
 const OpCharacterDistributeAp uint16 = 0x57
+const CharacterDistributeAP = "character_distribute_ap"
+
+func DistributeApHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterDistributeAp, SpanHandlerDecorator(l, CharacterDistributeAP, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), DistributeApHandler(l, span))
+		})
+	}
+}
 
 type distributeApRequest struct {
 	number uint32
@@ -24,7 +33,7 @@ func readDistributeApRequest(reader *request.RequestReader) distributeApRequest 
 	return distributeApRequest{number}
 }
 
-func DistributeApHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func DistributeApHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readDistributeApRequest(r)
 

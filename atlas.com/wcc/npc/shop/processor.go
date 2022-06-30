@@ -3,6 +3,7 @@ package shop
 import (
 	"atlas-wcc/model"
 	"atlas-wcc/rest/requests"
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
@@ -39,4 +40,15 @@ func makeModel(d requests.DataBody[attributes]) (Model, error) {
 	}
 
 	return Model{shopId: attr.NPC, items: items}, nil
+}
+
+func ShowShop(l logrus.FieldLogger, span opentracing.Span) func(npcId uint32) model.Operator[session.Model] {
+	return func(npcId uint32) model.Operator[session.Model] {
+		ns, err := GetByNpcId(l, span)(npcId)
+		if err != nil {
+			l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npcId)
+			return model.ErrorOperator[session.Model](err)
+		}
+		return session.AnnounceOperator(WriteGetNPCShop(l)(ns))
+	}
 }

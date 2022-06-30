@@ -3,7 +3,7 @@ package handler
 import (
 	"atlas-wcc/channel"
 	"atlas-wcc/character/properties"
-	portal2 "atlas-wcc/portal"
+	"atlas-wcc/portal"
 	"atlas-wcc/session"
 	"github.com/jtumidanski/atlas-socket/request"
 	"github.com/opentracing/opentracing-go"
@@ -13,6 +13,15 @@ import (
 )
 
 const OpChangeMap uint16 = 0x26
+const ChangeMap = "change_map"
+
+func ChangeMapHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpChangeMap, SpanHandlerDecorator(l, ChangeMap, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), ChangeMapHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type changeMapRequest struct {
 	cashShop  bool
@@ -48,9 +57,9 @@ func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
 }
 
 func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
-	return func(s session.Model, r *request.RequestReader) {
-		p := readChangeMapRequest(r)
-		if p.CashShop() {
+	return func(s session.Model, rr *request.RequestReader) {
+		r := readChangeMapRequest(rr)
+		if r.CashShop() {
 			ha := os.Getenv("HOST_ADDRESS")
 			port, err := strconv.ParseUint(os.Getenv("CHANNEL_PORT"), 10, 32)
 			if err != nil {
@@ -68,12 +77,12 @@ func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte,
 				return
 			}
 
-			portal, err := portal2.GetByName(l, span)(ca.MapId(), p.StartWarp())
+			p, err := portal.GetByName(l, span)(ca.MapId(), r.StartWarp())
 			if err != nil {
-				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), s.CharacterId())
+				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", r.StartWarp(), ca.MapId(), s.CharacterId())
 				return
 			}
-			portal2.Enter(l, span)(worldId, channelId, ca.MapId(), portal.Id(), s.CharacterId())
+			portal.Enter(l, span)(worldId, channelId, ca.MapId(), p.Id(), s.CharacterId())
 		}
 	}
 }

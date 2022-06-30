@@ -9,6 +9,15 @@ import (
 )
 
 const OpMoveCharacter uint16 = 0x29
+const MoveCharacter = "move_character"
+
+func MoveCharacterHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpMoveCharacter, SpanHandlerDecorator(l, MoveCharacter, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), MoveCharacterHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type moveCharacterRequest struct {
 	hasMovement  bool

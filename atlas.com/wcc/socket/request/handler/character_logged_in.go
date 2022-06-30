@@ -11,6 +11,15 @@ import (
 )
 
 const OpCharacterLoggedIn uint16 = 0x14
+const NameCharacterLoggedIn = "character_logged_in"
+
+func CharacterLoggedInHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterLoggedIn, SpanHandlerDecorator(l, NameCharacterLoggedIn, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(NoOpValidator, CharacterLoggedInHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type characterLoggedInRequest struct {
 	characterId uint32

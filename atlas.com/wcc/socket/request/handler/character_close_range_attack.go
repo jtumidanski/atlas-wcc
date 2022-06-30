@@ -11,6 +11,15 @@ import (
 )
 
 const OpCharacterCloseRangeAttack uint16 = 0x2C
+const CharacterCloseRangeAttack = "character_close_range_attack"
+
+func CharacterCloseRangeAttackHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterCloseRangeAttack, SpanHandlerDecorator(l, CharacterCloseRangeAttack, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), CharacterCloseRangeAttackHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type attackPacket struct {
 	numberAttacked           byte

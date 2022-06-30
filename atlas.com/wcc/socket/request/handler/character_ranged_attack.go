@@ -10,6 +10,15 @@ import (
 )
 
 const OpCharacterRangedAttack uint16 = 0x2D
+const CharacterRangedAttack = "character_ranged_attack"
+
+func CharacterRangedAttackHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterRangedAttack, SpanHandlerDecorator(l, CharacterRangedAttack, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), CharacterRangedAttackHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 func CharacterRangedAttackHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {

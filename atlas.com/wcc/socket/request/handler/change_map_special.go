@@ -10,6 +10,15 @@ import (
 )
 
 const OpChangeMapSpecial uint16 = 0x64
+const NameChangeMapSpecial = "change_map_special"
+
+func ChangeMapSpecialHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpChangeMapSpecial, SpanHandlerDecorator(l, NameChangeMapSpecial, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), ChangeMapSpecialHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type changeMapSpecialRequest struct {
 	startWarp string

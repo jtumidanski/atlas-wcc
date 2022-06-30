@@ -1,10 +1,12 @@
 package character
 
 import (
+	"atlas-wcc/account"
 	"atlas-wcc/character/inventory"
 	"atlas-wcc/character/properties"
 	"atlas-wcc/character/skill"
 	"atlas-wcc/pet"
+	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
@@ -88,5 +90,39 @@ func GainMeso(l logrus.FieldLogger, span opentracing.Span) func(characterId uint
 	adjuster := emitMesoAdjustment(l, span)
 	return func(characterId uint32, amount int32) {
 		adjuster(characterId, amount)
+	}
+}
+
+func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s session.Model) bool {
+	return func(s session.Model) bool {
+		v := account.IsLoggedIn(l, span)(s.AccountId())
+		if !v {
+			l.Errorf("Account %d is not logged in.", s.SessionId())
+			err := session.Announce(s, properties.WriteEnableActions(l))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+			return false
+		}
+
+		ca, err := properties.GetById(l, span)(s.CharacterId())
+		if err != nil {
+			l.WithError(err).Errorf("Unable to locate character %d.", s.CharacterId())
+			err = session.Announce(s, properties.WriteEnableActions(l))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+			return false
+		}
+
+		if ca.Hp() > 0 {
+			return true
+		} else {
+			err = session.Announce(s, properties.WriteEnableActions(l))
+			if err != nil {
+				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+			}
+			return false
+		}
 	}
 }

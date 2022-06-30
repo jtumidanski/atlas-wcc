@@ -10,6 +10,15 @@ import (
 )
 
 const OpCharacterMagicAttack uint16 = 0x2E
+const CharacterMagicAttack = "character_magic_attack"
+
+func CharacterMagicAttackHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterMagicAttack, SpanHandlerDecorator(l, CharacterMagicAttack, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), CharacterMagicAttackHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 func CharacterMagicAttackHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {

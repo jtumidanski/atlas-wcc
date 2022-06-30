@@ -9,6 +9,15 @@ import (
 )
 
 const OpChangeKeyMap uint16 = 0x87
+const ChangeKeyMap = "change_key_map"
+
+func ChangeKeyMapHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpChangeKeyMap, SpanHandlerDecorator(l, ChangeKeyMap, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), ChangeKeyMapHandler(l, span))
+		})
+	}
+}
 
 type changeKeyMapRequest struct {
 	available bool
@@ -53,7 +62,7 @@ func readChangeKeyMapRequest(reader *request.RequestReader) interface{} {
 	return nil
 }
 
-func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func ChangeKeyMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeKeyMapRequest(r)
 		if packet, ok := p.(changeKeyMapRequest); ok {

@@ -9,6 +9,15 @@ import (
 )
 
 const OpCharacterDamage uint16 = 0x30
+const CharacterDamage = "character_damage"
+
+func HandleCharacterDamageRequestProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterDamage, SpanHandlerDecorator(l, CharacterDamage, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HandleCharacterDamageRequest(l, span))
+		})
+	}
+}
 
 type characterDamageRequest struct {
 	damageFrom    int8
@@ -65,7 +74,7 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 	}
 }
 
-func HandleCharacterDamageRequest(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func HandleCharacterDamageRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
 		character.Damage(l, span)(s.CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())

@@ -18,7 +18,7 @@ import (
 	"atlas-wcc/logger"
 	_map "atlas-wcc/map"
 	"atlas-wcc/monster"
-	"atlas-wcc/npc"
+	"atlas-wcc/npc/conversation"
 	"atlas-wcc/party"
 	"atlas-wcc/rest"
 	"atlas-wcc/server"
@@ -113,9 +113,9 @@ func main() {
 		_map.MonsterMovementConsumer(wid, cid)(consumerGroupId),
 		_map.MonsterDeathConsumer(wid, cid)(consumerGroupId),
 		monster.ControlConsumer(wid, cid)(consumerGroupId),
-		npc.TalkConsumer(wid, cid)(consumerGroupId),
-		npc.TalkNumberConsumer(wid, cid)(consumerGroupId),
-		npc.TalkStyleConsumer(wid, cid)(consumerGroupId),
+		conversation.TalkConsumer(wid, cid)(consumerGroupId),
+		conversation.TalkNumberConsumer(wid, cid)(consumerGroupId),
+		conversation.TalkStyleConsumer(wid, cid)(consumerGroupId),
 		party.StatusConsumer(wid, cid)(consumerGroupId),
 		party.MemberStatusConsumer(wid, cid)(consumerGroupId),
 		_map.ReactorStatusConsumer(wid, cid)(consumerGroupId),

@@ -10,6 +10,15 @@ import (
 )
 
 const OpChangeChannel uint16 = 0x27
+const ChangeChannel = "change_channel"
+
+func ChangeChannelHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpChangeChannel, SpanHandlerDecorator(l, ChangeChannel, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), ChangeChannelHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type changeChannelRequest struct {
 	channelId byte

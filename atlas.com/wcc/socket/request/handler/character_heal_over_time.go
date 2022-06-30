@@ -9,6 +9,15 @@ import (
 )
 
 const OpCharacterHealOverTime uint16 = 0x59
+const CharacterHealOverTime = "character_heal_over_time"
+
+func HealOverTimeHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterHealOverTime, SpanHandlerDecorator(l, CharacterHealOverTime, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HealOverTimeHandler(l, span))
+		})
+	}
+}
 
 type healOverTimeRequest struct {
 	hp int16
@@ -30,7 +39,7 @@ func readHealOverTimeRequest(reader *request.RequestReader) healOverTimeRequest 
 	return healOverTimeRequest{hp, mp}
 }
 
-func HealOverTimeHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func HealOverTimeHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readHealOverTimeRequest(r)
 

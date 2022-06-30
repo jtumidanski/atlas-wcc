@@ -12,11 +12,30 @@ const (
 	OpEnterCashShop     = 0x28
 	OpTouchingCashShop  = 0xE4
 	OpCashShopOperation = 0xE5
+	EnterCashShop       = "enter_cash_shop"
+	TouchCashShop       = "touch_cash_shop"
+	CashShopOperation   = "cash_shop_operation"
 )
+
+func EnterCashShopHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpEnterCashShop, SpanHandlerDecorator(l, EnterCashShop, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), EnterCashShopHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 func EnterCashShopHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, _ *request.RequestReader) {
 		cashshop.RequestCashShopEntry(l, span)(worldId, channelId, s.CharacterId())
+	}
+}
+
+func TouchingCashShopHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpTouchingCashShop, SpanHandlerDecorator(l, TouchCashShop, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), TouchingCashShopHandler(l, span, worldId, channelId))
+		})
 	}
 }
 
@@ -243,7 +262,15 @@ func readCashShopOperation(r *request.RequestReader) interface{} {
 	return nil
 }
 
-func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func CashShopOperationHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCashShopOperation, SpanHandlerDecorator(l, CashShopOperation, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), CashShopOperationHandler(l, span))
+		})
+	}
+}
+
+func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCashShopOperation(r)
 		if val, ok := p.(*itemPurchaseRequest); ok {

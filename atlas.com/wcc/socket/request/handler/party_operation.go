@@ -9,6 +9,15 @@ import (
 )
 
 const OpPartyOperation uint16 = 0x7C
+const PartyOperation = "party_operation"
+
+func HandlePartyOperationProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpPartyOperation, SpanHandlerDecorator(l, PartyOperation, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HandlePartyOperation(l, span, worldId, channelId))
+		})
+	}
+}
 
 type createPartyPacket struct {
 }

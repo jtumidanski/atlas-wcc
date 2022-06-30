@@ -9,6 +9,15 @@ import (
 )
 
 const OpMoveItem uint16 = 0x47
+const MoveItem = "move_item"
+
+func MoveItemHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpMoveItem, SpanHandlerDecorator(l, MoveItem, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), MoveItemHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type moveItemRequest struct {
 	inventoryType int8

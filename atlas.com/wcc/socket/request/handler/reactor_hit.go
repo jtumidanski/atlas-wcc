@@ -10,6 +10,15 @@ import (
 )
 
 const OpReactorHit uint16 = 0xCD
+const ReactorHit = "reactor_hit"
+
+func HandleReactorHitProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpReactorHit, SpanHandlerDecorator(l, ReactorHit, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HandleReactorHit(l, span, worldId, channelId))
+		})
+	}
+}
 
 type reactorHitRequest struct {
 	id                uint32

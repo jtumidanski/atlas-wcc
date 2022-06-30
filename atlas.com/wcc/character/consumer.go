@@ -3,8 +3,8 @@ package character
 import (
 	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka"
+	"atlas-wcc/server"
 	"atlas-wcc/session"
-	"atlas-wcc/socket/response/writer"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -37,7 +37,7 @@ func handleCreated(wid byte, _ byte) kafka.HandlerFunc[createdEvent] {
 			return
 		}
 
-		session.ForEachGM(session.AnnounceOperator(writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))))
+		session.ForEachGM(session.AnnounceOperator(server.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))))
 	}
 }
 

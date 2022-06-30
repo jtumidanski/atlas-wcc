@@ -8,6 +8,15 @@ import (
 )
 
 const OpQuestAction uint16 = 0x6B
+const QuestAction = "quest_action"
+
+func HandleQuestActionProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpQuestAction, SpanHandlerDecorator(l, QuestAction, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), HandleQuestAction(l))
+		})
+	}
+}
 
 type questActionRequest struct {
 	action    byte
@@ -74,7 +83,7 @@ func readQuestAction(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleQuestAction(l logrus.FieldLogger, _ opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func HandleQuestAction(l logrus.FieldLogger) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readQuestAction(r)
 		if val, ok := p.(*questActionRequest); ok {

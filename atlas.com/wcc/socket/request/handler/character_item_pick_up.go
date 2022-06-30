@@ -9,6 +9,15 @@ import (
 )
 
 const OpCharacterItemPickUp uint16 = 0xCA
+const CharacterItemPickUp = "character_item_pick_up"
+
+func ItemPickUpHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterItemPickUp, SpanHandlerDecorator(l, CharacterItemPickUp, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), ItemPickUpHandler(l, span))
+		})
+	}
+}
 
 type itemPickUpRequest struct {
 	timestamp uint32
@@ -30,7 +39,7 @@ func readItemPickUpRequest(reader *request.RequestReader) itemPickUpRequest {
 	return itemPickUpRequest{timestamp, x, y, objectId}
 }
 
-func ItemPickUpHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func ItemPickUpHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readItemPickUpRequest(r)
 

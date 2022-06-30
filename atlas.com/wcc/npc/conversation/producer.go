@@ -1,4 +1,4 @@
-package npc
+package conversation
 
 import (
 	"atlas-wcc/kafka"
@@ -27,7 +27,7 @@ type startConversationCommand struct {
 	NPCObjectId uint32 `json:"npcObjectId"`
 }
 
-func SetReturnText(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, returnText string) {
+func setReturnText(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, returnText string) {
 	producer := kafka.ProduceEvent(l, span, "TOPIC_SET_RETURN_TEXT")
 	return func(characterId uint32, returnText string) {
 		e := &setReturnTextCommand{
@@ -38,7 +38,7 @@ func SetReturnText(l logrus.FieldLogger, span opentracing.Span) func(characterId
 	}
 }
 
-func ContinueConversation(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, action byte, messageType byte, selection int32) {
+func continueConversation(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32, action byte, messageType byte, selection int32) {
 	producer := kafka.ProduceEvent(l, span, "TOPIC_CONTINUE_NPC_CONVERSATION")
 	return func(characterId uint32, action byte, messageType byte, selection int32) {
 		e := &continueConversationCommand{
@@ -51,7 +51,7 @@ func ContinueConversation(l logrus.FieldLogger, span opentracing.Span) func(char
 	}
 }
 
-func StartConversation(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
+func startConversation(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
 	producer := kafka.ProduceEvent(l, span, "TOPIC_START_NPC_CONVERSATION")
 	return func(worldId byte, channelId byte, mapId uint32, characterId uint32, npcId uint32, objectId uint32) {
 		e := &startConversationCommand{

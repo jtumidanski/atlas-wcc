@@ -11,6 +11,15 @@ import (
 )
 
 const OpGeneralChat uint16 = 0x31
+const GeneralChat = "general_chat"
+
+func GeneralChatHandlerProducer(l logrus.FieldLogger, worldId byte, channelId byte) Producer {
+	return func() (uint16, request.Handler) {
+		return OpGeneralChat, SpanHandlerDecorator(l, GeneralChat, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), GeneralChatHandler(l, span, worldId, channelId))
+		})
+	}
+}
 
 type generalChatRequest struct {
 	message string

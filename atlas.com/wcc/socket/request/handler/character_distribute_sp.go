@@ -9,6 +9,15 @@ import (
 )
 
 const OpCharacterDistributeSp uint16 = 0x5A
+const CharacterDistributeSP = "character_distribute_sp"
+
+func DistributeSpHandlerProducer(l logrus.FieldLogger) Producer {
+	return func() (uint16, request.Handler) {
+		return OpCharacterDistributeSp, SpanHandlerDecorator(l, CharacterDistributeSP, func(l logrus.FieldLogger, span opentracing.Span) request.Handler {
+			return ValidatorHandler(LoggedInValidator(l, span), DistributeSpHandler(l, span))
+		})
+	}
+}
 
 type distributeSpRequest struct {
 	skillId uint32
@@ -24,7 +33,7 @@ func readDistributeSpRequest(reader *request.RequestReader) distributeSpRequest 
 	return distributeSpRequest{skillId}
 }
 
-func DistributeSpHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
+func DistributeSpHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readDistributeSpRequest(r)
 		character.DistributeSp(l, span)(s.CharacterId(), p.SkillId())
