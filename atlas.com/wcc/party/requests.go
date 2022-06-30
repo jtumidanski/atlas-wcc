@@ -19,10 +19,6 @@ const (
 	characterPartyResource            = characterResource + "/party"
 )
 
-func requestById(id uint32) requests.Request[attributes] {
-	return requests.MakeGetRequest[attributes](fmt.Sprintf(partyResource, id))
-}
-
 func requestByMemberId(memberId uint32) requests.Request[attributes] {
 	return requests.MakeGetRequest[attributes](fmt.Sprintf(characterPartyResource, memberId))
 }

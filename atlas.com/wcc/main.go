@@ -121,14 +121,15 @@ func main() {
 		_map.ReactorStatusConsumer(wid, cid)(consumerGroupId),
 		server.NoticeConsumer(wid, cid)(consumerGroupId),
 		skill.UpdateConsumer(wid, cid)(consumerGroupId),
-		cashshop.EnterCashShopEventConsumer(wid, cid)(consumerGroupId),
+		cashshop.EnterEventConsumer(wid, cid)(consumerGroupId),
+		cashshop.EntryRejectionConsumer(wid, cid)(consumerGroupId),
 		wishlist.StatusEventConsumer(wid, cid)(consumerGroupId))
 
 	socket.CreateSocketService(l, ctx, wg)(wid, cid, int(port))
 
 	rest.CreateService(l, ctx, wg, "/ms/csrv/worlds/{worldId}/channels/{channelId}", session.InitResource, instruction.InitResource)
 
-	command.Registry().Add(character.AwardMesoCommandProducer(), _map.WarpMapCommandProducer())
+	command.Registry().Add(character.AwardMesoCommandProducer(), _map.WarpMapCommandProducer(wid, cid))
 
 	sl, span := tracing.StartSpan(l, "startup")
 	channel.StartChannelServer(sl, span)(wid, cid, ha, uint32(port))

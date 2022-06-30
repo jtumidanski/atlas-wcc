@@ -12,6 +12,12 @@ type SliceProvider[M any] func() ([]M, error)
 
 type PreciselyOneFilter[M any] func([]M) (M, error)
 
+func ErrorOperator[M any](err error) func(M) error {
+	return func(m M) error {
+		return err
+	}
+}
+
 func ExecuteForEach[M any](f Operator[M]) SliceOperator[M] {
 	return func(models []M) error {
 		for _, m := range models {

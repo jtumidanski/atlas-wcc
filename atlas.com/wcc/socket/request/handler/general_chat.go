@@ -31,7 +31,7 @@ func readGeneralChatRequest(reader *request.RequestReader) generalChatRequest {
 	return generalChatRequest{message, show}
 }
 
-func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readGeneralChatRequest(r)
 		ca, err := properties.GetById(l, span)(s.CharacterId())
@@ -49,6 +49,6 @@ func GeneralChatHandler(l logrus.FieldLogger, span opentracing.Span) func(s sess
 			return
 		}
 
-		character.SendMapMessage(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
+		character.SendMapMessage(l, span)(worldId, channelId, ca.MapId(), s.CharacterId(), p.Message(), ca.Gm(), p.Show() == 1)
 	}
 }

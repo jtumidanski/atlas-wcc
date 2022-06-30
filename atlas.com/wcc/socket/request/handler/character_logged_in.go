@@ -25,7 +25,7 @@ func readCharacterLoggedInRequest(reader *request.RequestReader) characterLogged
 	return characterLoggedInRequest{cid}
 }
 
-func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCharacterLoggedInRequest(r)
 		c, err := character.GetCharacterById(l, span)(p.CharacterId())
@@ -37,8 +37,8 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span) func(
 		s = session.SetCharacterId(c.Attributes().Id())(s.SessionId())
 		s = session.SetGm(c.Attributes().Gm())(s.SessionId())
 
-		session.Login(l, span)(s.WorldId(), s.ChannelId(), s.AccountId(), p.CharacterId())
-		err = session.Announce(_map.WriteGetCharacterInfo(l)(s.ChannelId(), c))(s)
+		session.Login(l, span)(worldId, channelId, s.AccountId(), p.CharacterId())
+		err = session.Announce(_map.WriteGetCharacterInfo(l)(channelId, c))(s)
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

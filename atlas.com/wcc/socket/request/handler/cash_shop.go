@@ -14,15 +14,15 @@ const (
 	OpCashShopOperation = 0xE5
 )
 
-func EnterCashShopHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func EnterCashShopHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, _ *request.RequestReader) {
-		cashshop.RequestCashShopEntry(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId())
+		cashshop.RequestCashShopEntry(l, span)(worldId, channelId, s.CharacterId())
 	}
 }
 
-func TouchingCashShopHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func TouchingCashShopHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
-		cashshop.UpdateCashAmounts(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId())
+		cashshop.UpdateCashAmounts(l, span)(worldId, channelId, s.CharacterId())
 	}
 }
 
@@ -243,7 +243,7 @@ func readCashShopOperation(r *request.RequestReader) interface{} {
 	return nil
 }
 
-func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCashShopOperation(r)
 		if val, ok := p.(*itemPurchaseRequest); ok {

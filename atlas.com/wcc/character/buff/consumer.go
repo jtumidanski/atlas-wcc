@@ -2,7 +2,6 @@ package buff
 
 import (
 	"atlas-wcc/kafka"
-	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -37,30 +36,19 @@ type stat struct {
 
 func handleCharacterBuff(_ byte, _ byte) kafka.HandlerFunc[characterBuffEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterBuffEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, showBuffEffect(l, event))
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteShowBuff(l)(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)))
 	}
 }
 
-func showBuffEffect(l logrus.FieldLogger, event characterBuffEvent) model.Operator[session.Model] {
-	b := WriteShowBuff(l)(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
-}
-
-func makeBuffStats(stats []stat) []BuffStat {
-	result := make([]BuffStat, 0)
+func makeBuffStats(stats []stat) []Stat {
+	result := make([]Stat, 0)
 	for _, s := range stats {
 		result = append(result, makeBuffStat(s))
 	}
 	return result
 }
 
-func makeBuffStat(s stat) BuffStat {
+func makeBuffStat(s stat) Stat {
 	return NewBuffStat(s.First, s.Mask, s.Amount)
 }
 
@@ -77,16 +65,6 @@ type characterCancelBuffEvent struct {
 
 func handleCharacterCancelBuff(_ byte, _ byte) kafka.HandlerFunc[characterCancelBuffEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterCancelBuffEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, cancelBuffEffect(l, event))
-	}
-}
-
-func cancelBuffEffect(l logrus.FieldLogger, event characterCancelBuffEvent) model.Operator[session.Model] {
-	return func(s session.Model) error {
-		err := session.Announce(WriteCancelBuff(l)(makeBuffStats(event.Stats)))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to cancel buff for character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteCancelBuff(l)(makeBuffStats(event.Stats))))
 	}
 }

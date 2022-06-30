@@ -10,8 +10,6 @@ import (
 type Model struct {
 	id          uint32
 	accountId   uint32
-	worldId     byte
-	channelId   byte
 	characterId uint32
 	gm          bool
 	con         net.Conn
@@ -31,15 +29,13 @@ func NewSession(id uint32, con net.Conn) Model {
 	sendIv[3] = byte(rand.Float64() * 255)
 	send := crypto.NewAESOFB(sendIv, uint16(65535)-version)
 	recv := crypto.NewAESOFB(recvIv, version)
-	return Model{id, 0, 0, 0, 0, false, con, *send, *recv, time.Now()}
+	return Model{id, 0, 0, false, con, *send, *recv, time.Now()}
 }
 
 func CloneSession(s Model) Model {
 	return Model{
 		id:          s.id,
 		accountId:   s.accountId,
-		worldId:     s.worldId,
-		channelId:   s.channelId,
 		characterId: s.characterId,
 		gm:          s.gm,
 		con:         s.con,
@@ -87,26 +83,6 @@ func (s *Model) ReceiveAESOFB() *crypto.AESOFB {
 
 func (s *Model) GetRemoteAddress() net.Addr {
 	return s.con.RemoteAddr()
-}
-
-func (s *Model) setWorldId(worldId byte) Model {
-	ns := CloneSession(*s)
-	ns.worldId = worldId
-	return ns
-}
-
-func (s *Model) setChannelId(channelId byte) Model {
-	ns := CloneSession(*s)
-	ns.channelId = channelId
-	return ns
-}
-
-func (s *Model) WorldId() byte {
-	return s.worldId
-}
-
-func (s *Model) ChannelId() byte {
-	return s.channelId
 }
 
 func (s *Model) updateLastRequest() Model {

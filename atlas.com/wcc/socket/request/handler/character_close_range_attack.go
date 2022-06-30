@@ -172,7 +172,7 @@ func readAttackPacket(l logrus.FieldLogger, span opentracing.Span, reader *reque
 	}
 }
 
-func CharacterCloseRangeAttackHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func CharacterCloseRangeAttackHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readAttackPacket(l, span, r, s.CharacterId(), false, false)
 
@@ -181,6 +181,6 @@ func CharacterCloseRangeAttackHandler(l logrus.FieldLogger, span opentracing.Spa
 			l.WithError(err).Errorf("Unable to retrieve character attributes for character %d.", s.CharacterId())
 			return
 		}
-		character.Attack(l, span)(s.WorldId(), s.ChannelId(), catt.MapId(), s.CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
+		character.Attack(l, span)(worldId, channelId, catt.MapId(), s.CharacterId(), p.Skill(), p.SkillLevel(), p.NumberAttacked(), p.NumberDamaged(), p.NumberAttackedAndDamaged(), p.Stance(), p.Direction(), p.RangedDirection(), p.Charge(), p.Display(), p.Ranged(), p.Magic(), p.Speed(), p.AllDamage(), p.X(), p.Y())
 	}
 }

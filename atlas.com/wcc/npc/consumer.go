@@ -2,7 +2,6 @@ package npc
 
 import (
 	"atlas-wcc/kafka"
-	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
@@ -34,22 +33,7 @@ type talkCommand struct {
 
 func handleTalk(_ byte, _ byte) kafka.HandlerFunc[talkCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkCommand) {
-		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
-			return
-		}
-
-		session.ForSessionByCharacterId(event.CharacterId, showTalking(l, event))
-	}
-}
-
-func showTalking(l logrus.FieldLogger, event talkCommand) model.Operator[session.Model] {
-	b := WriteNPCTalk(l)(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalk(l)(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))))
 	}
 }
 
@@ -126,22 +110,7 @@ type talkNumberCommand struct {
 
 func handleTalkNumber(_ byte, _ byte) kafka.HandlerFunc[talkNumberCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkNumberCommand) {
-		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
-			return
-		}
-
-		session.ForSessionByCharacterId(event.CharacterId, showTalkingNumber(l, event))
-	}
-}
-
-func showTalkingNumber(l logrus.FieldLogger, event talkNumberCommand) model.Operator[session.Model] {
-	b := WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)))
 	}
 }
 
@@ -162,20 +131,6 @@ type talkStyleCommand struct {
 
 func handleTalkStyle(_ byte, _ byte) kafka.HandlerFunc[talkStyleCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkStyleCommand) {
-		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
-			return
-		}
-		session.ForSessionByCharacterId(event.CharacterId, showTalkStyle(l, event))
-	}
-}
-
-func showTalkStyle(l logrus.FieldLogger, event talkStyleCommand) model.Operator[session.Model] {
-	b := WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)))
 	}
 }

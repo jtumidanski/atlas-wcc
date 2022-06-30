@@ -25,10 +25,10 @@ func readChangeChannelRequest(reader *request.RequestReader) changeChannelReques
 	return changeChannelRequest{channelId}
 }
 
-func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeChannelRequest(r)
-		if p.ChannelId() == s.ChannelId() {
+		if p.ChannelId() == channelId {
 			l.Errorf("Character %s trying to change to the same channel.", s.CharacterId())
 			disconnect(l)(s)
 		}
@@ -49,9 +49,9 @@ func ChangeChannelHandler(l logrus.FieldLogger, span opentracing.Span) func(s se
 			return
 		}
 
-		ch, err := channel.GetByWorldId(l, span)(s.WorldId(), p.ChannelId())
+		ch, err := channel.GetByWorldId(l, span)(worldId, p.ChannelId())
 		if err != nil {
-			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", s.WorldId(), p.ChannelId())
+			l.WithError(err).Errorf("Cannot retrieve world %d channel %d information.", worldId, p.ChannelId())
 			return
 		}
 

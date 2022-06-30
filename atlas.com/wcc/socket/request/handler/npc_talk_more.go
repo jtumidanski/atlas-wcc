@@ -54,7 +54,7 @@ func readNPCTalkMoreRequest(reader *request.RequestReader) npcTalkMoreRequest {
 	return npcTalkMoreRequest{lastMessageType, action, returnText, selection}
 }
 
-func HandleNPCTalkMoreRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandleNPCTalkMoreRequest(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readNPCTalkMoreRequest(r)
 		if p.LastMessageType() == 2 {

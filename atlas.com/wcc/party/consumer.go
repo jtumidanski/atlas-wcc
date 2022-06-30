@@ -2,7 +2,6 @@ package party
 
 import (
 	"atlas-wcc/kafka"
-	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -35,22 +34,10 @@ func handleStatus(wid byte, _ byte) kafka.HandlerFunc[statusEvent] {
 		}
 
 		if event.Type == "CREATED" {
-			session.ForSessionByCharacterId(event.CharacterId, showCreated(l, span)(event))
+			l.Debugf("Party %d created for character %d.", event.PartyId, event.CharacterId)
+			session.ForSessionByCharacterId(event.CharacterId, session.Announce(WritePartyCreated(l)(event.PartyId)))
 		} else if event.Type == "DISBANDED" {
 			l.Debugf("Party %d disbanded.", event.PartyId)
-		}
-	}
-}
-
-func showCreated(l logrus.FieldLogger, _ opentracing.Span) func(event statusEvent) model.Operator[session.Model] {
-	return func(event statusEvent) model.Operator[session.Model] {
-		return func(s session.Model) error {
-			l.Debugf("Party %d created for character %d.", event.PartyId, event.CharacterId)
-			err := session.Announce(WritePartyCreated(l)(event.PartyId))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
 		}
 	}
 }
@@ -75,19 +62,7 @@ func handleMemberStatus(wid byte, cid byte) kafka.HandlerFunc[memberStatusEvent]
 			return
 		}
 		if event.Type == "DISBANDED" {
-			session.ForSessionByCharacterId(event.CharacterId, showDisbanded(l, span)(event.PartyId, event.CharacterId))
-		}
-	}
-}
-
-func showDisbanded(l logrus.FieldLogger, _ opentracing.Span) func(partyId uint32, characterId uint32) model.Operator[session.Model] {
-	return func(partyId uint32, characterId uint32) model.Operator[session.Model] {
-		return func(s session.Model) error {
-			err := session.Announce(WritePartyDisbanded(l)(partyId, characterId))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
+			session.ForSessionByCharacterId(event.CharacterId, session.Announce(WritePartyDisbanded(l)(event.PartyId, event.CharacterId)))
 		}
 	}
 }

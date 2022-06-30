@@ -54,13 +54,19 @@ func OnlyGMFilter(session Model) bool {
 	return session.GM()
 }
 
-func Announce(b []byte) func(s Model) error {
+func Announce(bytes ...[]byte) func(s Model) error {
 	return func(s Model) error {
 		if l, ok := Registry().GetLock(s.SessionId()); ok {
 			l.Lock()
-			err := s.announceEncrypted(b)
+			for _, b := range bytes {
+				err := s.announceEncrypted(b)
+				if err != nil {
+					l.Unlock()
+					return err
+				}
+			}
 			l.Unlock()
-			return err
+			return nil
 		}
 		return errors.New("invalid session")
 	}
@@ -72,32 +78,6 @@ func SetAccountId(accountId uint32) func(id uint32) Model {
 		var ok bool
 		if s, ok = Registry().Get(id); ok {
 			s = s.setAccountId(accountId)
-			Registry().Update(s)
-			return s
-		}
-		return s
-	}
-}
-
-func SetWorldId(worldId byte) func(id uint32) Model {
-	return func(id uint32) Model {
-		s := Model{}
-		var ok bool
-		if s, ok = Registry().Get(id); ok {
-			s = s.setWorldId(worldId)
-			Registry().Update(s)
-			return s
-		}
-		return s
-	}
-}
-
-func SetChannelId(channelId byte) func(id uint32) Model {
-	return func(id uint32) Model {
-		s := Model{}
-		var ok bool
-		if s, ok = Registry().Get(id); ok {
-			s = s.setChannelId(channelId)
 			Registry().Update(s)
 			return s
 		}

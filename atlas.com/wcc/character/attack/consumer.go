@@ -3,7 +3,6 @@ package attack
 import (
 	"atlas-wcc/kafka"
 	_map "atlas-wcc/map"
-	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -45,19 +44,7 @@ func handleCloseRange(wid byte, cid byte) kafka.HandlerFunc[closeRangeEvent] {
 			return
 		}
 
-		writer := writeCloseRangeAttack(l, event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display)
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, writer)
-	}
-}
-
-func writeCloseRangeAttack(l logrus.FieldLogger, characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte) model.Operator[session.Model] {
-	b := WriteCloseRangeAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteCloseRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display)))
 	}
 }
 
@@ -89,20 +76,7 @@ func handleMagicAttack(wid byte, cid byte) kafka.HandlerFunc[magicAttackEvent] {
 			return
 		}
 
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, writeMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge))
-	}
-}
-
-func writeMagicAttack(l logrus.FieldLogger) func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, charge int32) model.Operator[session.Model] {
-	return func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, charge int32) model.Operator[session.Model] {
-		b := WriteMagicAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, charge)
-		return func(s session.Model) error {
-			err := session.Announce(b)(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
-		}
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge)))
 	}
 }
 
@@ -134,19 +108,6 @@ func handleRangeAttack(wid byte, cid byte) kafka.HandlerFunc[rangeAttackEvent] {
 			return
 		}
 
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, writeRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile))
-	}
-}
-
-func writeRangeAttack(l logrus.FieldLogger) func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, projectile uint32) model.Operator[session.Model] {
-	return func(characterId uint32, skill uint32, skillLevel byte, stance byte, numberAttackedAndDamaged byte, damage map[uint32][]uint32, speed byte, direction byte, display byte, projectile uint32) model.Operator[session.Model] {
-		b := WriteRangeAttack(l)(characterId, skill, skillLevel, stance, numberAttackedAndDamaged, damage, speed, direction, display, projectile)
-		return func(s session.Model) error {
-			err := session.Announce(b)(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
-		}
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile)))
 	}
 }

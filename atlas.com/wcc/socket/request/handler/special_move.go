@@ -76,7 +76,7 @@ func readSpecialMoveRequest(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandleSpecialMove(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readSpecialMoveRequest(r)
 		if event, ok := p.(monsterMagnetRequest); ok {

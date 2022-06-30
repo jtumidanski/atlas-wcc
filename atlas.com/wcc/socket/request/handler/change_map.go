@@ -47,7 +47,7 @@ func readChangeMapRequest(reader *request.RequestReader) changeMapRequest {
 	return changeMapRequest{cs, fromDying, targetId, startWarp, wheel}
 }
 
-func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readChangeMapRequest(r)
 		if p.CashShop() {
@@ -73,7 +73,7 @@ func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span) func(s sessio
 				l.WithError(err).Errorf("Cannot find portal %s in map %d in order to handle [ChangeMapRequest] for character %d", p.StartWarp(), ca.MapId(), s.CharacterId())
 				return
 			}
-			portal2.Enter(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), portal.Id(), s.CharacterId())
+			portal2.Enter(l, span)(worldId, channelId, ca.MapId(), portal.Id(), s.CharacterId())
 		}
 	}
 }

@@ -43,19 +43,16 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 	return m, nil
 }
 
+func SpawnSessionOperator(l logrus.FieldLogger) func(npc Model) model.Operator[session.Model] {
+	return func(npc Model) model.Operator[session.Model] {
+		return session.Announce(WriteSpawnNPC(l)(npc), WriteSpawnNPCController(l)(npc, true))
+	}
+}
+
 func SpawnNPCForSession(l logrus.FieldLogger) func(s session.Model) model.Operator[Model] {
 	return func(s session.Model) model.Operator[Model] {
 		return func(n Model) error {
-			err := session.Announce(WriteSpawnNPC(l)(n))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to spawn npc %d for character %d", n.Id(), s.CharacterId())
-				return err
-			}
-			err = session.Announce(WriteSpawnNPCController(l)(n, true))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to spawn npc controller %d for character %d", n.Id(), s.CharacterId())
-			}
-			return err
+			return SpawnSessionOperator(l)(n)(s)
 		}
 	}
 }

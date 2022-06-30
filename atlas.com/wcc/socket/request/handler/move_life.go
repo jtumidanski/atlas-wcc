@@ -103,7 +103,7 @@ func readMoveLifeRequest(reader *request.RequestReader) *moveLifeRequest {
 	return &moveLifeRequest{objectId, moveId, pNibbles, rawActivity, skillId, skillLevel, pOption, startX, startY, hasMovement, movementDataList, movementList}
 }
 
-func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveLifeRequest(r)
 		if p == nil {

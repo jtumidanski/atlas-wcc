@@ -43,64 +43,16 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 	return m, nil
 }
 
+func SpawnSessionOperator(l logrus.FieldLogger) func(monster Model) model.Operator[session.Model] {
+	return func(m Model) model.Operator[session.Model] {
+		return session.Announce(WriteSpawnMonster(l)(m, false))
+	}
+}
+
 func SpawnForSession(l logrus.FieldLogger) func(s session.Model) model.Operator[Model] {
 	return func(s session.Model) model.Operator[Model] {
 		return func(m Model) error {
-			err := session.Announce(WriteSpawnMonster(l)(m, false))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to spawn monster %d for character %d", m.MonsterId(), s.CharacterId())
-			}
-			return err
+			return SpawnSessionOperator(l)(m)(s)
 		}
-	}
-}
-
-func DestroyForSession(l logrus.FieldLogger, uniqueId uint32) model.Operator[session.Model] {
-	k1 := WriteKillMonster(l)(uniqueId, false)
-	k2 := WriteKillMonster(l)(uniqueId, true)
-	return func(s session.Model) error {
-		err := session.Announce(k1)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			return err
-		}
-		err = session.Announce(k2)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
-}
-
-func CreateForSession(l logrus.FieldLogger, m Model) model.Operator[session.Model] {
-	sm := WriteSpawnMonster(l)(m, false)
-	return func(s session.Model) error {
-		err := session.Announce(sm)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
-}
-
-func KillForSession(l logrus.FieldLogger, uniqueId uint32) model.Operator[session.Model] {
-	b := WriteKillMonster(l)(uniqueId, true)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
-}
-
-func MoveForSession(l logrus.FieldLogger, objectId uint32, skillPossible bool, skill int8, skillId uint32, skillLevel uint32, option uint16, startX int16, startY int16, movementList []byte) model.Operator[session.Model] {
-	b := WriteMoveMonster(l)(objectId, skillPossible, skill, skillId, skillLevel, option, startX, startY, movementList)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
 	}
 }

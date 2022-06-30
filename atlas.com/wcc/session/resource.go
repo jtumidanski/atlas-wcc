@@ -50,8 +50,6 @@ func getSessionObject(x Model) DataBody {
 		Type: "Session",
 		Attributes: Attributes{
 			AccountId:   x.AccountId(),
-			WorldId:     x.WorldId(),
-			ChannelId:   x.ChannelId(),
 			CharacterId: x.CharacterId(),
 		},
 	}

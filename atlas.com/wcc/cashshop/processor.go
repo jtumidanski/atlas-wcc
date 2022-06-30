@@ -28,13 +28,7 @@ func UpdateCashAmounts(l logrus.FieldLogger, span opentracing.Span) func(worldId
 
 func writeCashAmounts(l logrus.FieldLogger) func(credit uint32, points uint32, prepaid uint32) model.Operator[session.Model] {
 	return func(credit uint32, points uint32, prepaid uint32) model.Operator[session.Model] {
-		return func(s session.Model) error {
-			err := session.Announce(WriteCashInformation(l)(credit, points, prepaid))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to write cash information to character %d.", s.CharacterId())
-			}
-			return err
-		}
+		return session.Announce(WriteCashInformation(l)(credit, points, prepaid))
 	}
 }
 

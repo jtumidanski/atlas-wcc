@@ -2,6 +2,7 @@ package wishlist
 
 import (
 	"atlas-wcc/kafka"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
@@ -25,20 +26,17 @@ type statusEvent struct {
 
 func handleStatusEvent(_ byte, _ byte) kafka.HandlerFunc[statusEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event statusEvent) {
-		s, err := session.GetByCharacterId(event.CharacterId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to locate session for character %d entering cash shop.", event.CharacterId)
-			return
-		}
+		session.ForSessionByCharacterId(event.CharacterId, showWishList(l, span)(event.CharacterId))
+	}
+}
 
-		wl, err := GetById(l, span)(s.CharacterId())
+func showWishList(l logrus.FieldLogger, span opentracing.Span) func(characterId uint32) model.Operator[session.Model] {
+	return func(characterId uint32) model.Operator[session.Model] {
+		wl, err := GetById(l, span)(characterId)
 		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve wishlist for character %d.", event.CharacterId)
+			l.WithError(err).Errorf("Unable to retrieve wishlist for character %d.", characterId)
+			return model.ErrorOperator[session.Model](err)
 		}
-		err = session.Announce(WriteWishList(l)(wl, true))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to write wish list to character %d.", event.CharacterId)
-			return
-		}
+		return session.Announce(WriteWishList(l)(wl, true))
 	}
 }

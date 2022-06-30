@@ -48,33 +48,20 @@ func handleControl(wid byte, cid byte) kafka.HandlerFunc[controlEvent] {
 }
 
 func stopControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) model.Operator[session.Model] {
-	return func(s session.Model) error {
-		m, err := GetById(l, span)(event.UniqueId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
-			return err
-		}
-		l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = session.Announce(WriteStopControlMonster(l)(m))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to stop control of %d by %d", event.UniqueId, event.CharacterId)
-		}
-		return err
+	m, err := GetById(l, span)(event.UniqueId)
+	if err != nil {
+		l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
+		return model.ErrorOperator[session.Model](err)
 	}
+	l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
+	return session.Announce(WriteStopControlMonster(l)(m))
 }
 
 func startControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) model.Operator[session.Model] {
-	return func(s session.Model) error {
-		m, err := GetById(l, span)(event.UniqueId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
-			return err
-		}
-		l.Infof("Starting control of %d for character %d.", event.UniqueId, event.CharacterId)
-		err = session.Announce(WriteControlMonster(l)(m, false, false))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to start control of %d by %d", event.UniqueId, event.CharacterId)
-		}
-		return err
+	m, err := GetById(l, span)(event.UniqueId)
+	if err != nil {
+		l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
+		return model.ErrorOperator[session.Model](err)
 	}
+	return session.Announce(WriteControlMonster(l)(m, false, false))
 }

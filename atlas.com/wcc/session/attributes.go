@@ -12,7 +12,5 @@ type DataBody struct {
 
 type Attributes struct {
 	AccountId   uint32 `json:"accountId"`
-	WorldId     byte   `json:"worldId"`
-	ChannelId   byte   `json:"channelId"`
 	CharacterId uint32 `json:"characterId"`
 }

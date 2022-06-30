@@ -44,7 +44,7 @@ func readReactorHit(r *request.RequestReader) interface{} {
 	}
 }
 
-func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readReactorHit(r)
 		if val, ok := p.(*reactorHitRequest); ok {
@@ -54,15 +54,7 @@ func HandleReactorHit(l logrus.FieldLogger, span opentracing.Span) func(s sessio
 				return
 			}
 
-			reactor.Hit(l, span)(
-				s.WorldId(),
-				s.ChannelId(),
-				c.MapId(),
-				s.CharacterId(),
-				val.Id(),
-				val.Stance(),
-				val.SkillId(),
-			)
+			reactor.Hit(l, span)(worldId, channelId, c.MapId(), s.CharacterId(), val.Id(), val.Stance(), val.SkillId())
 		}
 	}
 }

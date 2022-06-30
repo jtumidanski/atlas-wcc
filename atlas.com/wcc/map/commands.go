@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func WarpMapCommandProducer() command.Producer {
+func WarpMapCommandProducer(worldId byte, channelId byte) command.Producer {
 	return func(s session.Model, m string) (command.Executor, bool) {
 		if !s.GM() {
 			return nil, false
@@ -29,7 +29,7 @@ func WarpMapCommandProducer() command.Producer {
 		if err != nil {
 			return nil, false
 		}
-		return WarpMapCommandExecutor(s.WorldId(), s.ChannelId(), s.CharacterId(), uint32(mapId)), true
+		return WarpMapCommandExecutor(worldId, channelId, s.CharacterId(), uint32(mapId)), true
 	}
 }
 

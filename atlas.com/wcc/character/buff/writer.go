@@ -8,8 +8,8 @@ import (
 const OpCodeShowBuff uint16 = 0x20
 const OpCodeCancelBuff uint16 = 0x21
 
-func WriteCancelBuff(l logrus.FieldLogger) func(stats []BuffStat) []byte {
-	return func(stats []BuffStat) []byte {
+func WriteCancelBuff(l logrus.FieldLogger) func(stats []Stat) []byte {
+	return func(stats []Stat) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeCancelBuff)
 		writeLongMask(w, stats)
@@ -18,22 +18,22 @@ func WriteCancelBuff(l logrus.FieldLogger) func(stats []BuffStat) []byte {
 	}
 }
 
-type BuffStat struct {
+type Stat struct {
 	first    bool
 	buffMask uint64
 	amount   uint16
 }
 
-func NewBuffStat(first bool, mask uint64, amount uint16) BuffStat {
-	return BuffStat{first, mask, amount}
+func NewBuffStat(first bool, mask uint64, amount uint16) Stat {
+	return Stat{first, mask, amount}
 }
 
-func (s BuffStat) Amount() uint16 {
+func (s Stat) Amount() uint16 {
 	return s.amount
 }
 
-func WriteShowBuff(l logrus.FieldLogger) func(buffId uint32, buffDuration int32, stats []BuffStat, hasSpecial bool) []byte {
-	return func(buffId uint32, buffDuration int32, stats []BuffStat, hasSpecial bool) []byte {
+func WriteShowBuff(l logrus.FieldLogger) func(buffId uint32, buffDuration int32, stats []Stat, hasSpecial bool) []byte {
+	return func(buffId uint32, buffDuration int32, stats []Stat, hasSpecial bool) []byte {
 		w := response.NewWriter(l)
 		w.WriteShort(OpCodeShowBuff)
 		writeLongMask(w, stats)
@@ -53,7 +53,7 @@ func WriteShowBuff(l logrus.FieldLogger) func(buffId uint32, buffDuration int32,
 	}
 }
 
-func writeLongMask(w *response.Writer, stats []BuffStat) {
+func writeLongMask(w *response.Writer, stats []Stat) {
 	var fm uint64
 	var sm uint64
 

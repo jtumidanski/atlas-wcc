@@ -46,11 +46,6 @@ func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 			return
 		}
 
-		as, err := session.GetByCharacterId(event.CharacterId)
-		if err != nil {
-			l.Errorf("Unable to locate session for character %d.", event.CharacterId)
-			return
-		}
 		gain := event.PersonalGain
 		party := event.PartyGain
 		white := event.White
@@ -59,10 +54,7 @@ func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 			party = 0
 			white = false
 		}
-		err = session.Announce(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white))(as)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to show experience gain to character %d", as.CharacterId())
-		}
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white)))
 	}
 }
 
@@ -88,20 +80,7 @@ func handleMeso(_ byte, _ byte) kafka.HandlerFunc[mesoEvent] {
 }
 
 func showChange(l logrus.FieldLogger, event mesoEvent) model.Operator[session.Model] {
-	mg := WriteShowMesoGain(l)(event.Gain, false)
-	ea := WriteEnableActions(l)
-	return func(s session.Model) error {
-		err := session.Announce(mg)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			return err
-		}
-		err = session.Announce(ea)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
+	return session.Announce(WriteShowMesoGain(l)(event.Gain, false), WriteEnableActions(l))
 }
 
 func StatUpdateConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
@@ -126,23 +105,16 @@ func handleStatisticChange(_ byte, _ byte) kafka.HandlerFunc[statisticEvent] {
 }
 
 func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEvent) model.Operator[session.Model] {
-	return func(s session.Model) error {
-		ca, err := GetById(l, span)(event.CharacterId)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
-			return err
-		}
-
-		var statUpdates []StatUpdate
-		for _, t := range event.Updates {
-			statUpdates = append(statUpdates, getStatUpdate(ca, t))
-		}
-		err = session.Announce(WriteCharacterStatUpdate(l)(statUpdates, true))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to write character stat update for %d", event.CharacterId)
-		}
-		return err
+	ca, err := GetById(l, span)(event.CharacterId)
+	if err != nil {
+		l.WithError(err).Errorf("Unable to retrive character %d properties", event.CharacterId)
+		return model.ErrorOperator[session.Model](err)
 	}
+	var statUpdates []StatUpdate
+	for _, t := range event.Updates {
+		statUpdates = append(statUpdates, getStatUpdate(ca, t))
+	}
+	return session.Announce(WriteCharacterStatUpdate(l)(statUpdates, true))
 }
 
 func getStatUpdate(ca Model, stat string) StatUpdate {

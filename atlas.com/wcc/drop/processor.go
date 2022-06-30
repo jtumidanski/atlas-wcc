@@ -69,27 +69,3 @@ func SpawnDropForSession(l logrus.FieldLogger) func(s session.Model) model.Opera
 		}
 	}
 }
-
-func RemoveDropForSession(l logrus.FieldLogger) func(dropId uint32, characterId uint32) model.Operator[session.Model] {
-	return func(dropId uint32, characterId uint32) model.Operator[session.Model] {
-		return func(s session.Model) error {
-			err := session.Announce(WriteRemoveItem(l)(dropId, 2, characterId))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
-		}
-	}
-}
-
-func ExpireDropForSession(l logrus.FieldLogger) func(dropId uint32) model.Operator[session.Model] {
-	return func(dropId uint32) model.Operator[session.Model] {
-		return func(s session.Model) error {
-			err := session.Announce(WriteRemoveItem(l)(dropId, 0, 0))(s)
-			if err != nil {
-				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			}
-			return err
-		}
-	}
-}

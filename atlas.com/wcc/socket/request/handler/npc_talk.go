@@ -60,7 +60,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 	}
 }
 
-func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readNPCTalkRequest(r)
 
@@ -88,7 +88,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span) func(s se
 		}
 
 		if conversation.HasScript(l)(npc.Id()) {
-			npc2.StartConversation(l, span)(s.WorldId(), s.ChannelId(), ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
+			npc2.StartConversation(l, span)(worldId, channelId, ca.MapId(), ca.Id(), npc.Id(), npc.ObjectId())
 			return
 		}
 		if shop.HasShop(l, span)(npc.Id()) {

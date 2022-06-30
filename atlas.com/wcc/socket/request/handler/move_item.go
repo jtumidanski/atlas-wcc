@@ -42,7 +42,7 @@ func readMoveItemRequest(reader *request.RequestReader) moveItemRequest {
 	return moveItemRequest{inventoryType: inventoryType, source: source, action: action, quantity: quantity}
 }
 
-func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readMoveItemRequest(r)
 		// adjust for client indexing positive from 1 not 0
@@ -54,7 +54,7 @@ func MoveItemHandler(l logrus.FieldLogger, span opentracing.Span) func(s session
 		} else if p.Action() < 0 {
 			character.EquipItem(l, span)(s.CharacterId(), source, action)
 		} else if p.Action() == 0 {
-			character.DropItem(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
+			character.DropItem(l, span)(worldId, channelId, s.CharacterId(), p.InventoryType(), p.Source(), p.Quantity())
 		} else {
 			character.MoveItem(l, span)(s.CharacterId(), p.InventoryType(), p.Source(), p.Action())
 		}

@@ -24,7 +24,7 @@ func readDistributeSpRequest(reader *request.RequestReader) distributeSpRequest 
 	return distributeSpRequest{skillId}
 }
 
-func DistributeSpHandler(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func DistributeSpHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readDistributeSpRequest(r)
 		character.DistributeSp(l, span)(s.CharacterId(), p.SkillId())

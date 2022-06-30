@@ -84,13 +84,10 @@ func handleCreateInstruction(l logrus.FieldLogger) func(span opentracing.Span) f
 					}
 
 					attr := input.Data.Attributes
-					err = session.Announce(character.WriteHint(l)(attr.Message, attr.Width, attr.Height))(s)
+					err = session.Announce(character.WriteHint(l)(attr.Message, attr.Width, attr.Height), properties.WriteEnableActions(l))(s)
 					if err != nil {
 						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-					}
-					err = session.Announce(properties.WriteEnableActions(l))(s)
-					if err != nil {
-						l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
+						w.WriteHeader(http.StatusInternalServerError)
 					}
 
 					w.WriteHeader(http.StatusNoContent)

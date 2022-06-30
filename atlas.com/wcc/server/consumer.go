@@ -36,23 +36,19 @@ type noticeEvent struct {
 	Message     string `json:"message"`
 }
 
-func handleNotice(_ byte, _ byte) kafka.HandlerFunc[noticeEvent] {
+func handleNotice(_ byte, channelId byte) kafka.HandlerFunc[noticeEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event noticeEvent) {
 		if _, err := session.GetByCharacterId(event.RecipientId); err != nil {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.RecipientId, showNotice(l, event))
+		session.ForSessionByCharacterId(event.RecipientId, showNotice(l)(channelId, event))
 	}
 }
 
-func showNotice(l logrus.FieldLogger, event noticeEvent) model.Operator[session.Model] {
-	return func(s session.Model) error {
-		err := session.Announce(WriteServerNotice(l)(s.ChannelId(), getNoticeByType(event.Type), event.Message, false, 0))(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+func showNotice(l logrus.FieldLogger) func(channelId byte, event noticeEvent) model.Operator[session.Model] {
+	return func(channelId byte, event noticeEvent) model.Operator[session.Model] {
+		return session.Announce(WriteServerNotice(l)(channelId, getNoticeByType(event.Type), event.Message, false, 0))
 	}
 }
 

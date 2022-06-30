@@ -65,7 +65,7 @@ func readCharacterDamageRequest(reader *request.RequestReader) characterDamageRe
 	}
 }
 
-func HandleCharacterDamageRequest(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandleCharacterDamageRequest(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readCharacterDamageRequest(r)
 		character.Damage(l, span)(s.CharacterId(), p.MonsterIdFrom(), p.ObjectId(), p.DamageFrom(), p.Element(), p.Damage(), p.Direction())

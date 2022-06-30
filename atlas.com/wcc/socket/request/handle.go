@@ -27,14 +27,14 @@ func LoggedInValidator(l logrus.FieldLogger, span opentracing.Span) func(s sessi
 	}
 }
 
-type MessageHandler func(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader)
+type MessageHandler func(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader)
 
-func NoOpHandler(_ logrus.FieldLogger, _ opentracing.Span) func(_ session.Model, _ *request.RequestReader) {
+func NoOpHandler(_ logrus.FieldLogger, _ opentracing.Span, _ byte, _ byte) func(_ session.Model, _ *request.RequestReader) {
 	return func(_ session.Model, _ *request.RequestReader) {
 	}
 }
 
-func AdaptHandler(l logrus.FieldLogger, name string, v MessageValidator, h MessageHandler) request.Handler {
+func AdaptHandler(l logrus.FieldLogger, worldId byte, channelId byte, name string, v MessageValidator, h MessageHandler) request.Handler {
 	return func(sessionId uint32, r request.RequestReader) {
 		sl, span := tracing.StartSpan(l, name)
 
@@ -45,7 +45,7 @@ func AdaptHandler(l logrus.FieldLogger, name string, v MessageValidator, h Messa
 		}
 
 		if v(sl, span)(s) {
-			h(sl, span)(s, &r)
+			h(sl, span, worldId, channelId)(s, &r)
 			s = session.UpdateLastRequest()(s.SessionId())
 		}
 		span.Finish()

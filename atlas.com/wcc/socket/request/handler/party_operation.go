@@ -55,16 +55,16 @@ func readPartyOperation(r *request.RequestReader) interface{} {
 	return nil
 }
 
-func HandlePartyOperation(l logrus.FieldLogger, span opentracing.Span) func(s session.Model, r *request.RequestReader) {
+func HandlePartyOperation(l logrus.FieldLogger, span opentracing.Span, worldId byte, channelId byte) func(s session.Model, r *request.RequestReader) {
 	return func(s session.Model, r *request.RequestReader) {
 		p := readPartyOperation(r)
 		ok := false
 
 		if _, ok = p.(*createPartyPacket); ok {
-			party.Create(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId())
+			party.Create(l, span)(worldId, channelId, s.CharacterId())
 			return
 		} else if _, ok = p.(*leavePartyPacket); ok {
-			party.Leave(l, span)(s.WorldId(), s.ChannelId(), s.CharacterId())
+			party.Leave(l, span)(worldId, channelId, s.CharacterId())
 			return
 		}
 

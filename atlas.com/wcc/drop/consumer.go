@@ -42,18 +42,7 @@ func handleReservation(_ byte, _ byte) kafka.HandlerFunc[reservationEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, cancelDropReservation(l, event))
-	}
-}
-
-func cancelDropReservation(l logrus.FieldLogger, _ reservationEvent) model.Operator[session.Model] {
-	b := properties.WriteEnableActions(l)
-	return func(s session.Model) error {
-		err := session.Announce(b)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(properties.WriteEnableActions(l)))
 	}
 }
 
@@ -75,24 +64,7 @@ func handlePickupItem(_ byte, _ byte) kafka.HandlerFunc[pickupItemEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, showItemGain(l, event))
-	}
-}
-
-func showItemGain(l logrus.FieldLogger, event pickupItemEvent) model.Operator[session.Model] {
-	ig := properties.WriteShowItemGain(l)(event.ItemId, event.Quantity)
-	ea := properties.WriteEnableActions(l)
-	return func(s session.Model) error {
-		err := session.Announce(ig)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			return err
-		}
-		err = session.Announce(ea)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(properties.WriteShowItemGain(l)(event.ItemId, event.Quantity), properties.WriteEnableActions(l)))
 	}
 }
 
@@ -120,18 +92,5 @@ func handlePickupNX(_ byte, _ byte) kafka.HandlerFunc[pickupNXEvent] {
 }
 
 func showNXGain(l logrus.FieldLogger, event pickupNXEvent) model.Operator[session.Model] {
-	h := character.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10)
-	ea := properties.WriteEnableActions(l)
-	return func(s session.Model) error {
-		err := session.Announce(h)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-			return err
-		}
-		err = session.Announce(ea)(s)
-		if err != nil {
-			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
-		}
-		return err
-	}
+	return session.Announce(character.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10), properties.WriteEnableActions(l))
 }

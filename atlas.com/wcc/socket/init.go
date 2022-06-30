@@ -20,11 +20,11 @@ func CreateSocketService(l *logrus.Logger, ctx context.Context, wg *sync.WaitGro
 			go func() {
 				wg.Add(1)
 				defer wg.Done()
-				err := socket.Run(l, handlerProducer(l),
+				err := socket.Run(l, handlerProducer(l)(worldId, channelId),
 					socket.SetPort(port),
 					socket.SetSessionCreator(session.Create(l, session.Registry())(worldId, channelId)),
 					socket.SetSessionMessageDecryptor(session.Decrypt(l, session.Registry())),
-					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Registry())),
+					socket.SetSessionDestroyer(session.DestroyByIdWithSpan(l, session.Registry())(worldId, channelId)),
 				)
 				if err != nil {
 					l.WithError(err).Errorf("Socket service encountered error")
@@ -70,44 +70,46 @@ const (
 	CashShopOperation         = "cash_shop_operation"
 )
 
-func handlerProducer(l logrus.FieldLogger) socket.MessageHandlerProducer {
-	handlers := make(map[uint16]request2.Handler)
-	hr := func(op uint16, name string, v request.MessageValidator, h request.MessageHandler) {
-		handlers[op] = request.AdaptHandler(l, name, v, h)
-	}
+func handlerProducer(l logrus.FieldLogger) func(worldId byte, channelId byte) socket.MessageHandlerProducer {
+	return func(worldId byte, channelId byte) socket.MessageHandlerProducer {
+		handlers := make(map[uint16]request2.Handler)
+		hr := func(op uint16, name string, v request.MessageValidator, h request.MessageHandler) {
+			handlers[op] = request.AdaptHandler(l, worldId, channelId, name, v, h)
+		}
 
-	hr(handler.OpCodePong, Pong, request.NoOpValidator, request.NoOpHandler)
-	hr(handler.OpCharacterLoggedIn, CharacterLoggedIn, request.NoOpValidator, handler.CharacterLoggedInHandler)
-	hr(handler.OpChangeMapSpecial, ChangeMapSpecial, request.LoggedInValidator, handler.ChangeMapSpecialHandler)
-	hr(handler.OpMoveCharacter, MoveCharacter, request.LoggedInValidator, handler.MoveCharacterHandler)
-	hr(handler.OpChangeMap, ChangeMap, request.LoggedInValidator, handler.ChangeMapHandler)
-	hr(handler.OpMoveLife, MoveLife, request.LoggedInValidator, handler.MoveLifeHandler)
-	hr(handler.OpGeneralChat, GeneralChat, request.LoggedInValidator, handler.GeneralChatHandler)
-	hr(handler.OpChangeChannel, ChangeChannel, request.LoggedInValidator, handler.ChangeChannelHandler)
-	hr(handler.OpCharacterExpression, CharacterExpression, request.LoggedInValidator, handler.CharacterExpressionHandler)
-	hr(handler.OpCharacterCloseRangeAttack, CharacterCloseRangeAttack, request.LoggedInValidator, handler.CharacterCloseRangeAttackHandler)
-	hr(handler.OpCharacterRangedAttack, CharacterRangedAttack, request.LoggedInValidator, handler.CharacterRangedAttackHandler)
-	hr(handler.OpCharacterMagicAttack, CharacterMagicAttack, request.LoggedInValidator, handler.CharacterMagicAttackHandler)
-	hr(handler.OpCharacterDistributeAp, CharacterDistributeAP, request.LoggedInValidator, handler.DistributeApHandler)
-	hr(handler.OpCharacterDistributeSp, CharacterDistributeSP, request.LoggedInValidator, handler.DistributeSpHandler)
-	hr(handler.OpCharacterHealOverTime, CharacterHealOverTime, request.LoggedInValidator, handler.HealOverTimeHandler)
-	hr(handler.OpCharacterItemPickUp, CharacterItemPickUp, request.LoggedInValidator, handler.ItemPickUpHandler)
-	hr(handler.OpNpcAction, NPCAction, request.LoggedInValidator, handler.HandleNPCAction)
-	hr(handler.OpNpcTalkMore, NPCTalkMore, request.LoggedInValidator, handler.HandleNPCTalkMoreRequest)
-	hr(handler.OpNpcTalk, NPCTalk, handler.CharacterAliveValidator, handler.HandleNPCTalkRequest)
-	hr(handler.OpCharacterDamage, CharacterDamage, request.LoggedInValidator, handler.HandleCharacterDamageRequest)
-	hr(handler.OpMoveItem, MoveItem, request.LoggedInValidator, handler.MoveItemHandler)
-	hr(handler.OpCodeSpecialMove, SpecialMove, request.LoggedInValidator, handler.HandleSpecialMove)
-	hr(handler.OpQuestAction, QuestAction, request.LoggedInValidator, handler.HandleQuestAction)
-	hr(handler.OpInnerPortal, InnerPortal, request.LoggedInValidator, request.NoOpHandler)
-	hr(handler.OpChangeKeyMap, ChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler)
-	hr(handler.OpReactorHit, ReactorHit, request.LoggedInValidator, handler.HandleReactorHit)
-	hr(handler.OpPartyOperation, PartyOperation, request.LoggedInValidator, handler.HandlePartyOperation)
-	hr(handler.OpEnterCashShop, EnterCashShop, request.LoggedInValidator, handler.EnterCashShopHandler)
-	hr(handler.OpTouchingCashShop, TouchCashShop, request.LoggedInValidator, handler.TouchingCashShopHandler)
-	hr(handler.OpCashShopOperation, CashShopOperation, request.LoggedInValidator, handler.CashShopOperationHandler)
+		hr(handler.OpCodePong, Pong, request.NoOpValidator, request.NoOpHandler)
+		hr(handler.OpCharacterLoggedIn, CharacterLoggedIn, request.NoOpValidator, handler.CharacterLoggedInHandler)
+		hr(handler.OpChangeMapSpecial, ChangeMapSpecial, request.LoggedInValidator, handler.ChangeMapSpecialHandler)
+		hr(handler.OpMoveCharacter, MoveCharacter, request.LoggedInValidator, handler.MoveCharacterHandler)
+		hr(handler.OpChangeMap, ChangeMap, request.LoggedInValidator, handler.ChangeMapHandler)
+		hr(handler.OpMoveLife, MoveLife, request.LoggedInValidator, handler.MoveLifeHandler)
+		hr(handler.OpGeneralChat, GeneralChat, request.LoggedInValidator, handler.GeneralChatHandler)
+		hr(handler.OpChangeChannel, ChangeChannel, request.LoggedInValidator, handler.ChangeChannelHandler)
+		hr(handler.OpCharacterExpression, CharacterExpression, request.LoggedInValidator, handler.CharacterExpressionHandler)
+		hr(handler.OpCharacterCloseRangeAttack, CharacterCloseRangeAttack, request.LoggedInValidator, handler.CharacterCloseRangeAttackHandler)
+		hr(handler.OpCharacterRangedAttack, CharacterRangedAttack, request.LoggedInValidator, handler.CharacterRangedAttackHandler)
+		hr(handler.OpCharacterMagicAttack, CharacterMagicAttack, request.LoggedInValidator, handler.CharacterMagicAttackHandler)
+		hr(handler.OpCharacterDistributeAp, CharacterDistributeAP, request.LoggedInValidator, handler.DistributeApHandler)
+		hr(handler.OpCharacterDistributeSp, CharacterDistributeSP, request.LoggedInValidator, handler.DistributeSpHandler)
+		hr(handler.OpCharacterHealOverTime, CharacterHealOverTime, request.LoggedInValidator, handler.HealOverTimeHandler)
+		hr(handler.OpCharacterItemPickUp, CharacterItemPickUp, request.LoggedInValidator, handler.ItemPickUpHandler)
+		hr(handler.OpNpcAction, NPCAction, request.LoggedInValidator, handler.HandleNPCAction)
+		hr(handler.OpNpcTalkMore, NPCTalkMore, request.LoggedInValidator, handler.HandleNPCTalkMoreRequest)
+		hr(handler.OpNpcTalk, NPCTalk, handler.CharacterAliveValidator, handler.HandleNPCTalkRequest)
+		hr(handler.OpCharacterDamage, CharacterDamage, request.LoggedInValidator, handler.HandleCharacterDamageRequest)
+		hr(handler.OpMoveItem, MoveItem, request.LoggedInValidator, handler.MoveItemHandler)
+		hr(handler.OpCodeSpecialMove, SpecialMove, request.LoggedInValidator, handler.HandleSpecialMove)
+		hr(handler.OpQuestAction, QuestAction, request.LoggedInValidator, handler.HandleQuestAction)
+		hr(handler.OpInnerPortal, InnerPortal, request.LoggedInValidator, request.NoOpHandler)
+		hr(handler.OpChangeKeyMap, ChangeKeyMap, request.LoggedInValidator, handler.ChangeKeyMapHandler)
+		hr(handler.OpReactorHit, ReactorHit, request.LoggedInValidator, handler.HandleReactorHit)
+		hr(handler.OpPartyOperation, PartyOperation, request.LoggedInValidator, handler.HandlePartyOperation)
+		hr(handler.OpEnterCashShop, EnterCashShop, request.LoggedInValidator, handler.EnterCashShopHandler)
+		hr(handler.OpTouchingCashShop, TouchCashShop, request.LoggedInValidator, handler.TouchingCashShopHandler)
+		hr(handler.OpCashShopOperation, CashShopOperation, request.LoggedInValidator, handler.CashShopOperationHandler)
 
-	return func() map[uint16]request2.Handler {
-		return handlers
+		return func() map[uint16]request2.Handler {
+			return handlers
+		}
 	}
 }
