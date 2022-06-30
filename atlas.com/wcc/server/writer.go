@@ -24,3 +24,23 @@ func WriteServerNotice(l logrus.FieldLogger) func(channelId byte, t byte, m stri
 		return w.Bytes()
 	}
 }
+
+func WritePinkText(l logrus.FieldLogger) func(message string) []byte {
+	return func(message string) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeServerMessage)
+		w.WriteByte(5)
+		w.WriteAsciiString(message)
+		return w.Bytes()
+	}
+}
+
+func WritePopup(l logrus.FieldLogger) func(message string) []byte {
+	return func(message string) []byte {
+		w := response.NewWriter(l)
+		w.WriteShort(OpCodeServerMessage)
+		w.WriteByte(1)
+		w.WriteAsciiString(message)
+		return w.Bytes()
+	}
+}

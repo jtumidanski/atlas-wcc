@@ -6,30 +6,33 @@ import (
 	"atlas-wcc/cashshop/character/wishlist"
 	"atlas-wcc/character"
 	"atlas-wcc/kafka"
+	"atlas-wcc/server"
 	"atlas-wcc/session"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	consumerNameEnterCashShop = "enter_cash_shop_event"
-	topicTokenEnterCashShop   = "TOPIC_ENTER_CASH_SHOP_EVENT"
+	consumerNameEnterCashShop          = "enter_cash_shop_event"
+	consumerNameCashShopEntryRejection = "cash_shop_entry_rejection_event"
+	topicTokenEnterCashShop            = "TOPIC_ENTER_CASH_SHOP_EVENT"
+	topicTokenCashShopEntryRejection   = "TOPIC_CASH_SHOP_ENTRY_REJECTION_EVENT"
 )
 
-func EnterCashShopEventConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
+func EnterEventConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
 	return func(groupId string) kafka.ConsumerConfig {
-		return kafka.NewConsumerConfig[enterCashShopEvent](consumerNameEnterCashShop, topicTokenEnterCashShop, groupId, handleEnterCashShopEvent(wid, cid))
+		return kafka.NewConsumerConfig[enterEvent](consumerNameEnterCashShop, topicTokenEnterCashShop, groupId, handleEnterEvent(wid, cid))
 	}
 }
 
-type enterCashShopEvent struct {
+type enterEvent struct {
 	WorldId     byte   `json:"world_id"`
 	ChannelId   byte   `json:"channel_id"`
 	CharacterId uint32 `json:"character_id"`
 }
 
-func handleEnterCashShopEvent(worldId byte, channelId byte) kafka.HandlerFunc[enterCashShopEvent] {
-	return func(l logrus.FieldLogger, span opentracing.Span, event enterCashShopEvent) {
+func handleEnterEvent(worldId byte, channelId byte) kafka.HandlerFunc[enterEvent] {
+	return func(l logrus.FieldLogger, span opentracing.Span, event enterEvent) {
 		if worldId != event.WorldId || channelId != event.ChannelId {
 			return
 		}
@@ -89,5 +92,39 @@ func handleEnterCashShopEvent(worldId byte, channelId byte) kafka.HandlerFunc[en
 		}
 
 		_ = writeCashAmounts(l)(cp.Credit(), cp.Points(), cp.Prepaid())(s)
+	}
+}
+
+type entryRejectionEvent struct {
+	WorldId     byte   `json:"world_id"`
+	ChannelId   byte   `json:"channel_id"`
+	CharacterId uint32 `json:"character_id"`
+	MessageType string `json:"message_type"`
+	Message     string `json:"message"`
+}
+
+func EntryRejectionConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
+	return func(groupId string) kafka.ConsumerConfig {
+		return kafka.NewConsumerConfig[entryRejectionEvent](consumerNameCashShopEntryRejection, topicTokenCashShopEntryRejection, groupId, handleRejectionEvent(wid, cid))
+	}
+}
+
+func handleRejectionEvent(worldId byte, channelId byte) kafka.HandlerFunc[entryRejectionEvent] {
+	return func(l logrus.FieldLogger, span opentracing.Span, event entryRejectionEvent) {
+		if worldId != event.WorldId || channelId != event.ChannelId {
+			return
+		}
+
+		var op []byte
+		if event.MessageType == "POP_UP" {
+			op = server.WritePopup(l)(event.Message)
+		} else if event.MessageType == "PINK_TEXT" {
+			op = server.WritePinkText(l)(event.Message)
+		} else {
+			l.Errorf("Unhandled MessageType %s provided to inform character %s of cash shop entry rejection.", event.MessageType, event.CharacterId)
+			return
+		}
+
+		session.ForSessionByCharacterId(event.CharacterId, session.Announce(op))
 	}
 }
