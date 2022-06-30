@@ -36,8 +36,8 @@ func NoOpHandler(_ logrus.FieldLogger, _ opentracing.Span, _ byte, _ byte) func(
 }
 
 func AdaptHandler(l logrus.FieldLogger, worldId byte, channelId byte, name string, v MessageValidator, h MessageHandler) request.Handler {
-	sl, span := tracing.StartSpan(l, name)
 	return func(sessionId uint32, r request.RequestReader) {
+		sl, span := tracing.StartSpan(l, name)
 		session.IfPresentById(sessionId, tryHandle(v(sl, span), h(sl, span, worldId, channelId), &r))
 		span.Finish()
 	}
