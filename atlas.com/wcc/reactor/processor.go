@@ -60,7 +60,7 @@ func makeModel(data requests.DataBody[attributes]) (Model, error) {
 func SpawnForSession(l logrus.FieldLogger) func(s session.Model) model.Operator[Model] {
 	return func(s session.Model) model.Operator[Model] {
 		return func(r Model) error {
-			err := session.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))(s)
+			err := session.Announce(s, WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to show reactor %d creation to session %d.", r.Id(), s.SessionId())
 			}
@@ -76,7 +76,7 @@ func DestroyForSession(l logrus.FieldLogger, span opentracing.Span) func(reactor
 			l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 			return model.ErrorOperator[session.Model](err)
 		}
-		return session.Announce(WriteReactorDestroyed(l)(r.Id(), r.State(), r.X(), r.Y()))
+		return session.AnnounceOperator(WriteReactorDestroyed(l)(r.Id(), r.State(), r.X(), r.Y()))
 	}
 }
 
@@ -87,7 +87,7 @@ func HitForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorId u
 			l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 			return model.ErrorOperator[session.Model](err)
 		}
-		return session.Announce(WriteReactorTrigger(l)(r.Id(), r.State(), r.X(), r.Y(), byte(stance)))
+		return session.AnnounceOperator(WriteReactorTrigger(l)(r.Id(), r.State(), r.X(), r.Y(), byte(stance)))
 	}
 }
 
@@ -98,6 +98,6 @@ func CreateForSession(l logrus.FieldLogger, span opentracing.Span) func(reactorI
 			l.WithError(err).Errorf("Unable to locate reactor to process status of.")
 			return model.ErrorOperator[session.Model](err)
 		}
-		return session.Announce(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
+		return session.AnnounceOperator(WriteReactorSpawn(l)(r.Id(), r.Classification(), r.State(), r.X(), r.Y()))
 	}
 }

@@ -143,7 +143,7 @@ func MoveLifeHandler(l logrus.FieldLogger, span opentracing.Span, _ byte, _ byte
 		startY := p.StartY() - 2
 
 		summary := processMovementList(p.MovementData())
-		err = session.Announce(monster.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))(s)
+		err = session.Announce(s, monster.WriteMoveMonsterResponse(l)(p.ObjectId(), p.MoveId(), 0, false, 0, 0))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}

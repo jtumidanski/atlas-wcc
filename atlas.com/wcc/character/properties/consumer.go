@@ -54,7 +54,7 @@ func handleExperienceGain(_ byte, _ byte) kafka.HandlerFunc[experienceEvent] {
 			party = 0
 			white = false
 		}
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteShowExperienceGain(l)(gain, 0, party, event.Chat, white)))
 	}
 }
 
@@ -75,12 +75,12 @@ func handleMeso(_ byte, _ byte) kafka.HandlerFunc[mesoEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, showChange(l, event))
+		session.IfPresentByCharacterId(event.CharacterId, showChange(l, event))
 	}
 }
 
 func showChange(l logrus.FieldLogger, event mesoEvent) model.Operator[session.Model] {
-	return session.Announce(WriteShowMesoGain(l)(event.Gain, false), WriteEnableActions(l))
+	return session.AnnounceOperator(WriteShowMesoGain(l)(event.Gain, false), WriteEnableActions(l))
 }
 
 func StatUpdateConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
@@ -100,7 +100,7 @@ func handleStatisticChange(_ byte, _ byte) kafka.HandlerFunc[statisticEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, updateStats(l, span, event))
+		session.IfPresentByCharacterId(event.CharacterId, updateStats(l, span, event))
 	}
 }
 
@@ -114,7 +114,7 @@ func updateStats(l logrus.FieldLogger, span opentracing.Span, event statisticEve
 	for _, t := range event.Updates {
 		statUpdates = append(statUpdates, getStatUpdate(ca, t))
 	}
-	return session.Announce(WriteCharacterStatUpdate(l)(statUpdates, true))
+	return session.AnnounceOperator(WriteCharacterStatUpdate(l)(statUpdates, true))
 }
 
 func getStatUpdate(ca Model, stat string) StatUpdate {

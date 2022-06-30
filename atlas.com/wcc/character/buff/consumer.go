@@ -36,7 +36,7 @@ type stat struct {
 
 func handleCharacterBuff(_ byte, _ byte) kafka.HandlerFunc[characterBuffEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterBuffEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteShowBuff(l)(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteShowBuff(l)(event.BuffId, event.Duration, makeBuffStats(event.Stats), event.Special)))
 	}
 }
 
@@ -65,6 +65,6 @@ type characterCancelBuffEvent struct {
 
 func handleCharacterCancelBuff(_ byte, _ byte) kafka.HandlerFunc[characterCancelBuffEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event characterCancelBuffEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteCancelBuff(l)(makeBuffStats(event.Stats))))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteCancelBuff(l)(makeBuffStats(event.Stats))))
 	}
 }

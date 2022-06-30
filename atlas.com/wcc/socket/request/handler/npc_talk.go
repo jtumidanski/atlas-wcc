@@ -31,7 +31,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		v := account.IsLoggedIn(l, span)(s.AccountId())
 		if !v {
 			l.Errorf("Attempting to process a [HandleNPCTalkRequest] when the account %d is not logged in.", s.SessionId())
-			err := session.Announce(properties.WriteEnableActions(l))(s)
+			err := session.Announce(s, properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -41,7 +41,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		ca, err := properties.GetById(l, span)(s.CharacterId())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to locate character %d speaking to npc.", s.CharacterId())
-			err = session.Announce(properties.WriteEnableActions(l))(s)
+			err = session.Announce(s, properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -51,7 +51,7 @@ func CharacterAliveValidator(l logrus.FieldLogger, span opentracing.Span) func(s
 		if ca.Hp() > 0 {
 			return true
 		} else {
-			err = session.Announce(properties.WriteEnableActions(l))(s)
+			err = session.Announce(s, properties.WriteEnableActions(l))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
@@ -97,7 +97,7 @@ func HandleNPCTalkRequest(l logrus.FieldLogger, span opentracing.Span, worldId b
 				l.WithError(err).Errorf("Unable to retrieve shop for npc %d.", npc.Id())
 				return
 			}
-			err = session.Announce(npc2.WriteGetNPCShop(l)(ns))(s)
+			err = session.Announce(s, npc2.WriteGetNPCShop(l)(ns))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to write shop for npc %d to character %d.", npc.Id(), s.CharacterId())
 			}

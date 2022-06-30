@@ -45,7 +45,7 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 
 func SpawnSessionOperator(l logrus.FieldLogger) func(npc Model) model.Operator[session.Model] {
 	return func(npc Model) model.Operator[session.Model] {
-		return session.Announce(WriteSpawnNPC(l)(npc), WriteSpawnNPCController(l)(npc, true))
+		return session.AnnounceOperator(WriteSpawnNPC(l)(npc), WriteSpawnNPCController(l)(npc, true))
 	}
 }
 

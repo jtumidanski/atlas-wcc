@@ -38,7 +38,7 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span, world
 		s = session.SetGm(c.Attributes().Gm())(s.SessionId())
 
 		session.Login(l, span)(worldId, channelId, s.AccountId(), p.CharacterId())
-		err = session.Announce(_map.WriteGetCharacterInfo(l)(channelId, c))(s)
+		err = session.Announce(s, _map.WriteGetCharacterInfo(l)(channelId, c))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 		}
@@ -47,7 +47,7 @@ func CharacterLoggedInHandler(l logrus.FieldLogger, span opentracing.Span, world
 		if err != nil || len(keys) == 0 {
 			l.WithError(err).Warnf("Unable to send keybinding to character %d.", c.Attributes().Id())
 		} else {
-			err = session.Announce(keymap.WriteKeyMap(l)(keys))(s)
+			err = session.Announce(s, keymap.WriteKeyMap(l)(keys))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}

@@ -13,7 +13,7 @@ type registry struct {
 var once sync.Once
 var r *registry
 
-func Registry() *registry {
+func getRegistry() *registry {
 	once.Do(func() {
 		r = &registry{}
 		r.sessionRegistry = make(map[uint32]Model)

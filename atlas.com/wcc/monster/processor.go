@@ -45,7 +45,7 @@ func makeModel(body requests.DataBody[attributes]) (Model, error) {
 
 func SpawnSessionOperator(l logrus.FieldLogger) func(monster Model) model.Operator[session.Model] {
 	return func(m Model) model.Operator[session.Model] {
-		return session.Announce(WriteSpawnMonster(l)(m, false))
+		return session.AnnounceOperator(WriteSpawnMonster(l)(m, false))
 	}
 }
 

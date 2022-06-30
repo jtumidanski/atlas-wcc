@@ -1,19 +1,20 @@
 package session
 
 import (
+	"atlas-wcc/model"
 	"atlas-wcc/tracing"
 	"github.com/opentracing/opentracing-go"
 	"github.com/sirupsen/logrus"
 	"net"
 )
 
-func Create(l logrus.FieldLogger, r *registry) func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
+func Create(l logrus.FieldLogger) func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
 	return func(worldId byte, channelId byte) func(sessionId uint32, conn net.Conn) {
 		return func(sessionId uint32, conn net.Conn) {
 			l.Debugf("Creating session %d.", sessionId)
 
 			s := NewSession(sessionId, conn)
-			r.Add(s)
+			getRegistry().Add(s)
 
 			err := s.WriteHello()
 			if err != nil {
@@ -23,12 +24,13 @@ func Create(l logrus.FieldLogger, r *registry) func(worldId byte, channelId byte
 	}
 }
 
-func Decrypt(_ logrus.FieldLogger, r *registry) func(sessionId uint32, input []byte) []byte {
+func Decrypt(_ logrus.FieldLogger) func(sessionId uint32, input []byte) []byte {
 	return func(sessionId uint32, input []byte) []byte {
-		s, ok := r.Get(sessionId)
-		if !ok {
+		s, err := GetById(sessionId)
+		if err != nil {
 			return input
 		}
+
 		if s.ReceiveAESOFB() == nil {
 			return input
 		}
@@ -36,49 +38,45 @@ func Decrypt(_ logrus.FieldLogger, r *registry) func(sessionId uint32, input []b
 	}
 }
 
-func DestroyAll(l logrus.FieldLogger, span opentracing.Span, r *registry) func(worldId byte, channelId byte) {
+func DestroyAll(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) {
 	return func(worldId byte, channelId byte) {
-		for _, s := range r.GetAll() {
-			Destroy(l, span, r)(worldId, channelId)(s)
-		}
+		ForAll(Destroy(l, span)(worldId, channelId))
 	}
 }
 
-func DestroyById(l logrus.FieldLogger, span opentracing.Span, r *registry) func(worldId byte, channelId byte) func(sessionId uint32) {
+func DestroyById(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) func(sessionId uint32) {
 	return func(worldId byte, channelId byte) func(sessionId uint32) {
 		return func(sessionId uint32) {
-			s, ok := r.Get(sessionId)
-			if !ok {
-				return
-			}
-			Destroy(l, span, r)(worldId, channelId)(s)
+			IfPresentById(sessionId, Destroy(l, span)(worldId, channelId))
 		}
 	}
 }
 
-func DestroyByIdWithSpan(l logrus.FieldLogger, r *registry) func(worldId byte, channelId byte) func(sessionId uint32) {
+func DestroyByIdWithSpan(l logrus.FieldLogger) func(worldId byte, channelId byte) func(sessionId uint32) {
 	return func(worldId byte, channelId byte) func(sessionId uint32) {
 		return func(sessionId uint32) {
 			sl, span := tracing.StartSpan(l, "session_destroy")
-			DestroyById(sl, span, r)(worldId, channelId)(sessionId)
+			DestroyById(sl, span)(worldId, channelId)(sessionId)
 			span.Finish()
 		}
 	}
 }
 
-func Destroy(l logrus.FieldLogger, span opentracing.Span, r *registry) func(worldId byte, channelId byte) func(session Model) {
-	return func(worldId byte, channelId byte) func(session Model) {
-		return func(s Model) {
+func Destroy(l logrus.FieldLogger, span opentracing.Span) func(worldId byte, channelId byte) model.Operator[Model] {
+	return func(worldId byte, channelId byte) model.Operator[Model] {
+		return func(s Model) error {
 			l.Debugf("Destroying session %d.", s.SessionId())
 
-			r.Remove(s.SessionId())
+			getRegistry().Remove(s.SessionId())
 
 			err := s.Disconnect()
 			if err != nil {
 				l.WithError(err).Errorf("Unable to issue disconnect to session %d.", s.SessionId())
+				return err
 			}
 
 			Logout(l, span)(worldId, channelId, s.AccountId(), s.CharacterId())
+			return nil
 		}
 	}
 }

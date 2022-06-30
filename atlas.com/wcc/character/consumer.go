@@ -37,7 +37,7 @@ func handleCreated(wid byte, _ byte) kafka.HandlerFunc[createdEvent] {
 			return
 		}
 
-		session.ForEachGM(session.Announce(writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))))
+		session.ForEachGM(session.AnnounceOperator(writer.WriteYellowTip(l)(fmt.Sprintf(characterCreatedFormat, event.Name))))
 	}
 }
 
@@ -57,6 +57,6 @@ func handleEnableActions(_ byte, _ byte) kafka.HandlerFunc[enableActionsEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(properties.WriteEnableActions(l)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(properties.WriteEnableActions(l)))
 	}
 }

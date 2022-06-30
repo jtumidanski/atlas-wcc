@@ -71,7 +71,7 @@ func handleMessage(wid byte, cid byte) kafka.HandlerFunc[messageEvent] {
 			return
 		}
 
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(WriteChatText(l)(event.CharacterId, event.Message, event.GM, event.Show)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(WriteChatText(l)(event.CharacterId, event.Message, event.GM, event.Show)))
 	}
 }
 
@@ -96,9 +96,9 @@ func HandleMapCharacterEvent(wid byte, cid byte) kafka.HandlerFunc[mapCharacterE
 		}
 
 		if event.Type == "ENTER" {
-			session.ForSessionByCharacterId(event.CharacterId, enterMap(l, span)(event))
+			session.IfPresentByCharacterId(event.CharacterId, enterMap(l, span)(event))
 		} else if event.Type == "EXIT" {
-			ForOtherSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, event.CharacterId, session.Announce(WriteRemoveCharacterFromMap(l)(event.CharacterId)))
+			ForOtherSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, event.CharacterId, session.AnnounceOperator(WriteRemoveCharacterFromMap(l)(event.CharacterId)))
 		} else {
 			l.Warnf("Received a unhandled map character event type of %s.", event.Type)
 			return
@@ -128,14 +128,14 @@ func enterMap(l logrus.FieldLogger, span opentracing.Span) func(event mapCharact
 			// Spawn new character for other character.
 			for k, v := range cm {
 				if k != event.CharacterId {
-					session.ForSessionByCharacterId(k, session.Announce(WriteSpawnCharacter(l)(v, cm[event.CharacterId], true)))
+					session.IfPresentByCharacterId(k, session.AnnounceOperator(WriteSpawnCharacter(l)(v, cm[event.CharacterId], true)))
 				}
 			}
 
 			// Spawn other characters for incoming character.
 			for k, v := range cm {
 				if k != event.CharacterId {
-					err := session.Announce(WriteSpawnCharacter(l)(cm[event.CharacterId], v, false))(s)
+					err := session.Announce(s, WriteSpawnCharacter(l)(cm[event.CharacterId], v, false))
 					if err != nil {
 						l.WithError(err).Errorf("Unable to spawn character %d for %d", v.Attributes().Id(), event.CharacterId)
 					}
@@ -180,7 +180,7 @@ func handleCharacterLevel(wid byte, cid byte) kafka.HandlerFunc[characterLevelEv
 			return
 		}
 
-		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.Announce(WriteShowForeignEffect(l)(event.CharacterId, 0)))
+		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.AnnounceOperator(WriteShowForeignEffect(l)(event.CharacterId, 0)))
 	}
 }
 
@@ -204,7 +204,7 @@ func handleChangeMap(wid byte, cid byte) kafka.HandlerFunc[mapChangedEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, warpCharacter(l, span, event))
+		session.IfPresentByCharacterId(event.CharacterId, warpCharacter(l, span, event))
 	}
 }
 
@@ -214,7 +214,7 @@ func warpCharacter(l logrus.FieldLogger, span opentracing.Span, event mapChanged
 		l.WithError(err).Errorf("Unable to retrieve character %d properties", event.CharacterId)
 		return model.ErrorOperator[session.Model](err)
 	}
-	return session.Announce(WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Hp()))
+	return session.AnnounceOperator(WriteWarpToMap(l)(event.ChannelId, event.MapId, event.PortalId, catt.Hp()))
 }
 
 func MPEaterConsumer(wid byte, cid byte) func(groupId string) kafka.ConsumerConfig {
@@ -233,8 +233,8 @@ type mpEaterEvent struct {
 
 func handleMPEater(_ byte, _ byte) kafka.HandlerFunc[mpEaterEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event mpEaterEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteShowOwnBuff(l)(1, event.SkillId)))
-		ForOtherSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, event.CharacterId, session.Announce(WriteShowBuffEffect(l)(event.CharacterId, 1, event.SkillId, 3)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteShowOwnBuff(l)(1, event.SkillId)))
+		ForOtherSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, event.CharacterId, session.AnnounceOperator(WriteShowBuffEffect(l)(event.CharacterId, 1, event.SkillId, 3)))
 	}
 }
 
@@ -266,7 +266,7 @@ func handleCharacterDamage(wid byte, cid byte) kafka.HandlerFunc[characterDamage
 			return
 		}
 
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(WriteCharacterDamaged(l)(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(WriteCharacterDamaged(l)(event.SkillId, event.MonsterId, event.CharacterId, event.Damage, event.Fake, event.Direction, event.PGMR, event.PGMR1, event.PG, event.MonsterUniqueId, event.X, event.Y)))
 	}
 }
 
@@ -288,7 +288,7 @@ func handleCharacterExpressionChange(wid byte, cid byte) kafka.HandlerFunc[chara
 			return
 		}
 
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(WriteCharacterExpression(l)(event.CharacterId, event.Expression)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(WriteCharacterExpression(l)(event.CharacterId, event.Expression)))
 	}
 }
 
@@ -331,7 +331,7 @@ func handleCharacterMovement(wid byte, cid byte) kafka.HandlerFunc[characterMove
 			return
 		}
 
-		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.Announce(WriteMoveCharacter(l)(event.CharacterId, event.RawMovement)))
+		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.AnnounceOperator(WriteMoveCharacter(l)(event.CharacterId, event.RawMovement)))
 	}
 }
 
@@ -374,7 +374,7 @@ func updateCharacterAppearance(l logrus.FieldLogger, span opentracing.Span) func
 				l.WithError(err).Errorf("Unable to retrieve character %d details.", characterId)
 				return err
 			}
-			err = session.Announce(WriteCharacterLookUpdated(l)(r, c))(s)
+			err = session.Announce(s, WriteCharacterLookUpdated(l)(r, c))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to %d that character %d has changed their look.", s.CharacterId(), characterId)
 			}
@@ -428,7 +428,7 @@ func showDrop(l logrus.FieldLogger, event dropEvent) model.Operator[session.Mode
 		} else {
 			a = event.Meso
 		}
-		err := session.Announce(drop.WriteDropItemFromMapObject(l)(event.UniqueId, event.ItemId, event.Meso, a,
+		err := session.AnnounceOperator(drop.WriteDropItemFromMapObject(l)(event.UniqueId, event.ItemId, event.Meso, a,
 			event.DropperUniqueId, event.DropType, event.OwnerId, event.OwnerPartyId, s.CharacterId(), 0,
 			event.DropTime, event.DropX, event.DropY, event.DropperX, event.DropperY, event.PlayerDrop, event.Mod))(s)
 		if err != nil {
@@ -457,7 +457,7 @@ func handleDropExpiration(wid byte, cid byte) kafka.HandlerFunc[dropExpireEvent]
 			return
 		}
 
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(drop.WriteRemoveItem(l)(event.UniqueId, 0, 0)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(drop.WriteRemoveItem(l)(event.UniqueId, 0, 0)))
 	}
 }
 
@@ -479,7 +479,7 @@ func handlePickup(wid byte, cid byte) kafka.HandlerFunc[pickupEvent] {
 			return
 		}
 
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(drop.WriteRemoveItem(l)(event.DropId, 2, event.CharacterId)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(drop.WriteRemoveItem(l)(event.DropId, 2, event.CharacterId)))
 	}
 }
 
@@ -513,9 +513,9 @@ func handleMonsterEvent(wid byte, cid byte) kafka.HandlerFunc[monsterEvent] {
 
 		var h model.Operator[session.Model]
 		if event.Type == "CREATED" {
-			h = session.Announce(monster.WriteSpawnMonster(l)(m, false))
+			h = session.AnnounceOperator(monster.WriteSpawnMonster(l)(m, false))
 		} else if event.Type == "DESTROYED" {
-			h = session.Announce(monster.WriteKillMonster(l)(m.UniqueId(), false), monster.WriteKillMonster(l)(m.UniqueId(), true))
+			h = session.AnnounceOperator(monster.WriteKillMonster(l)(m.UniqueId(), false), monster.WriteKillMonster(l)(m.UniqueId(), true))
 		} else {
 			l.Warnf("Unable to handle %s event type for monster events.", event.Type)
 			return
@@ -558,7 +558,7 @@ func handleMovement(wid byte, cid byte) kafka.HandlerFunc[monsterMovementEvent] 
 			return
 		}
 
-		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.Announce(monster.WriteMoveMonster(l)(event.UniqueId,
+		ForOtherSessionsInMap(l, span)(wid, cid, c.MapId(), c.Id(), session.AnnounceOperator(monster.WriteMoveMonster(l)(event.UniqueId,
 			event.SkillPossible, event.Skill, event.SkillId, event.SkillLevel, event.Option, event.StartX,
 			event.StartY, event.RawMovement)))
 	}
@@ -594,7 +594,7 @@ func handleDeath(wid byte, cid byte) kafka.HandlerFunc[killedEvent] {
 		}
 
 		l.Infof("Character %d killed %d.", event.UniqueId, event.KillerId)
-		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.Announce(monster.WriteKillMonster(l)(event.UniqueId, true)))
+		ForSessionsInMap(l, span)(wid, cid, event.MapId, session.AnnounceOperator(monster.WriteKillMonster(l)(event.UniqueId, true)))
 	}
 }
 

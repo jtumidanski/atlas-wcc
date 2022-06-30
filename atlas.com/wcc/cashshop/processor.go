@@ -22,13 +22,13 @@ func UpdateCashAmounts(l logrus.FieldLogger, span opentracing.Span) func(worldId
 			return
 		}
 
-		session.ForSessionByCharacterId(characterId, writeCashAmounts(l)(c.Credit(), c.Points(), c.Prepaid()))
+		session.IfPresentByCharacterId(characterId, writeCashAmounts(l)(c.Credit(), c.Points(), c.Prepaid()))
 	}
 }
 
 func writeCashAmounts(l logrus.FieldLogger) func(credit uint32, points uint32, prepaid uint32) model.Operator[session.Model] {
 	return func(credit uint32, points uint32, prepaid uint32) model.Operator[session.Model] {
-		return session.Announce(WriteCashInformation(l)(credit, points, prepaid))
+		return session.AnnounceOperator(WriteCashInformation(l)(credit, points, prepaid))
 	}
 }
 

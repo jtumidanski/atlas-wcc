@@ -58,7 +58,7 @@ func SpawnDropForSession(l logrus.FieldLogger) func(s session.Model) model.Opera
 			} else {
 				a = d.Meso()
 			}
-			err := session.Announce(WriteDropItemFromMapObject(l)(d.UniqueId(), d.ItemId(), d.Meso(), a,
+			err := session.AnnounceOperator(WriteDropItemFromMapObject(l)(d.UniqueId(), d.ItemId(), d.Meso(), a,
 				d.DropperUniqueId(), d.DropType(), d.OwnerId(), d.OwnerPartyId(), s.CharacterId(),
 				0, d.DropTime(), d.DropX(), d.DropY(), d.DropperX(), d.DropperY(),
 				d.CharacterDrop(), d.Mod()))(s)

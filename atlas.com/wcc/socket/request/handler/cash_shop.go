@@ -248,6 +248,7 @@ func CashShopOperationHandler(l logrus.FieldLogger, span opentracing.Span, _ byt
 		p := readCashShopOperation(r)
 		if val, ok := p.(*itemPurchaseRequest); ok {
 			cashshop.RequestItemPurchase(l, span)(s.CharacterId(), val.CashIndex(), val.SerialNumber())
+			return
 		}
 		if val, ok := p.(*modifyWishlistRequest); ok {
 			cashshop.ModifyWishlist(l, span)(s.CharacterId(), val.SerialNumbers())

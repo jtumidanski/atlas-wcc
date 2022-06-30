@@ -2,6 +2,7 @@ package request
 
 import (
 	"atlas-wcc/account"
+	"atlas-wcc/model"
 	"atlas-wcc/session"
 	"atlas-wcc/tracing"
 	"github.com/jtumidanski/atlas-socket/request"
@@ -35,19 +36,19 @@ func NoOpHandler(_ logrus.FieldLogger, _ opentracing.Span, _ byte, _ byte) func(
 }
 
 func AdaptHandler(l logrus.FieldLogger, worldId byte, channelId byte, name string, v MessageValidator, h MessageHandler) request.Handler {
+	sl, span := tracing.StartSpan(l, name)
 	return func(sessionId uint32, r request.RequestReader) {
-		sl, span := tracing.StartSpan(l, name)
-
-		s, ok := session.Registry().Get(sessionId)
-		if !ok {
-			sl.Errorf("Unable to locate session %d", sessionId)
-			return
-		}
-
-		if v(sl, span)(s) {
-			h(sl, span, worldId, channelId)(s, &r)
-			s = session.UpdateLastRequest()(s.SessionId())
-		}
+		session.IfPresentById(sessionId, tryHandle(v(sl, span), h(sl, span, worldId, channelId), &r))
 		span.Finish()
+	}
+}
+
+func tryHandle(validator func(s session.Model) bool, handler func(_ session.Model, _ *request.RequestReader), reader *request.RequestReader) model.Operator[session.Model] {
+	return func(s session.Model) error {
+		if validator(s) {
+			handler(s, reader)
+		}
+		s = session.UpdateLastRequest()(s.SessionId())
+		return nil
 	}
 }

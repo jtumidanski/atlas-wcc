@@ -32,6 +32,6 @@ func handleUpdate(_ byte, _ byte) kafka.HandlerFunc[updateEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteCharacterSkillUpdate(l)(event.SkillId, event.Level, event.MasterLevel, event.Expiration)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteCharacterSkillUpdate(l)(event.SkillId, event.Level, event.MasterLevel, event.Expiration)))
 	}
 }

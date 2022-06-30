@@ -35,7 +35,7 @@ func handleStatus(wid byte, _ byte) kafka.HandlerFunc[statusEvent] {
 
 		if event.Type == "CREATED" {
 			l.Debugf("Party %d created for character %d.", event.PartyId, event.CharacterId)
-			session.ForSessionByCharacterId(event.CharacterId, session.Announce(WritePartyCreated(l)(event.PartyId)))
+			session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WritePartyCreated(l)(event.PartyId)))
 		} else if event.Type == "DISBANDED" {
 			l.Debugf("Party %d disbanded.", event.PartyId)
 		}
@@ -62,7 +62,7 @@ func handleMemberStatus(wid byte, cid byte) kafka.HandlerFunc[memberStatusEvent]
 			return
 		}
 		if event.Type == "DISBANDED" {
-			session.ForSessionByCharacterId(event.CharacterId, session.Announce(WritePartyDisbanded(l)(event.PartyId, event.CharacterId)))
+			session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WritePartyDisbanded(l)(event.PartyId, event.CharacterId)))
 		}
 	}
 }

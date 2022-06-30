@@ -147,7 +147,7 @@ func main() {
 
 	sl, span = tracing.StartSpan(l, "shutdown")
 	channel.ShutdownChannelServer(sl, span)(wid, cid, ha, uint32(port))
-	session.DestroyAll(sl, span, session.Registry())
+	session.DestroyAll(sl, span)(wid, cid)
 	span.Finish()
 
 	l.Infoln("Service shutdown.")

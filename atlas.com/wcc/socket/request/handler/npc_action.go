@@ -54,12 +54,12 @@ func HandleNPCAction(l logrus.FieldLogger, _ opentracing.Span, _ byte, _ byte) f
 	return func(s session.Model, r *request.RequestReader) {
 		p := readNPCAction(r)
 		if val, ok := p.(*npcAnimationRequest); ok {
-			err := session.Announce(npc.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))(s)
+			err := session.Announce(s, npc.WriteNPCAnimation(l)(val.ObjectId(), val.Second(), val.Third()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}
 		} else if val, ok := p.(*npcMoveRequest); ok {
-			err := session.Announce(npc.WriteNPCMove(l)(val.Movement()))(s)
+			err := session.Announce(s, npc.WriteNPCMove(l)(val.Movement()))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to announce to character %d", s.CharacterId())
 			}

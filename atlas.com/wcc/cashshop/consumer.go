@@ -57,19 +57,19 @@ func handleEnterEvent(worldId byte, channelId byte) kafka.HandlerFunc[enterEvent
 
 		scis := make([]SpecialCashItem, 0)
 
-		err = session.Announce(WriteOpenCashShop(l)(a, c, scis))(s)
+		err = session.Announce(s, WriteOpenCashShop(l)(a, c, scis))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write cash shop opening packet to character %d.", event.CharacterId)
 			return
 		}
 
-		err = session.Announce(WriteCashInventory(l)(a, c))(s)
+		err = session.Announce(s, WriteCashInventory(l)(a, c))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write cash inventory to character %d.", event.CharacterId)
 			return
 		}
 
-		err = session.Announce(WriteCashGifts(l)())(s)
+		err = session.Announce(s, WriteCashGifts(l)())
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write cash gifts to character %d.", event.CharacterId)
 			return
@@ -79,7 +79,7 @@ func handleEnterEvent(worldId byte, channelId byte) kafka.HandlerFunc[enterEvent
 		if err != nil {
 			l.WithError(err).Errorf("Unable to retrieve wishlist for character %d.", event.CharacterId)
 		}
-		err = session.Announce(wishlist.WriteWishList(l)(wl, false))(s)
+		err = session.Announce(s, wishlist.WriteWishList(l)(wl, false))
 		if err != nil {
 			l.WithError(err).Errorf("Unable to write wish list to character %d.", event.CharacterId)
 			return
@@ -125,6 +125,6 @@ func handleRejectionEvent(worldId byte, channelId byte) kafka.HandlerFunc[entryR
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(op))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(op))
 	}
 }

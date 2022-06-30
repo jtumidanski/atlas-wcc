@@ -42,7 +42,7 @@ func handleReservation(_ byte, _ byte) kafka.HandlerFunc[reservationEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(properties.WriteEnableActions(l)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(properties.WriteEnableActions(l)))
 	}
 }
 
@@ -64,7 +64,7 @@ func handlePickupItem(_ byte, _ byte) kafka.HandlerFunc[pickupItemEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(properties.WriteShowItemGain(l)(event.ItemId, event.Quantity), properties.WriteEnableActions(l)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(properties.WriteShowItemGain(l)(event.ItemId, event.Quantity), properties.WriteEnableActions(l)))
 	}
 }
 
@@ -87,10 +87,10 @@ func handlePickupNX(_ byte, _ byte) kafka.HandlerFunc[pickupNXEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, showNXGain(l, event))
+		session.IfPresentByCharacterId(event.CharacterId, showNXGain(l, event))
 	}
 }
 
 func showNXGain(l logrus.FieldLogger, event pickupNXEvent) model.Operator[session.Model] {
-	return session.Announce(character.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10), properties.WriteEnableActions(l))
+	return session.AnnounceOperator(character.WriteHint(l)(fmt.Sprintf(nxGainFormat, event.Gain), 300, 10), properties.WriteEnableActions(l))
 }

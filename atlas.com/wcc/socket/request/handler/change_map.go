@@ -57,7 +57,7 @@ func ChangeMapHandler(l logrus.FieldLogger, span opentracing.Span, worldId byte,
 				l.WithError(err).Fatalf("Unable to read port from environment.")
 				return
 			}
-			err = session.Announce(channel.WriteChangeChannel(l)(ha, uint16(port)))(s)
+			err = session.Announce(s, channel.WriteChangeChannel(l)(ha, uint16(port)))
 			if err != nil {
 				l.WithError(err).Errorf("Unable to return character %d from cash shop.", s.CharacterId())
 			}

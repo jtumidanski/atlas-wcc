@@ -42,13 +42,13 @@ func handleNotice(_ byte, channelId byte) kafka.HandlerFunc[noticeEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.RecipientId, showNotice(l)(channelId, event))
+		session.IfPresentByCharacterId(event.RecipientId, showNotice(l)(channelId, event))
 	}
 }
 
 func showNotice(l logrus.FieldLogger) func(channelId byte, event noticeEvent) model.Operator[session.Model] {
 	return func(channelId byte, event noticeEvent) model.Operator[session.Model] {
-		return session.Announce(WriteServerNotice(l)(channelId, getNoticeByType(event.Type), event.Message, false, 0))
+		return session.AnnounceOperator(WriteServerNotice(l)(channelId, getNoticeByType(event.Type), event.Message, false, 0))
 	}
 }
 

@@ -44,7 +44,7 @@ func handleCloseRange(wid byte, cid byte) kafka.HandlerFunc[closeRangeEvent] {
 			return
 		}
 
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteCloseRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display)))
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.AnnounceOperator(WriteCloseRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display)))
 	}
 }
 
@@ -76,7 +76,7 @@ func handleMagicAttack(wid byte, cid byte) kafka.HandlerFunc[magicAttackEvent] {
 			return
 		}
 
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge)))
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.AnnounceOperator(WriteMagicAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Charge)))
 	}
 }
 
@@ -108,6 +108,6 @@ func handleRangeAttack(wid byte, cid byte) kafka.HandlerFunc[rangeAttackEvent] {
 			return
 		}
 
-		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.Announce(WriteRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile)))
+		_map.ForSessionsInMap(l, span)(event.WorldId, event.ChannelId, event.MapId, session.AnnounceOperator(WriteRangeAttack(l)(event.CharacterId, event.SkillId, event.SkillLevel, event.Stance, event.AttackedAndDamaged, event.Damage, event.Speed, event.Direction, event.Display, event.Projectile)))
 	}
 }

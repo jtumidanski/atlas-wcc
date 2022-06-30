@@ -33,7 +33,7 @@ type talkCommand struct {
 
 func handleTalk(_ byte, _ byte) kafka.HandlerFunc[talkCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkCommand) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalk(l)(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteNPCTalk(l)(event.NPCId, getNPCTalkType(event.Type), event.Message, getNPCTalkEnd(event.Type), getNPCTalkSpeaker(event.Speaker))))
 	}
 }
 
@@ -110,7 +110,7 @@ type talkNumberCommand struct {
 
 func handleTalkNumber(_ byte, _ byte) kafka.HandlerFunc[talkNumberCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkNumberCommand) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteNPCTalkNum(l)(event.NPCId, event.Message, event.DefaultValue, event.MinimumValue, event.MaximumValue)))
 	}
 }
 
@@ -131,6 +131,6 @@ type talkStyleCommand struct {
 
 func handleTalkStyle(_ byte, _ byte) kafka.HandlerFunc[talkStyleCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event talkStyleCommand) {
-		session.ForSessionByCharacterId(event.CharacterId, session.Announce(WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(WriteNPCTalkStyle(l)(event.NPCId, event.Message, event.Styles)))
 	}
 }

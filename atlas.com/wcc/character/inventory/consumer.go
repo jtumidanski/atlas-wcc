@@ -41,7 +41,7 @@ func handleModification(_ byte, _ byte) kafka.HandlerFunc[modificationEvent] {
 		if _, err := session.GetByCharacterId(event.CharacterId); err != nil {
 			return
 		}
-		session.ForSessionByCharacterId(event.CharacterId, writeModification(l, span)(event))
+		session.IfPresentByCharacterId(event.CharacterId, writeModification(l, span)(event))
 	}
 }
 
@@ -75,7 +75,7 @@ func writeModification(l logrus.FieldLogger, span opentracing.Span) func(event m
 			}
 			result.Modifications = append(result.Modifications, mi)
 		}
-		return session.Announce(WriteCharacterInventoryModification(l)(result))
+		return session.AnnounceOperator(WriteCharacterInventoryModification(l)(result))
 	}
 }
 
@@ -91,6 +91,6 @@ type fullCommand struct {
 
 func handleFull(_ byte, _ byte) kafka.HandlerFunc[fullCommand] {
 	return func(l logrus.FieldLogger, span opentracing.Span, command fullCommand) {
-		session.ForSessionByCharacterId(command.CharacterId, session.Announce(WriteShowInventoryFull(l)))
+		session.IfPresentByCharacterId(command.CharacterId, session.AnnounceOperator(WriteShowInventoryFull(l)))
 	}
 }

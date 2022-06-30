@@ -26,7 +26,7 @@ type statusEvent struct {
 
 func handleStatusEvent(_ byte, _ byte) kafka.HandlerFunc[statusEvent] {
 	return func(l logrus.FieldLogger, span opentracing.Span, event statusEvent) {
-		session.ForSessionByCharacterId(event.CharacterId, showWishList(l, span)(event.CharacterId))
+		session.IfPresentByCharacterId(event.CharacterId, showWishList(l, span)(event.CharacterId))
 	}
 }
 
@@ -37,6 +37,6 @@ func showWishList(l logrus.FieldLogger, span opentracing.Span) func(characterId 
 			l.WithError(err).Errorf("Unable to retrieve wishlist for character %d.", characterId)
 			return model.ErrorOperator[session.Model](err)
 		}
-		return session.Announce(WriteWishList(l)(wl, true))
+		return session.AnnounceOperator(WriteWishList(l)(wl, true))
 	}
 }

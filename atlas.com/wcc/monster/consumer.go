@@ -43,7 +43,7 @@ func handleControl(wid byte, cid byte) kafka.HandlerFunc[controlEvent] {
 			return
 		}
 
-		session.ForSessionByCharacterId(event.CharacterId, h)
+		session.IfPresentByCharacterId(event.CharacterId, h)
 	}
 }
 
@@ -54,7 +54,7 @@ func stopControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent
 		return model.ErrorOperator[session.Model](err)
 	}
 	l.Infof("Stopping control of %d for character %d.", event.UniqueId, event.CharacterId)
-	return session.Announce(WriteStopControlMonster(l)(m))
+	return session.AnnounceOperator(WriteStopControlMonster(l)(m))
 }
 
 func startControl(l logrus.FieldLogger, span opentracing.Span, event controlEvent) model.Operator[session.Model] {
@@ -63,5 +63,5 @@ func startControl(l logrus.FieldLogger, span opentracing.Span, event controlEven
 		l.WithError(err).Errorf("Unable to retrieve monster %d for control change", event.UniqueId)
 		return model.ErrorOperator[session.Model](err)
 	}
-	return session.Announce(WriteControlMonster(l)(m, false, false))
+	return session.AnnounceOperator(WriteControlMonster(l)(m, false, false))
 }
