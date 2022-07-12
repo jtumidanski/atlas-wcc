@@ -5,6 +5,7 @@ import (
 	cc "atlas-wcc/cashshop/character"
 	"atlas-wcc/cashshop/character/wishlist"
 	"atlas-wcc/character"
+	"atlas-wcc/character/properties"
 	"atlas-wcc/kafka"
 	"atlas-wcc/server"
 	"atlas-wcc/session"
@@ -125,6 +126,6 @@ func handleRejectionEvent(worldId byte, channelId byte) kafka.HandlerFunc[entryR
 			return
 		}
 
-		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(op))
+		session.IfPresentByCharacterId(event.CharacterId, session.AnnounceOperator(op, properties.WriteEnableActions(l)))
 	}
 }
